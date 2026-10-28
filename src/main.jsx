@@ -240,51 +240,17 @@ function OptionalSpaceAsset({children}){
 // the flat metal-disc appearance in our bright hangar lighting. Keep the original
 // geometry and texture maps, but render its accretion light independently of
 // directional/ambient illumination, without gray metallic reflections.
+// Preserve the source GLB's authored black-hole materials and lensing details.
+// Its horizontal accretion disk already exists as the 'black hole_ring' group.
+// The previous extra 90-degree scene rotation turned that disk face-on,
+// producing the pink target seen in the screenshot.
 function CosmicVortex(){
  const {scene}=useGLTF('/models/black_hole.glb');
+ const disk=useRef(null);
  const model=React.useMemo(()=>{
   const copy=scene.clone(true);
   copy.traverse(object=>{
-   if(!object.isMesh || !object.material)return;
-   const originals=Array.isArray(object.material)?object.material:[object.material];
-   const materials=originals.map(source=>{
-    const name=source.name||'';
-    if(name==='black_hole_blackoutside'){
-     return new THREE.MeshBasicMaterial({name,color:'#010105',side:THREE.DoubleSide});
-    }
-    if(/^black_hole_light[123]$/.test(name)){
-     // Only the original source's luminous ribbon textures remain visible.
-     // Additive transparency removes the oversized pale gray reflector look.
-     const strength=name.endsWith('1')?.85:name.endsWith('2')?.48:.22;
-     const tint=name.endsWith('1')?'#ffc4a0':name.endsWith('2')?'#fa886f':'#b567aa';
-     return new THREE.MeshBasicMaterial({
-      name,map:source.map,color:tint,transparent:true,opacity:strength,
-      blending:THREE.AdditiveBlending,depthWrite:false,
-      side:THREE.DoubleSide,toneMapped:false
-     });
-    }
-    if(name==='ring'||name==='ring2'){
-     return new THREE.MeshBasicMaterial({
-      name,map:source.map,color:name==='ring'?'#d37589':'#98506f',
-      transparent:true,opacity:name==='ring'?.42:.18,
-      blending:THREE.AdditiveBlending,depthWrite:false,
-      side:THREE.DoubleSide,toneMapped:false
-     });
-    }
-    if(name==='black_hole_center'||name==='black_hole_distortion'){
-     return new THREE.MeshBasicMaterial({
-      name,color:'#000001',transparent:name==='black_hole_distortion',
-      opacity:name==='black_hole_distortion'?.8:1,
-      depthWrite:name==='black_hole_center',side:THREE.DoubleSide
-     });
-    }
-    if(name==='Planet'){
-     // Small source-mesh accent; keep it dark so it does not resemble a moon.
-     return new THREE.MeshBasicMaterial({name,color:'#090812'});
-    }
-    return source.clone();
-   });
-   object.material=Array.isArray(object.material)?materials:materials[0];
+   if(object.name==='black hole_ring')disk.current=object;
   });
   const bounds=new THREE.Box3().setFromObject(copy);
   const size=bounds.getSize(new THREE.Vector3());
@@ -295,12 +261,12 @@ function CosmicVortex(){
   wrapper.scale.setScalar(CELESTIAL_LAYOUT.vortex.diameter/Math.max(size.x,size.y,size.z,1));
   return wrapper;
  },[scene]);
- useEffect(()=>()=>model.traverse(object=>{
-  if(!object.isMesh||!object.material)return;
-  const materials=Array.isArray(object.material)?object.material:[object.material];
-  materials.forEach(material=>material.dispose());
- }),[model]);
- return <group position={CELESTIAL_LAYOUT.vortex.position} rotation={[Math.PI/2,0,-0.15]}>
+ useFrame((_,delta)=>{
+  // The supplied GLB has no animation tracks; animate only the original
+  // disk in its own XY plane (about local Z), not the event-horizon body.
+  if(disk.current)disk.current.rotation.z+=Math.min(delta,0.1)*0.08;
+ });
+ return <group position={CELESTIAL_LAYOUT.vortex.position} rotation={[0,0,-0.15]}>
   <primitive object={model}/>
  </group>;
 }
