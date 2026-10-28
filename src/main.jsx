@@ -72,7 +72,7 @@ function StructuralLEDs({scene,kind}){
    const geometry=new THREE.BufferGeometry();
    geometry.setAttribute('position',new THREE.Float32BufferAttribute(selected,3));
    const material=new THREE.LineBasicMaterial({
-    color:LED_SOFT,transparent:true,opacity:0.24,depthWrite:false,depthTest:true
+    color:LED_PURPLE,transparent:true,opacity:0.38,depthWrite:false,depthTest:true
    });
    const lines=new THREE.LineSegments(geometry,material);
    lines.name='subtle-platform-architectural-led';
@@ -87,7 +87,7 @@ function StructuralLEDs({scene,kind}){
 }
 // Recolor existing blue light-emitting materials and actual light objects in the GLBs.
 // Diffuse chrome/paint colors are deliberately not recolored.
-function RecolorBuiltInLights({scene}){
+function RecolorBuiltInLights({scene,platform=false}){
  useEffect(()=>{
   const swaps=[],lights=[];
   const violet=new THREE.Color(LED_PURPLE);
@@ -112,7 +112,11 @@ function RecolorBuiltInLights({scene}){
     const blueLightSurface=namedLight && isBlueOrCyan(mat.color);
     if(!luminous && !blueLightSurface) return mat;
     const next=mat.clone();
-    if(luminous && next.emissive) next.emissive.copy(violet);
+    if(luminous && next.emissive){
+     next.emissive.copy(violet);
+     // Boost the existing platform light strips, not the UFO or non-emissive surfaces.
+     if(platform) next.emissiveIntensity=Math.max(2.2,next.emissiveIntensity??1);
+    }
     if(blueLightSurface && next.color) next.color.copy(violet);
     swaps.push(next);
     changed=true;
@@ -165,7 +169,7 @@ function Chamber({progress,onFrame}){
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
-  <RecolorBuiltInLights scene={platform.scene}/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
+  <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
   <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights/></group>
  </>;
 }
