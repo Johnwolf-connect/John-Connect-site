@@ -282,8 +282,39 @@ function App(){
  const [pct,setPct]=useState(0),[diag,setDiag]=useState({y:1.4,roof:11.112,inside:true}),[error,setError]=useState('');
  onFrame.current=setDiag;
  useEffect(()=>{
-  const scroll=()=>{const p=window.scrollY/Math.max(1,document.documentElement.scrollHeight-window.innerHeight);progress.current=clamp(p);setPct(Math.round(progress.current*100))};
-  window.addEventListener('scroll',scroll,{passive:true});scroll();return()=>window.removeEventListener('scroll',scroll);
+  const maxScroll=()=>Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+  const update=p=>{progress.current=clamp(p);setPct(Math.round(progress.current*100));};
+  const scroll=()=>update(window.scrollY/maxScroll());
+  // Drive animation directly from wheel input as well as native page scrolling.
+  // This remains usable if a browser/3D canvas fails to advance window.scrollY.
+  const wheel=e=>{
+   if(e.ctrlKey || e.metaKey)return; // preserve browser zoom gestures
+   const scale=e.deltaMode===1?16:e.deltaMode===2?window.innerHeight:1;
+   const delta=e.deltaY*scale;
+   if(!delta)return;
+   e.preventDefault();
+   const next=clamp(progress.current+delta/maxScroll());
+   update(next);
+   window.scrollTo({top:next*maxScroll(),behavior:'instant'});
+  };
+  const key=e=>{
+   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+   const steps={ArrowDown:0.035,ArrowUp:-0.035,PageDown:0.22,PageUp:-0.22,' ':e.shiftKey?-0.22:0.22,Home:-1,End:1};
+   if(!(e.key in steps))return;
+   e.preventDefault();
+   const next=e.key==='Home'?0:e.key==='End'?1:clamp(progress.current+steps[e.key]);
+   update(next);
+   window.scrollTo({top:next*maxScroll(),behavior:'instant'});
+  };
+  window.addEventListener('scroll',scroll,{passive:true});
+  window.addEventListener('wheel',wheel,{passive:false});
+  window.addEventListener('keydown',key);
+  scroll();
+  return ()=>{
+   window.removeEventListener('scroll',scroll);
+   window.removeEventListener('wheel',wheel);
+   window.removeEventListener('keydown',key);
+  };
  },[]);
  const phase=pct<16?'01 / POINT 2 · INTERIOR':pct<68?'02 / FORWARD DEPARTURE':pct<80?'03 / HANGAR EXIT':'04 / CHASE VIEW';
  return <>
