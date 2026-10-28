@@ -86,13 +86,17 @@ class AssetBoundary extends React.Component{
 }
 function OrbitalSlot({definition,index,interaction,reduced}){
  const position=useRef();
- useFrame(({camera})=>{
+ const intro=useRef(0);
+ useFrame(({camera},delta)=>{
   if(!position.current)return;
+  intro.current=THREE.MathUtils.damp(intro.current,interaction.current.arrived?1:0,reduced?100:3.5,Math.min(delta,.1));
+  position.current.visible=intro.current>.015;
+  position.current.scale.setScalar(Math.max(.001,intro.current));
   const distance=32;
   const fieldHeight=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*distance;
   const fieldWidth=fieldHeight*camera.aspect;
   const narrow=window.innerWidth<600;
-  position.current.position.set((shipAnchor(index,false,narrow)-.5)*fieldWidth,28-fieldHeight*.045,-140);
+  position.current.position.set((shipAnchor(index,false,narrow)-.5)*fieldWidth,28-fieldHeight*.045-(1-intro.current)*7,-140);
  });
  return <group ref={position}>
   <AssetBoundary><React.Suspense fallback={null}>
