@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import './style.css';
 import Navigation from './Navigation.jsx';
 import {ARRIVAL,shipAnchor} from './navigation.js';
+import {CELESTIAL_LAYOUT} from './celestial-layout.js';
 const clamp=(v)=>Math.min(1,Math.max(0,v));
 const ease=(v)=>{const t=clamp(v);return t*t*(3-2*t)};
 const vec=(v)=>new THREE.Vector3(...v);
@@ -186,6 +187,21 @@ function RecolorBuiltInLights({scene,platform=false}){
 // First universe layer: sparse, deterministic deep-space stars beyond the hangar.
 // This requires no additional GLBs and leaves the approved flight untouched.
 function DeepSpace(){
+ const nearby=React.useMemo(()=>{
+  // Sparse stars surrounding the flight corridor, with no stars on the path.
+  // Camera translation provides real parallax; these never follow the camera.
+  let seed=9183;
+  const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+  const positions=[];
+  for(let i=0;i<180;i++){
+   const angle=rand()*Math.PI*2, radius=18+rand()*65;
+   positions.push(Math.cos(angle)*radius,28+Math.sin(angle)*radius,-65-rand()*260);
+  }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  return geometry;
+ },[]);
+ useEffect(()=>()=>nearby.dispose(),[nearby]);
  const stars=React.useMemo(()=>{
   let seed=73129;
   const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
@@ -202,9 +218,11 @@ function DeepSpace(){
   return geo;
  },[]);
  useEffect(()=>()=>stars.dispose(),[stars]);
- return <points geometry={stars} frustumCulled={false}>
+ return <><points geometry={stars} frustumCulled={false}>
   <pointsMaterial color="#b6b2cb" size={0.85} sizeAttenuation transparent opacity={0.72} depthWrite={false}/>
- </points>;
+ </points><points geometry={nearby}>
+  <pointsMaterial color="#d7c5f2" size={0.12} sizeAttenuation transparent opacity={0.65} depthWrite={false}/>
+ </points></>;
 }
 // Use the supplied space asset rather than a procedural planet.
 // Keep this under its own Suspense boundary so missing local GLBs do not hide the UFO.
@@ -228,16 +246,18 @@ function CosmicVortex(){
   copy.position.sub(center);
   const wrapper=new THREE.Group();
   wrapper.add(copy);
-  wrapper.scale.setScalar(85/Math.max(size.x,size.y,size.z,1));
+  wrapper.scale.setScalar(CELESTIAL_LAYOUT.vortex.diameter/Math.max(size.x,size.y,size.z,1));
   return wrapper;
  },[scene]);
- return <group position={[94,52,-265]} rotation={[Math.PI/2,0,-0.15]}>
+ return <group position={CELESTIAL_LAYOUT.vortex.position} rotation={[Math.PI/2,0,-0.15]}>
   <primitive object={model}/>
  </group>;
 }
-// A second supplied celestial body gives the universe depth and an offset focal point.
+// A vast body beneath the station establishes scale as the floor leaves the frame.
 // Sized from the GLB's actual dimensions; no replacement sphere or generated texture.
-function DistantPurplePlanet(){
+function DistantPurplePlanet({reduced}){
+ const rotation=useRef();
+ useFrame((_,delta)=>{if(rotation.current && !reduced)rotation.current.rotation.y+=Math.min(delta,.1)*.018;});
  const {scene}=useGLTF('/models/purple_planet.glb');
  const model=React.useMemo(()=>{
   const clone=scene.clone(true);
@@ -247,15 +267,17 @@ function DistantPurplePlanet(){
   clone.position.sub(center);
   const wrapper=new THREE.Group();
   wrapper.add(clone);
-  wrapper.scale.setScalar(27/Math.max(size.x,size.y,size.z,0.001));
+  wrapper.scale.setScalar(CELESTIAL_LAYOUT.stationPlanet.diameter/Math.max(size.x,size.y,size.z,0.001));
   return wrapper;
  },[scene]);
- return <group position={[-62,28,-205]} rotation={[0,0.4,0.1]}>
+ return <group ref={rotation} position={CELESTIAL_LAYOUT.stationPlanet.position} rotation={[0,0.4,0.1]}>
   <primitive object={model}/>
  </group>;
 }
 // Existing spherical moon asset, web-optimized for the live scene.
-function DistantMoon(){
+function DistantMoon({reduced}){
+ const rotation=useRef();
+ useFrame((_,delta)=>{if(rotation.current && !reduced)rotation.current.rotation.y+=Math.min(delta,.1)*.009;});
  const {scene}=useGLTF('/models/audras_moon-web-optimized.glb');
  const model=React.useMemo(()=>{
   const copy=scene.clone(true);
@@ -265,10 +287,10 @@ function DistantMoon(){
   copy.position.sub(center);
   const holder=new THREE.Group();
   holder.add(copy);
-  holder.scale.setScalar(18/Math.max(size.x,size.y,size.z,0.001));
+  holder.scale.setScalar(CELESTIAL_LAYOUT.moon.diameter/Math.max(size.x,size.y,size.z,0.001));
   return holder;
  },[scene]);
- return <group position={[-25,20,-145]} rotation={[0.18,-0.35,0.1]}>
+ return <group ref={rotation} position={CELESTIAL_LAYOUT.moon.position} rotation={[0.18,-0.35,0.1]}>
   <primitive object={model}/>
  </group>;
 }
@@ -349,7 +371,7 @@ function Chamber({progress,onFrame,navigation,reduced}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon/></OptionalSpaceAsset>
+  <DeepSpace/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet reduced={reduced}/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon reduced={reduced}/></OptionalSpaceAsset>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
