@@ -269,9 +269,9 @@ function Chamber({progress,onFrame}){
  const roof=11.112;
  useFrame(({camera,clock},delta)=>{
   const p=progress.current;
-  const t=1-Math.exp(-3.5*Math.min(delta,0.1));
-  smoothPointer.current.x+= (pointer.current.x-smoothPointer.current.x)*t;
-  smoothPointer.current.y+= (pointer.current.y-smoothPointer.current.y)*t;
+  const pointerEase=1-Math.exp(-3.5*Math.min(delta,0.1));
+  smoothPointer.current.x+= (pointer.current.x-smoothPointer.current.x)*pointerEase;
+  smoothPointer.current.y+= (pointer.current.y-smoothPointer.current.y)*pointerEase;
   // The front hangar exit is along negative Z, directly ahead of the initial camera.
   // Stay near docking-pad altitude until clear of the structure; climb afterward.
   const depart=ease((p-.12)/.56);
