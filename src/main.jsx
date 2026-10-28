@@ -512,7 +512,11 @@ function Chamber({progress,onFrame,navigation,reduced}){
   }
   beam.current.visible=beamOpacity.value>.002;
   beam.current.scale.set(12.5,beamHeight,1);
-  beam.current.position.set(0,-0.8-beamHeight*.5,-3.6);
+  // Keep the beam at the ship/orbit depth. Pushing it 3.6 units farther
+  // into perspective space shifted its screen projection toward the center,
+  // so it missed the left/right navigation orbs despite sharing their X.
+  // A tiny offset retains depth ordering without visible horizontal drift.
+  beam.current.position.set(0,-0.8-beamHeight*.5,-0.05);
   beam.current.quaternion.copy(camera.quaternion);
 
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
