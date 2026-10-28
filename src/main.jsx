@@ -16,6 +16,13 @@ const LED_SOFT='#6630a8';
 // Sample the real underside surface and fit short light strips onto the radial ribs.
 // Unlike line overlays, each segment sits just below the visible underside surface.
 function UfoAccentLights({scene}){
+ const engineGlow=useRef();
+ const crownGlow=useRef();
+ useFrame(({clock})=>{
+  const pulse=Math.sin(clock.elapsedTime*1.45);
+  if(engineGlow.current) engineGlow.current.intensity=0.8+0.12*pulse;
+  if(crownGlow.current) crownGlow.current.intensity=0.75+0.08*pulse;
+ });
  useEffect(()=>{
   const parts=[];
   scene.updateMatrixWorld(true);
@@ -75,8 +82,8 @@ function UfoAccentLights({scene}){
    <torusGeometry args={[1.5,0.028,8,128]}/>
    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
   </mesh>
-  <pointLight position={[0,0.12,0]} color={LED_PURPLE} intensity={0.8} distance={2.5} decay={2}/>
-  <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={0.75} distance={3.5} decay={2}/>
+  <pointLight ref={engineGlow} position={[0,0.12,0]} color={LED_PURPLE} intensity={0.8} distance={2.5} decay={2}/>
+  <pointLight ref={crownGlow} position={[0,2.12,0]} color={LED_PURPLE} intensity={0.75} distance={3.5} decay={2}/>
  </>;
 }
 
@@ -249,9 +256,22 @@ function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
  const ship=useRef();
+ const pointer=useRef({x:0,y:0});
+ const smoothPointer=useRef({x:0,y:0});
+ useEffect(()=>{
+  const move=e=>{pointer.current.x=(e.clientX/window.innerWidth-0.5)*2;pointer.current.y=(e.clientY/window.innerHeight-0.5)*2;};
+  const reset=()=>{pointer.current.x=0;pointer.current.y=0;};
+  window.addEventListener('pointermove',move,{passive:true});
+  window.addEventListener('blur',reset);
+  document.addEventListener('pointerleave',reset);
+  return ()=>{window.removeEventListener('pointermove',move);window.removeEventListener('blur',reset);document.removeEventListener('pointerleave',reset);};
+ },[]);
  const roof=11.112;
- useFrame(({camera,clock})=>{
+ useFrame(({camera,clock},delta)=>{
   const p=progress.current;
+  const t=1-Math.exp(-3.5*Math.min(delta,0.1));
+  smoothPointer.current.x+= (pointer.current.x-smoothPointer.current.x)*t;
+  smoothPointer.current.y+= (pointer.current.y-smoothPointer.current.y)*t;
   // The front hangar exit is along negative Z, directly ahead of the initial camera.
   // Stay near docking-pad altitude until clear of the structure; climb afterward.
   const depart=ease((p-.12)/.56);
@@ -259,6 +279,10 @@ function Chamber({progress,onFrame}){
   const y=1.4 + depart*0.8 + climb*12 + Math.sin(clock.elapsedTime*1.6)*.07;
   const z=-depart*34 - climb*16;
   ship.current.position.set(0,y,z);
+  // Gentle cursor-follow tilt, strongest while docked; fades during cinematic chase.
+  const cursorWeight=1-0.7*ease((p-0.22)/0.55);
+  ship.current.rotation.x=-smoothPointer.current.y*0.028*cursorWeight;
+  ship.current.rotation.z=-smoothPointer.current.x*0.038*cursorWeight;
   // Keep the camera behind the UFO (positive Z) throughout the forward exit.
   const close=[0,3.55,8.4];
   const tracking=[5.5,4.8,-5];
