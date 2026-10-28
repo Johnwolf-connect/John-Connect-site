@@ -9,7 +9,9 @@ import {join,resolve} from 'node:path';
 const project=resolve(import.meta.dirname,'..');
 const target=join(project,'public','models');
 mkdirSync(target,{recursive:true});
-const otherNames=['platform.glb','ufo.glb','black_hole.glb','audras_moon-web-optimized.glb'];
+const otherNames=['platform.glb','ufo.glb','black_hole.glb','audras_moon-web-optimized.glb',
+ 'technotron.glb','amethyst_torus.glb','the_great_morpheus.glb'];
+const aliases={'the_great_morpheus.glb':['the_great_morpheus(1).glb']};
 const planet='purple_planet.glb';
 const originalName='purple_planet(5).glb';
 const approvedSha='d9c8694975801df074264107e5199a6936498eb72b6f2f119641685fbba81144';
@@ -23,7 +25,7 @@ function scan(dir,depth=0){
  for(const entry of entries){
   if(entry.name.startsWith('.') || entry.name==='node_modules')continue;
   const full=join(dir,entry.name);
-  if(entry.isFile() && [...otherNames,planet,originalName].includes(entry.name)){
+  if(entry.isFile() && [...otherNames,planet,originalName,...Object.values(aliases).flat()].includes(entry.name)){
    const matches=found.get(entry.name)||[];
    matches.push(full);
    found.set(entry.name,matches);
@@ -65,7 +67,7 @@ if(installed===COLORED_PLANET_SHA){
 for(const name of otherNames){
  const output=join(target,name);
  if(existsSync(output))continue;
- const source=(found.get(name)||[])[0];
+ const source=(found.get(name)||[])[0] || (aliases[name]||[]).flatMap(alias=>found.get(alias)||[])[0];
  if(!source){console.warn('[models] Missing '+name+'; optional objects may not appear.');continue;}
  try{copyFileSync(source,output);console.log('[models] Installed '+name+' from existing local asset');}
  catch(e){console.warn('[models] Could not install '+name+': '+e.message);}
