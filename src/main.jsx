@@ -244,31 +244,76 @@ function OptionalSpaceAsset({children}){
 // Its horizontal accretion disk already exists as the 'black hole_ring' group.
 // The previous extra 90-degree scene rotation turned that disk face-on,
 // producing the pink target seen in the screenshot.
+// Reference-led cinematic black hole. This is an animated camera-facing
+// shader, not a recolor of the original GLB. The source GLB remains untouched.
+// A horizontal rotating accretion disk passes behind and in front of a dark
+// event horizon; gravitational lensing forms warm arcs above and below it.
 function CosmicVortex(){
- const {scene}=useGLTF('/models/black_hole.glb');
- const disk=useRef(null);
- const model=React.useMemo(()=>{
-  const copy=scene.clone(true);
-  copy.traverse(object=>{
-   if(object.name==='black hole_ring')disk.current=object;
-  });
-  const bounds=new THREE.Box3().setFromObject(copy);
-  const size=bounds.getSize(new THREE.Vector3());
-  const center=bounds.getCenter(new THREE.Vector3());
-  copy.position.sub(center);
-  const wrapper=new THREE.Group();
-  wrapper.add(copy);
-  wrapper.scale.setScalar(CELESTIAL_LAYOUT.vortex.diameter/Math.max(size.x,size.y,size.z,1));
-  return wrapper;
- },[scene]);
- useFrame((_,delta)=>{
-  // The supplied GLB has no animation tracks; animate only the original
-  // disk in its own XY plane (about local Z), not the event-horizon body.
-  if(disk.current)disk.current.rotation.z+=Math.min(delta,0.1)*0.08;
+ const surface=useRef();
+ const uniforms=React.useMemo(()=>({uTime:{value:0}}),[]);
+ useFrame(({camera,clock})=>{
+  if(!surface.current)return;
+  surface.current.quaternion.copy(camera.quaternion);
+  uniforms.uTime.value=clock.elapsedTime;
  });
- return <group position={CELESTIAL_LAYOUT.vortex.position} rotation={[0,0,-0.15]}>
-  <primitive object={model}/>
- </group>;
+ const vertex=React.useMemo(()=>`
+ varying vec2 vUv;
+ void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}
+ `,[]);
+ const fragment=React.useMemo(()=>`
+ precision highp float;
+ varying vec2 vUv;
+ uniform float uTime;
+ float gauss(float x,float width){return exp(-x*x/max(width,0.00001));}
+ float noise(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ void main(){
+  // Plane coordinates: center radius ~0.15 in UV, broad disk spans ~0.9.
+  vec2 p=(vUv-0.5)*vec2(2.65,1.35);
+  float x=p.x,y=p.y,r=length(p);
+  float horizon=0.175;
+  // Dust/gas rotates within the horizontal plane; brightness remains
+  // asymmetric and irregular rather than looking like a perfect ellipse.
+  float phase=atan(y,x)*2.8+uTime*0.33;
+  float textureWave=sin(x*31.0+uTime*1.2+sin(x*12.0-uTime*0.5)*2.0);
+  float fine=noise(vec2(floor(x*220.0-uTime*13.0),floor(y*310.0)));
+  float extent=1.10;
+  float envelope=smoothstep(extent,0.22,abs(x));
+  float thickness=mix(0.017,0.031,envelope);
+  float backDisk=gauss(y-0.012,thickness*thickness)*envelope;
+  float frontDisk=gauss(y+0.012,thickness*thickness)*envelope;
+  float disk=(backDisk+frontDisk)*0.62;
+  disk*=0.72+0.18*textureWave+0.16*fine;
+  // Strong horizontal tangent highlights on both sides.
+  float tangent=gauss(abs(x)-horizon,0.018)*gauss(y,0.0014);
+  // Warm, narrow gravitational lens arcs; brighter toward the equator.
+  float theta=atan(y,x);
+  float rim=gauss(r-(horizon+0.017),0.000075);
+  float upper=smoothstep(0.0,0.025,y);
+  float lower=smoothstep(0.0,0.025,-y);
+  float arcLight=rim*(0.78*upper+0.5*lower);
+  float outer=gauss(r-(horizon+0.034),0.0005)*0.15;
+  float rimHalo=gauss(r-(horizon+0.019),0.003)*0.18;
+  float halo=gauss(r,0.075)*0.065;
+  // Dark shadow blocks the disk and background, with a warm photon rim.
+  float shadow=1.0-smoothstep(horizon-0.008,horizon+0.002,r);
+  disk*=1.0-shadow;
+  vec3 warm=vec3(1.0,0.69,0.42);
+  vec3 lightColor=warm*(disk*0.75+arcLight*1.4+outer+rimHalo+tangent*0.9);
+  lightColor+=vec3(1.0,0.85,0.67)*arcLight*0.55;
+  lightColor+=warm*halo*0.35;
+  float brightness=max(lightColor.r,max(lightColor.g,lightColor.b));
+  float alpha=clamp(brightness*0.83+shadow,0.0,0.98);
+  // Black hole interior stays truly dark, not peach/pink.
+  vec3 color=mix(lightColor,vec3(0.001,0.001,0.003),shadow);
+  gl_FragColor=vec4(color,alpha);
+ }
+ `,[]);
+ const diameter=CELESTIAL_LAYOUT.vortex.diameter;
+ return <mesh ref={surface} position={CELESTIAL_LAYOUT.vortex.position} renderOrder={4}>
+  <planeGeometry args={[diameter*2.5,diameter*1.25]}/>
+  <shaderMaterial vertexShader={vertex} fragmentShader={fragment} uniforms={uniforms}
+   transparent depthWrite={false} side={THREE.DoubleSide} toneMapped={false}/>
+ </mesh>;
 }
 // A restrained reflection of the concealed purple planet. This illuminates the
 // lower departure opening without revealing or replacing the actual GLB.
