@@ -10,65 +10,77 @@ const vec=(v)=>new THREE.Vector3(...v);
 // LED accents are attached to the UFO group; original materials remain unchanged.
 // Dimensions are provisional until the local GLB is visually checked.
 const LED_PURPLE='#8b3dff';
+const LED_SOFT='#6630a8';
 function UfoAccentLights(){
  // Model bounds: radius 4.685, underside black assembly y=0.005..0.943.
  // Selected concentric mechanical zones, not an indiscriminate wireframe.
  const lowerBands=[
-  {radius:1.18,y:0.15,tube:0.018},
-  {radius:2.68,y:0.28,tube:0.021},
-  {radius:4.42,y:0.48,tube:0.015}
+  {radius:1.18,y:0.15,tube:0.012},
+  {radius:2.68,y:0.28,tube:0.014},
+  {radius:4.42,y:0.48,tube:0.009}
  ];
  return <>
   {lowerBands.map(({radius,y,tube},i)=>
    <mesh key={i} rotation={[Math.PI/2,0,0]} position={[0,y,0]}>
     <torusGeometry args={[radius,tube,6,128]}/>
-    <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
+    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
    </mesh>
   )}
   {/* Eight short accents mark the radial machinery, with gaps between them. */}
   {Array.from({length:8},(_,i)=>{
    const a=i*Math.PI/4;
-   return <mesh key={i} rotation={[Math.PI/2,0,a]} position={[0,0.31,0]}>
-    <torusGeometry args={[3.25,0.016,6,20,a-0.12,0.24]}/>
-    <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
+   return <mesh key={i} rotation={[Math.PI/2,0,0]} position={[0,0.31,0]}>
+    <torusGeometry args={[3.25,0.011,6,16,a-0.12,0.24]}/>
+    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
    </mesh>;
   })}
-  <pointLight position={[0,-0.15,0]} color={LED_PURPLE} intensity={1.6} distance={5} decay={2}/>
+  <pointLight position={[0,-0.15,0]} color={LED_PURPLE} intensity={0.65} distance={4} decay={2}/>
   {/* Preserve the upper crown LED. */}
   <mesh rotation={[Math.PI/2,0,0]} position={[0,2.02,0]}>
    <torusGeometry args={[1.5,0.028,8,128]}/>
-   <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
+   <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
   </mesh>
-  <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={1.8} distance={4.5} decay={2}/>
+  <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={0.75} distance={3.5} decay={2}/>
  </>;
 }
 
-// Follow the actual GLB mesh edges rather than inventing architectural outlines.
-// High-angle edges emphasize structural breaks while avoiding wireframe triangles.
+// Restrained platform accent lighting: only long, nearly horizontal architectural
+// edges are candidates. This deliberately avoids tracing every mesh triangle.
 function StructuralLEDs({scene,kind}){
  useEffect(()=>{
+  if(kind!=='platform') return;
   const added=[];
   scene.traverse(obj=>{
    if(!obj.isMesh || !obj.geometry) return;
-   // The UFO's black lower assembly contains its underside mechanical detailing.
-   if(kind==='ufo') return; // Deliberate underside accents are handled by UfoAccentLights.
-   // Select platform architecture, excluding tiny high-density surface details.
-   if(kind==='platform' && (obj.geometry.index?.count||obj.geometry.attributes.position.count)>60000) return;
-   const edges=new THREE.EdgesGeometry(obj.geometry,48);
-   const count=edges.attributes.position?.count||0;
-   if(count<4 || count>22000){edges.dispose();return;}
+   const size=new THREE.Vector3();
+   obj.geometry.computeBoundingBox();
+   obj.geometry.boundingBox.getSize(size);
+   if(Math.max(size.x,size.z)<2) return;
+   const edges=new THREE.EdgesGeometry(obj.geometry,65);
+   const positions=edges.getAttribute('position');
+   if(!positions){edges.dispose();return;}
+   const selected=[];
+   for(let i=0;i<positions.count;i+=2){
+    const ax=positions.getX(i),ay=positions.getY(i),az=positions.getZ(i);
+    const bx=positions.getX(i+1),by=positions.getY(i+1),bz=positions.getZ(i+1);
+    const length=Math.hypot(bx-ax,by-ay,bz-az);
+    if(length<0.8 || Math.abs(by-ay)>0.08*length) continue;
+    selected.push(ax,ay,az,bx,by,bz);
+   }
+   edges.dispose();
+   if(selected.length<6 || selected.length>9000) return;
+   const geometry=new THREE.BufferGeometry();
+   geometry.setAttribute('position',new THREE.Float32BufferAttribute(selected,3));
    const material=new THREE.LineBasicMaterial({
-    color:LED_PURPLE,transparent:true,opacity:kind==='platform'?0.46:0.7,
-    depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1
+    color:LED_SOFT,transparent:true,opacity:0.24,depthWrite:false,depthTest:true
    });
-   const lines=new THREE.LineSegments(edges,material);
-   lines.name='structural-violet-led';
-   lines.renderOrder=2;
+   const lines=new THREE.LineSegments(geometry,material);
+   lines.name='subtle-platform-architectural-led';
    obj.add(lines);
-   added.push({obj,lines,edges,material});
+   added.push({obj,lines,geometry,material});
   });
-  return ()=>added.forEach(({obj,lines,edges,material})=>{
-   obj.remove(lines);edges.dispose();material.dispose();
+  return ()=>added.forEach(({obj,lines,geometry,material})=>{
+   obj.remove(lines);geometry.dispose();material.dispose();
   });
  },[scene,kind]);
  return null;
