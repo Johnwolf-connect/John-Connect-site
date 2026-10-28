@@ -212,6 +212,25 @@ function CosmicVortex(){
   <primitive object={model}/>
  </group>;
 }
+// A second supplied celestial body gives the universe depth and an offset focal point.
+// Sized from the GLB's actual dimensions; no replacement sphere or generated texture.
+function DistantPurplePlanet(){
+ const {scene}=useGLTF('/models/purple_planet.glb');
+ const model=React.useMemo(()=>{
+  const clone=scene.clone(true);
+  const bounds=new THREE.Box3().setFromObject(clone);
+  const size=bounds.getSize(new THREE.Vector3());
+  const center=bounds.getCenter(new THREE.Vector3());
+  clone.position.sub(center);
+  const wrapper=new THREE.Group();
+  wrapper.add(clone);
+  wrapper.scale.setScalar(27/Math.max(size.x,size.y,size.z,0.001));
+  return wrapper;
+ },[scene]);
+ return <group position={[-62,28,-205]} rotation={[0,0.4,0.1]}>
+  <primitive object={model}/>
+ </group>;
+}
 function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
@@ -240,7 +259,7 @@ function Chamber({progress,onFrame}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><React.Suspense fallback={null}><CosmicVortex/></React.Suspense>
+  <DeepSpace/><React.Suspense fallback={null}><CosmicVortex/></React.Suspense><React.Suspense fallback={null}><DistantPurplePlanet/></React.Suspense>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
