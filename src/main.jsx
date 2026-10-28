@@ -277,7 +277,7 @@ function CosmicVortex(){
   float textureWave=sin(x*31.0+uTime*1.2+sin(x*12.0-uTime*0.5)*2.0);
   float fine=noise(vec2(floor(x*220.0-uTime*13.0),floor(y*310.0)));
   float extent=1.10;
-  float envelope=smoothstep(extent,0.22,abs(x));
+  float envelope=1.0-smoothstep(0.22,extent,abs(x));
   float thickness=mix(0.017,0.031,envelope);
   float backDisk=gauss(y-0.012,thickness*thickness)*envelope;
   float frontDisk=gauss(y+0.012,thickness*thickness)*envelope;
