@@ -85,6 +85,54 @@ function StructuralLEDs({scene,kind}){
  },[scene,kind]);
  return null;
 }
+// Recolor existing blue light-emitting materials and actual light objects in the GLBs.
+// Diffuse chrome/paint colors are deliberately not recolored.
+function RecolorBuiltInLights({scene}){
+ useEffect(()=>{
+  const swaps=[],lights=[];
+  const violet=new THREE.Color(LED_PURPLE);
+  const isBlue=color=>{
+   if(!color) return false;
+   const hsl={h:0,s:0,l:0};color.getHSL(hsl);
+   return hsl.h>=0.52 && hsl.h<=0.72 && hsl.s>0.3;
+  };
+  scene.traverse(obj=>{
+   if(obj.isLight && isBlue(obj.color)){
+    lights.push([obj,obj.color.clone()]);
+    obj.color.copy(violet);
+   }
+   if(!obj.isMesh || !obj.material) return;
+   const originals=Array.isArray(obj.material)?obj.material:[obj.material];
+   let changed=false;
+   const replacements=originals.map(mat=>{
+    if(!mat) return mat;
+    const luminous=mat.emissive && isBlue(mat.emissive) && (mat.emissiveIntensity??1)>0;
+    const namedLight=/led|neon|emissive|glow|light|strip/i.test(mat.name||'');
+    const blueLightSurface=namedLight && isBlue(mat.color);
+    if(!luminous && !blueLightSurface) return mat;
+    const next=mat.clone();
+    if(luminous) next.emissive.copy(violet);
+    if(blueLightSurface && next.color) next.color.copy(violet);
+    swaps.push(next);
+    changed=true;
+    return next;
+   });
+   if(changed){
+    const previous=obj.material;
+    obj.material=Array.isArray(previous)?replacements:replacements[0];
+    swaps.push({obj,previous});
+   }
+  });
+  return ()=>{
+   swaps.forEach(item=>{
+    if(item.obj) item.obj.material=item.previous;
+    else item.dispose();
+   });
+   lights.forEach(([light,color])=>light.color.copy(color));
+  };
+ },[scene]);
+ return null;
+}
 function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
@@ -116,8 +164,8 @@ function Chamber({progress,onFrame}){
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
-  <StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
-  <group ref={ship}><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights/></group>
+  <RecolorBuiltInLights scene={platform.scene}/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
+  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights/></group>
  </>;
 }
 function App(){
