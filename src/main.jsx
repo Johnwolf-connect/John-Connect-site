@@ -170,6 +170,29 @@ function RecolorBuiltInLights({scene,platform=false}){
  },[scene]);
  return null;
 }
+// First universe layer: sparse, deterministic deep-space stars beyond the hangar.
+// This requires no additional GLBs and leaves the approved flight untouched.
+function DeepSpace(){
+ const stars=React.useMemo(()=>{
+  let seed=73129;
+  const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
+  const points=[];
+  for(let i=0;i<1100;i++){
+   const x=(rand()-.5)*850;
+   const y=(rand()-.5)*600+55;
+   const z=-120-rand()*450;
+   // Avoid a conspicuous star cluster directly in the hangar opening.
+   points.push(x,y,z);
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
+  return geo;
+ },[]);
+ useEffect(()=>()=>stars.dispose(),[stars]);
+ return <points geometry={stars} frustumCulled={false}>
+  <pointsMaterial color="#b6b2cb" size={0.85} sizeAttenuation transparent opacity={0.72} depthWrite={false}/>
+ </points>;
+}
 function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
@@ -198,6 +221,7 @@ function Chamber({progress,onFrame}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
+  <DeepSpace/>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
