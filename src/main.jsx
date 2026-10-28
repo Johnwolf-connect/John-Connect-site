@@ -252,6 +252,24 @@ function DistantPurplePlanet(){
   <primitive object={model}/>
  </group>;
 }
+// Existing spherical moon asset, web-optimized for the live scene.
+function DistantMoon(){
+ const {scene}=useGLTF('/models/audras_moon-web-optimized.glb');
+ const model=React.useMemo(()=>{
+  const copy=scene.clone(true);
+  const bounds=new THREE.Box3().setFromObject(copy);
+  const size=bounds.getSize(new THREE.Vector3());
+  const center=bounds.getCenter(new THREE.Vector3());
+  copy.position.sub(center);
+  const holder=new THREE.Group();
+  holder.add(copy);
+  holder.scale.setScalar(18/Math.max(size.x,size.y,size.z,0.001));
+  return holder;
+ },[scene]);
+ return <group position={[-25,20,-145]} rotation={[0.18,-0.35,0.1]}>
+  <primitive object={model}/>
+ </group>;
+}
 function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
@@ -304,7 +322,7 @@ function Chamber({progress,onFrame}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet/></OptionalSpaceAsset>
+  <DeepSpace/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon/></OptionalSpaceAsset>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
