@@ -253,6 +253,16 @@ function CosmicVortex(){
   <primitive object={model}/>
  </group>;
 }
+// A restrained reflection of the concealed purple planet. This illuminates the
+// lower departure opening without revealing or replacing the actual GLB.
+function PlanetaryBounceGlow({reduced}){
+ const glow=useRef();
+ useFrame(({clock})=>{
+  if(glow.current)glow.current.intensity=reduced?0.45:0.45+0.045*Math.sin(clock.elapsedTime*0.55);
+ });
+ return <pointLight ref={glow} position={[-6,-3,-17]} color="#8e51d8" intensity={0.45} distance={30} decay={2}/>;
+}
+
 // A vast body beneath the station establishes scale as the floor leaves the frame.
 // Sized from the GLB's actual dimensions; no replacement sphere or generated texture.
 function DistantPurplePlanet({reduced}){
@@ -415,7 +425,7 @@ function Chamber({progress,onFrame,navigation,reduced}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet reduced={reduced}/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon reduced={reduced}/></OptionalSpaceAsset>
+  <DeepSpace/><PlanetaryBounceGlow reduced={reduced}/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet reduced={reduced}/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon reduced={reduced}/></OptionalSpaceAsset>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
