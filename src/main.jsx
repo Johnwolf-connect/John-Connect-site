@@ -25,6 +25,36 @@ function UfoAccentLights(){
   <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={1.8} distance={4.5} decay={2}/>
  </>;
 }
+// Follow the actual GLB mesh edges rather than inventing architectural outlines.
+// High-angle edges emphasize structural breaks while avoiding wireframe triangles.
+function StructuralLEDs({scene,kind}){
+ useEffect(()=>{
+  const added=[];
+  scene.traverse(obj=>{
+   if(!obj.isMesh || !obj.geometry) return;
+   // The UFO's black lower assembly contains its underside mechanical detailing.
+   if(kind==='ufo' && !/BLACK/i.test(obj.name)) return;
+   // Select platform architecture, excluding tiny high-density surface details.
+   if(kind==='platform' && (obj.geometry.index?.count||obj.geometry.attributes.position.count)>60000) return;
+   const edges=new THREE.EdgesGeometry(obj.geometry,48);
+   const count=edges.attributes.position?.count||0;
+   if(count<4 || count>22000){edges.dispose();return;}
+   const material=new THREE.LineBasicMaterial({
+    color:LED_PURPLE,transparent:true,opacity:kind==='platform'?0.46:0.7,
+    depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1
+   });
+   const lines=new THREE.LineSegments(edges,material);
+   lines.name='structural-violet-led';
+   lines.renderOrder=2;
+   obj.add(lines);
+   added.push({obj,lines,edges,material});
+  });
+  return ()=>added.forEach(({obj,lines,edges,material})=>{
+   obj.remove(lines);edges.dispose();material.dispose();
+  });
+ },[scene,kind]);
+ return null;
+}
 function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
@@ -56,8 +86,8 @@ function Chamber({progress,onFrame}){
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
-  <primitive object={platform.scene} />
-  <group ref={ship}><primitive object={ufo.scene}/><UfoAccentLights/></group>
+  <StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
+  <group ref={ship}><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights/></group>
  </>;
 }
 function App(){
