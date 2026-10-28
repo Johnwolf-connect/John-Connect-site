@@ -1,1 +1,23 @@
-{"name":"atlanta-launch-chamber","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"vite build","preview":"vite preview --host 127.0.0.1"},"dependencies":{"@react-three/drei":"^9.122.0","@react-three/fiber":"^8.18.0","react":"^18.3.1","react-dom":"^18.3.1","three":"^0.175.0"},"devDependencies":{"vite":"^6.3.0"}}
+{
+  "name": "atlanta-launch-chamber",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "predev": "node scripts/sync-models.mjs",
+    "models": "node scripts/sync-models.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.175.0"
+  },
+  "devDependencies": {
+    "vite": "^6.3.0"
+  }
+}
