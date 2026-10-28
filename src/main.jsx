@@ -13,53 +13,60 @@ const LED_PURPLE='#8b3dff';
 const LED_SOFT='#6630a8';
 // Build underside accents from the actual black mechanical mesh edges.
 // No synthetic concentric rings: only short, recessed structural segments.
+// Sample the real underside surface and fit short light strips onto the radial ribs.
+// Unlike line overlays, each segment sits just below the visible underside surface.
 function UfoAccentLights({scene}){
  useEffect(()=>{
-  const additions=[];
+  const parts=[];
+  scene.updateMatrixWorld(true);
   scene.traverse(obj=>{
-   if(!obj.isMesh || !/UFO_BLACK/i.test(obj.name) || !obj.geometry) return;
-   const geo=obj.geometry;
-   geo.computeBoundingBox();
-   const bb=geo.boundingBox;
-   const radius=Math.max(bb.max.x-bb.min.x,bb.max.z-bb.min.z)/2;
-   const bottom=bb.min.y, height=bb.max.y-bottom;
-   const edges=new THREE.EdgesGeometry(geo,62);
-   const p=edges.getAttribute('position');
-   const selected=[];
-   if(p){
-    for(let i=0;i<p.count;i+=2){
-     const ax=p.getX(i),ay=p.getY(i),az=p.getZ(i);
-     const bx=p.getX(i+1),by=p.getY(i+1),bz=p.getZ(i+1);
-     const mx=(ax+bx)/2,mz=(az+bz)/2;
-     const r=Math.hypot(mx,mz)/radius;
-     const len=Math.hypot(bx-ax,by-ay,bz-az);
-     // Restrict to visible radial machinery, away from the smooth outer shell.
-     if(r<0.34 || r>0.83 || (ay+by)/2>bottom+height*0.68) continue;
-     if(len<radius*0.012 || len>radius*0.16) continue;
-     const dr=Math.abs((bx-ax)*mx+(bz-az)*mz)/(Math.max(0.001,len*Math.hypot(mx,mz)));
-     if(dr<0.76) continue; // follow radial ribs, not circular contours
-     selected.push(ax,ay,az,bx,by,bz);
-     if(selected.length>=3600) break;
+   if(!obj.isMesh || !/UFO_BLACK/i.test(obj.name) || !obj.geometry)return;
+   const box=new THREE.Box3().setFromObject(obj);
+   const center=box.getCenter(new THREE.Vector3());
+   const radius=Math.max(box.max.x-box.min.x,box.max.z-box.min.z)/2;
+   const down=new THREE.Vector3(0,1,0);
+   const ray=new THREE.Raycaster();
+   ray.firstHitOnly=true;
+   const segments=[];
+   // Surface-projected, discrete ribs; the ray hits the actual mechanical mesh.
+   for(let spoke=0;spoke<48;spoke++){
+    const angle=spoke*Math.PI*2/48;
+    const ux=Math.cos(angle),uz=Math.sin(angle);
+    let prev=null;
+    for(let j=0;j<=30;j++){
+     const r=radius*(0.36+j*0.014);
+     const origin=new THREE.Vector3(center.x+ux*r,box.min.y-radius*0.4,center.z+uz*r);
+     ray.set(origin,down);
+     ray.far=radius*1.5;
+     const hit=ray.intersectObject(obj,false)[0];
+     const point=hit?.point;
+     if(prev && point && point.distanceTo(prev)<radius*0.055){
+      const dy=Math.abs(point.y-prev.y);
+      // A short segment follows a continuous rib surface, never bridges gaps.
+      if(dy<radius*0.012 && j%3!==0){
+       const offset=radius*0.0018;
+       segments.push(prev.x,prev.y-offset,prev.z,point.x,point.y-offset,point.z);
+      }
+     }
+     prev=point||null;
     }
    }
-   edges.dispose();
-   if(!selected.length)return;
-   const linesGeo=new THREE.BufferGeometry();
-   linesGeo.setAttribute('position',new THREE.Float32BufferAttribute(selected,3));
-   const mat=new THREE.LineBasicMaterial({
+   if(!segments.length)return;
+   const geometry=new THREE.BufferGeometry();
+   geometry.setAttribute('position',new THREE.Float32BufferAttribute(segments,3));
+   const material=new THREE.LineBasicMaterial({
     color:LED_PURPLE,transparent:true,opacity:0.72,depthTest:true,depthWrite:false
    });
-   const lines=new THREE.LineSegments(linesGeo,mat);
-   lines.name='geometry-following-underside-leds';
-   obj.add(lines);
-   additions.push({obj,lines,linesGeo,mat});
+   const lines=new THREE.LineSegments(geometry,material);
+   lines.name='surface-fitted-underside-rib-leds';
+   scene.add(lines);
+   parts.push({lines,geometry,material});
   });
-  return ()=>additions.forEach(({obj,lines,linesGeo,mat})=>{
-   obj.remove(lines);linesGeo.dispose();mat.dispose();
+  return ()=>parts.forEach(({lines,geometry,material})=>{
+   scene.remove(lines);geometry.dispose();material.dispose();
   });
  },[scene]);
  return <>
-  {/* Keep the approved upper crown; light the engine from its interior. */}
   <mesh rotation={[Math.PI/2,0,0]} position={[0,2.02,0]}>
    <torusGeometry args={[1.5,0.028,8,128]}/>
    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
