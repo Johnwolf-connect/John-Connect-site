@@ -464,7 +464,7 @@ function Chamber({progress,onFrame,navigation,reduced}){
   ship.current.position.lerp(new THREE.Vector3(hoverX.current,restingY+(reduced?0:Math.sin(clock.elapsedTime*1.4)*.08),-140),travel);
   ship.current.rotation.x*=1-travel;
   ship.current.rotation.z*=1-travel;
-  const beamOn=focused!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.8;
+  const beamOn=navigation.current.selected===null && navigation.current.hovered!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.8;
   beamMaterial.current.opacity=THREE.MathUtils.damp(beamMaterial.current.opacity,beamOn?.33:0,12,Math.min(delta,.1));
   if(beamSpot.current)beamSpot.current.intensity=THREE.MathUtils.damp(beamSpot.current.intensity,beamOn?15:0,10,Math.min(delta,.1));
   beam.current.visible=beamMaterial.current.opacity>.002;
