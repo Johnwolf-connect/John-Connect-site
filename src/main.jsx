@@ -296,9 +296,28 @@ function DistantPurplePlanet({reduced}){
    const original=object.material;
    const materials=(Array.isArray(original)?original:[original]).map(source=>{
     const material=source.clone();
-    // Transparent cloud shells blend over the opaque planet without masking
-    // each other in the depth buffer. Keep all authored maps and colors intact.
-    if(material.transparent)material.depthWrite=false;
+    // The source GLB uses a beige-gray diffuse texture for PurplePlanet;
+    // the purple identity comes from its violet material treatment.
+    // Keep the original detail map, but prevent the chamber's strong white
+    // lights and tone mapping from bleaching the surface to pale gray.
+    if(source.name==='PurplePlanet'){
+     const purple=new THREE.MeshBasicMaterial({
+      name:source.name,
+      map:source.map,
+      color:'#9252ed',
+      toneMapped:false,
+      side:source.side,
+      transparent:false,
+      depthWrite:true
+     });
+     material.dispose();
+     return purple;
+    }
+    // Preserve the original translucent cloud textures and their alpha.
+    if(material.transparent){
+     material.depthWrite=false;
+     material.opacity=Math.min(material.opacity,0.42);
+    }
     material.needsUpdate=true;
     return material;
    });
