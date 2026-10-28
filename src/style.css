@@ -15,7 +15,7 @@
 .orbit-choice{pointer-events:auto;position:relative;height:35vh;min-height:190px;display:flex;align-items:flex-end;justify-content:center;border:0;background:transparent;color:#f8f1ff;cursor:pointer;padding:0 5px 0;touch-action:manipulation}
 .orbit-hit{position:absolute;inset:0;border-radius:50%;background:transparent}
 .orbit-label{position:relative;display:block;font:400 clamp(19px,2.6vw,35px) Georgia,serif;letter-spacing:.025em;text-shadow:0 2px 12px #000,0 0 12px #ad6aff33;transition:color .22s,text-shadow .22s,transform .28s}
-.orbit-choice:hover .orbit-label,.orbit-choice:focus-visible .orbit-label{color:#f4ddff;text-shadow:0 0 12px #b55bff,0 0 28px #8e35fa;transform:translateY(-4px)}
+.orbit-choice:hover .orbit-label,.orbit-choice:focus-visible .orbit-label,.orbit-choice.is-active .orbit-label{color:#fff3ff;text-shadow:0 0 3px #fff,0 0 9px #e5a9ff,0 0 20px #b451ff,0 0 44px #8923ff,0 0 70px #7621e9;transform:translateY(-4px)}
 .orbit-choice:focus-visible{outline:2px solid #d4a3ff;outline-offset:-5px;border-radius:22px}
 .orbit-navigation.is-open .choose-caption,.orbit-navigation.is-open .orbit-grid{display:none}
 @media(max-width:600px){.orbit-grid{width:90vw;top:44%}.orbit-choice{height:28vh;min-height:150px}.orbit-label{font-size:clamp(16px,4.5vw,24px)}.orbit-navigation .choose-caption{top:37%;font-size:8px;letter-spacing:.18em}}
