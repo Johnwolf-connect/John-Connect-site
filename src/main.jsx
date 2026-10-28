@@ -4,6 +4,8 @@ import {Canvas,useFrame} from '@react-three/fiber';
 import {useGLTF,Environment} from '@react-three/drei';
 import * as THREE from 'three';
 import './style.css';
+import Navigation from './Navigation.jsx';
+import {ARRIVAL,shipAnchor} from './navigation.js';
 const clamp=(v)=>Math.min(1,Math.max(0,v));
 const ease=(v)=>{const t=clamp(v);return t*t*(3-2*t)};
 const vec=(v)=>new THREE.Vector3(...v);
@@ -270,10 +272,12 @@ function DistantMoon(){
   <primitive object={model}/>
  </group>;
 }
-function Chamber({progress,onFrame}){
+function Chamber({progress,onFrame,navigation,reduced}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
- const ship=useRef();
+ const ship=useRef(),beam=useRef(),beamMaterial=useRef();
+ const hoverX=useRef(0);
+ const cameraTarget=useRef(new THREE.Vector3());
  const pointer=useRef({x:0,y:0});
  const smoothPointer=useRef({x:0,y:0});
  useEffect(()=>{
@@ -286,7 +290,8 @@ function Chamber({progress,onFrame}){
  },[]);
  const roof=11.112;
  useFrame(({camera,clock},delta)=>{
-  const p=progress.current;
+  const total=progress.current;
+  const p=clamp(total/.55);
   const pointerEase=1-Math.exp(-3.5*Math.min(delta,0.1));
   smoothPointer.current.x+= (pointer.current.x-smoothPointer.current.x)*pointerEase;
   smoothPointer.current.y+= (pointer.current.y-smoothPointer.current.y)*pointerEase;
@@ -294,7 +299,7 @@ function Chamber({progress,onFrame}){
   // Stay near docking-pad altitude until clear of the structure; climb afterward.
   const depart=ease((p-.12)/.56);
   const climb=ease((p-.68)/.32);
-  const y=1.4 + depart*0.8 + climb*12 + Math.sin(clock.elapsedTime*1.6)*.07;
+  const y=1.4 + depart*0.8 + climb*12 + (reduced?0:Math.sin(clock.elapsedTime*1.6)*.07);
   const z=-depart*34 - climb*16;
   ship.current.position.set(0,y,z);
   // Gentle cursor-follow tilt, strongest while docked; fades during cinematic chase.
@@ -318,7 +323,29 @@ function Chamber({progress,onFrame}){
   const panY=-smoothPointer.current.y*0.24*panWeight;
   camera.position.x+=panX;
   camera.position.y+=panY;
-  camera.lookAt(panX*0.3,y+0.5+panY*0.3,z);
+  cameraTarget.current.set(panX*0.3,y+0.5+panY*0.3,z);
+  // The approved departure occupies the first 55%; the next segment reveals space.
+  const travel=ease((total-.55)/.35);
+  const width=window.innerWidth, narrow=width<600;
+  const distance=narrow?48:32;
+  const destination=new THREE.Vector3(0,28,-140+distance);
+  camera.position.lerp(destination,travel);
+  cameraTarget.current.lerp(new THREE.Vector3(0,28,-140),travel);
+  camera.lookAt(cameraTarget.current);
+  const fieldHeight=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*distance;
+  const fieldWidth=fieldHeight*camera.aspect;
+  const targetX=(shipAnchor(navigation.current.active,navigation.current.selected!==null,narrow)-.5)*fieldWidth;
+  hoverX.current=THREE.MathUtils.damp(hoverX.current,targetX,reduced?1000:5,Math.min(delta,.1));
+  const restingY=28+fieldHeight*.23-1;
+  ship.current.position.lerp(new THREE.Vector3(hoverX.current,restingY+(reduced?0:Math.sin(clock.elapsedTime*1.4)*.08),-140),travel);
+  ship.current.rotation.x*=1-travel;
+  ship.current.rotation.z*=1-travel;
+  const beamOn=navigation.current.selected!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.4;
+  beamMaterial.current.opacity=THREE.MathUtils.damp(beamMaterial.current.opacity,beamOn?.15:0,5,Math.min(delta,.1));
+  beam.current.visible=beamMaterial.current.opacity>.002;
+  beam.current.scale.set(1,fieldHeight*.30,1);
+  beam.current.position.set(0,-fieldHeight*.15,0);
+
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
@@ -327,56 +354,67 @@ function Chamber({progress,onFrame}){
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
   <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
-  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/></group>
+  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/>
+   <mesh ref={beam} visible={false}><cylinderGeometry args={[.35,5,1,48,1,true]}/><meshBasicMaterial ref={beamMaterial} color="#a663ff" transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending}/></mesh>
+  </group>
+  <PassingTraffic source={ufo.scene} reduced={reduced}/>
  </>;
 }
+function PassingTraffic({source,reduced}){
+ const group=useRef();
+ const copies=React.useMemo(()=>[source.clone(true),source.clone(true),source.clone(true)],[source]);
+ useFrame(({clock})=>{
+  group.current.children.forEach((ship,i)=>{
+   const t=reduced?i*.7:clock.elapsedTime*(.025+i*.006)+i*2.1;
+   ship.position.set(Math.sin(t)*65,32+i*9,-185-i*26);
+   ship.rotation.z=Math.cos(t)*.08;
+  });
+ });
+ return <group ref={group}>{copies.map((model,i)=><group key={i} scale={.16+i*.04}><primitive object={model}/></group>)}</group>;
+}
 function App(){
- const progress=useRef(0),onFrame=useRef(null);
- const [pct,setPct]=useState(0),[diag,setDiag]=useState({y:1.4,roof:11.112,inside:true}),[error,setError]=useState('');
- onFrame.current=setDiag;
+ const progress=useRef(0),onFrame=useRef(null),navigation=useRef({active:0,selected:null});
+ const [pct,setPct]=useState(0),[active,setActive]=useState(0),[selected,setSelected]=useState(null),[error,setError]=useState('');
+ const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+ navigation.current={active,selected};
+ const close=React.useCallback(()=>setSelected(null),[]);
+ useEffect(()=>{
+  const query=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const changed=()=>setReduced(query.matches);query.addEventListener('change',changed);
+  return ()=>query.removeEventListener('change',changed);
+ },[]);
+ useEffect(()=>{
+  if(selected===null)return;
+  const previous=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  return ()=>{document.body.style.overflow=previous;};
+ },[selected]);
  useEffect(()=>{
   const maxScroll=()=>Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
-  const update=p=>{progress.current=clamp(p);setPct(Math.round(progress.current*100));};
-  const scroll=()=>update(window.scrollY/maxScroll());
-  // Drive animation directly from wheel input as well as native page scrolling.
-  // This remains usable if a browser/3D canvas fails to advance window.scrollY.
-  const wheel=e=>{
-   if(e.ctrlKey || e.metaKey)return; // preserve browser zoom gestures
-   const scale=e.deltaMode===1?16:e.deltaMode===2?window.innerHeight:1;
-   const delta=e.deltaY*scale;
-   if(!delta)return;
-   e.preventDefault();
-   const next=clamp(progress.current+delta/maxScroll());
-   update(next);
-   window.scrollTo({top:next*maxScroll(),behavior:'instant'});
-  };
+  const update=()=>{progress.current=clamp(window.scrollY/maxScroll());setPct(progress.current*100);};
   const key=e=>{
-   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
-   const steps={ArrowDown:0.035,ArrowUp:-0.035,PageDown:0.22,PageUp:-0.22,' ':e.shiftKey?-0.22:0.22,Home:-1,End:1};
+   if(navigation.current.selected!==null || e.target.closest('button,a,input,textarea,select,[contenteditable]'))return;
+   const steps={ArrowDown:.035,ArrowUp:-.035,PageDown:.22,PageUp:-.22,' ':e.shiftKey?-.22:.22,Home:-1,End:1};
    if(!(e.key in steps))return;
    e.preventDefault();
    const next=e.key==='Home'?0:e.key==='End'?1:clamp(progress.current+steps[e.key]);
-   update(next);
    window.scrollTo({top:next*maxScroll(),behavior:'instant'});
   };
-  window.addEventListener('scroll',scroll,{passive:true});
-  window.addEventListener('wheel',wheel,{passive:false});
-  window.addEventListener('keydown',key);
-  scroll();
-  return ()=>{
-   window.removeEventListener('scroll',scroll);
-   window.removeEventListener('wheel',wheel);
-   window.removeEventListener('keydown',key);
-  };
+  window.addEventListener('scroll',update,{passive:true});
+  window.addEventListener('resize',update);window.addEventListener('keydown',key);update();
+  return ()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update);window.removeEventListener('keydown',key);};
  },[]);
- const phase=pct<16?'01 / POINT 2 · INTERIOR':pct<68?'02 / FORWARD DEPARTURE':pct<80?'03 / HANGAR EXIT':'04 / CHASE VIEW';
+ const arrived=pct>=ARRIVAL*100;
+ const phase=pct<9?'01 / DOCKING STATION':pct<38?'02 / DEPARTURE':pct<55?'03 / THE ASCENT':!arrived?'04 / OPEN SPACE':'05 / EXPLORE';
  return <>
-  <div className="scene"><Canvas gl={{antialias:true,powerPreference:'high-performance'}} camera={{fov:53,near:0.1,far:700,position:[0,3.55,8.4]}} onCreated={({gl})=>{gl.setClearColor('#090c10')}} onError={e=>setError(String(e))}>
-   <React.Suspense fallback={null}><Chamber progress={progress} onFrame={onFrame}/></React.Suspense>
+  <div className="scene"><Canvas gl={{antialias:true,powerPreference:'high-performance'}} camera={{fov:53,near:.1,far:700,position:[0,3.55,8.4]}} onCreated={({gl})=>gl.setClearColor('#090c10')} onError={e=>setError(String(e))}>
+   <React.Suspense fallback={null}><Chamber progress={progress} onFrame={onFrame} navigation={navigation} reduced={reduced}/></React.Suspense>
   </Canvas></div>
   <div className="scroll-track" aria-hidden="true"/>
-  <header className="overlay"><div className="eyebrow">KASANE / ATLANTA / LAUNCH CHAMBER</div><h1>THE ASCENT</h1><p>Point 2 · Inner docking pad. Scroll to fly forward through the hangar opening, then climb into a third-person chase view.</p><div className="diagnostic">ALT {diag.y.toFixed(1)} / ROOF {diag.roof.toFixed(1)} / CAMERA {diag.inside?'INTERIOR':'EXTERIOR'}</div>{error&&<div className="error">{error}</div>}<button onClick={()=>window.scrollTo({top:0,behavior:'smooth'})}>RESET TO INTERIOR</button></header>
-  <footer><span>{phase}</span><div className="progress"><div style={{width:`${pct}%`}}/></div><span>{pct}%</span></footer>
+  {!arrived && <header className={`overlay ${pct>50?'quiet':''}`}><div className="eyebrow">ATLANTA / THE ASCENT</div><h1>Beyond the familiar.</h1><p>Scroll to leave the dock and explore.</p>{error&&<div className="error">{error}</div>}
+   <button onClick={()=>window.scrollTo({top:(document.documentElement.scrollHeight-window.innerHeight)*.94,behavior:reduced?'instant':'smooth'})}>EXPLORE</button></header>}
+  {arrived && <Navigation active={active} selected={selected} reduced={reduced} onHover={setActive} onSelect={i=>{setActive(i);setSelected(i);}} onClose={close}/>}
+  <footer aria-hidden={selected!==null}><span>{phase}</span><div className="progress"><div style={{width:`${pct}%`}}/></div><span>{Math.round(pct)}%</span></footer>
  </>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
