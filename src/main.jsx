@@ -236,10 +236,56 @@ class SpaceAssetBoundary extends React.Component{
 function OptionalSpaceAsset({children}){
  return <SpaceAssetBoundary><React.Suspense fallback={null}>{children}</React.Suspense></SpaceAssetBoundary>;
 }
+// The Sketchfab source contains large gray reflective light shells. They create
+// the flat metal-disc appearance in our bright hangar lighting. Keep the original
+// geometry and texture maps, but render its accretion light independently of
+// directional/ambient illumination, without gray metallic reflections.
 function CosmicVortex(){
  const {scene}=useGLTF('/models/black_hole.glb');
  const model=React.useMemo(()=>{
   const copy=scene.clone(true);
+  copy.traverse(object=>{
+   if(!object.isMesh || !object.material)return;
+   const originals=Array.isArray(object.material)?object.material:[object.material];
+   const materials=originals.map(source=>{
+    const name=source.name||'';
+    if(name==='black_hole_blackoutside'){
+     return new THREE.MeshBasicMaterial({name,color:'#010105',side:THREE.DoubleSide});
+    }
+    if(/^black_hole_light[123]$/.test(name)){
+     // Only the original source's luminous ribbon textures remain visible.
+     // Additive transparency removes the oversized pale gray reflector look.
+     const strength=name.endsWith('1')?.85:name.endsWith('2')?.48:.22;
+     const tint=name.endsWith('1')?'#ffc4a0':name.endsWith('2')?'#fa886f':'#b567aa';
+     return new THREE.MeshBasicMaterial({
+      name,map:source.map,color:tint,transparent:true,opacity:strength,
+      blending:THREE.AdditiveBlending,depthWrite:false,
+      side:THREE.DoubleSide,toneMapped:false
+     });
+    }
+    if(name==='ring'||name==='ring2'){
+     return new THREE.MeshBasicMaterial({
+      name,map:source.map,color:name==='ring'?'#d37589':'#98506f',
+      transparent:true,opacity:name==='ring'?.42:.18,
+      blending:THREE.AdditiveBlending,depthWrite:false,
+      side:THREE.DoubleSide,toneMapped:false
+     });
+    }
+    if(name==='black_hole_center'||name==='black_hole_distortion'){
+     return new THREE.MeshBasicMaterial({
+      name,color:'#000001',transparent:name==='black_hole_distortion',
+      opacity:name==='black_hole_distortion'?.8:1,
+      depthWrite:name==='black_hole_center',side:THREE.DoubleSide
+     });
+    }
+    if(name==='Planet'){
+     // Small source-mesh accent; keep it dark so it does not resemble a moon.
+     return new THREE.MeshBasicMaterial({name,color:'#090812'});
+    }
+    return source.clone();
+   });
+   object.material=Array.isArray(object.material)?materials:materials[0];
+  });
   const bounds=new THREE.Box3().setFromObject(copy);
   const size=bounds.getSize(new THREE.Vector3());
   const center=bounds.getCenter(new THREE.Vector3());
@@ -249,6 +295,11 @@ function CosmicVortex(){
   wrapper.scale.setScalar(CELESTIAL_LAYOUT.vortex.diameter/Math.max(size.x,size.y,size.z,1));
   return wrapper;
  },[scene]);
+ useEffect(()=>()=>model.traverse(object=>{
+  if(!object.isMesh||!object.material)return;
+  const materials=Array.isArray(object.material)?object.material:[object.material];
+  materials.forEach(material=>material.dispose());
+ }),[model]);
  return <group position={CELESTIAL_LAYOUT.vortex.position} rotation={[Math.PI/2,0,-0.15]}>
   <primitive object={model}/>
  </group>;
