@@ -195,6 +195,16 @@ function DeepSpace(){
 }
 // Use the supplied space asset rather than a procedural planet.
 // Keep this under its own Suspense boundary so missing local GLBs do not hide the UFO.
+// Optional universe assets must never bring down the main animated scene.
+class SpaceAssetBoundary extends React.Component{
+ constructor(props){super(props);this.state={failed:false};}
+ static getDerivedStateFromError(){return {failed:true};}
+ componentDidCatch(error){console.warn('Optional universe GLB unavailable:',error);}
+ render(){return this.state.failed?null:this.props.children;}
+}
+function OptionalSpaceAsset({children}){
+ return <SpaceAssetBoundary><React.Suspense fallback={null}>{children}</React.Suspense></SpaceAssetBoundary>;
+}
 function CosmicVortex(){
  const {scene}=useGLTF('/models/black_hole.glb');
  const model=React.useMemo(()=>{
@@ -259,7 +269,7 @@ function Chamber({progress,onFrame}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><React.Suspense fallback={null}><CosmicVortex/></React.Suspense><React.Suspense fallback={null}><DistantPurplePlanet/></React.Suspense>
+  <DeepSpace/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet/></OptionalSpaceAsset>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
