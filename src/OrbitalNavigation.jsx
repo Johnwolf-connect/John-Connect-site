@@ -63,7 +63,7 @@ function Orbit({definition,index,interaction,reduced}){
   const g=glow.current;
   if(halo.current)halo.current.material.opacity=g*.9;
   if(light.current)light.current.intensity=g*14;
-  orbit.current.position.y=28+(reduced?0:Math.sin(clock.elapsedTime*1.05+index*1.7)*.30);
+  orbit.current.position.y=reduced?0:Math.sin(clock.elapsedTime*1.05+index*1.7)*.30;
   orbit.current.rotation.y=reduced?0:Math.sin(clock.elapsedTime*.22+index)*.22;
   if(!reduced)mixer?.update(Math.min(delta,.1));
   // Always face the camera enough to retain the authored toroidal silhouette.
