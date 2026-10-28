@@ -2,6 +2,7 @@
 // The approved 4K planet is identified by its SHA-256, not a guessed filename.
 import {existsSync,mkdirSync,readdirSync,copyFileSync,createReadStream} from 'node:fs';
 import {createHash} from 'node:crypto';
+import {colorizePlanet,COLORED_PLANET_SHA} from './colorize-planet.mjs';
 import {homedir} from 'node:os';
 import {join,resolve} from 'node:path';
 
@@ -45,20 +46,20 @@ roots.forEach(root=>scan(root));
 // a 1K export or a previous monochrome asset because a filename happens to fit.
 const destination=join(target,planet);
 const installed=existsSync(destination)?await digest(destination):null;
-if(installed===approvedSha){
- console.log('[models] Approved 4K purple planet verified (SHA-256).');
+if(installed===COLORED_PLANET_SHA){
+ console.log('[models] Colored purple planet verified (SHA-256).');
 }else{
  let source=null;
  for(const candidate of [...(found.get(originalName)||[]),...(found.get(planet)||[])]){
   if(await digest(candidate)===approvedSha){source=candidate;break;}
  }
  if(source){
-  copyFileSync(source,destination);
-  if(await digest(destination)!==approvedSha)throw Error('[models] Planet copy failed SHA-256 verification.');
-  console.log('[models] Installed approved 4K purple planet; SHA-256 verified.');
+  colorizePlanet(source,destination);
+  if(await digest(destination)!==COLORED_PLANET_SHA)throw Error('[models] Colored planet failed SHA-256 verification.');
+  console.log('[models] Generated colored 4K purple planet from approved original; SHA-256 verified.');
  }else{
-  console.warn('[models] APPROVED purple planet not installed. Download purple_planet.glb to Downloads and restart npm run dev.');
-  if(installed)console.warn('[models] An unverified older planet remains in public/models; refusing to replace it with another unverified file.');
+  console.warn('[models] APPROVED purple planet not installed. Place approved purple_planet(5).glb in Downloads and restart npm run dev.');
+  if(installed)console.warn('[models] Existing planet remains unchanged; refusing to substitute an unverified asset.');
  }
 }
 for(const name of otherNames){
