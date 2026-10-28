@@ -257,8 +257,14 @@ function CosmicVortex(){
 // Sized from the GLB's actual dimensions; no replacement sphere or generated texture.
 function DistantPurplePlanet({reduced}){
  const rotation=useRef();
- useFrame((_,delta)=>{if(rotation.current && !reduced)rotation.current.rotation.y+=Math.min(delta,.1)*.075;});
- const {scene}=useGLTF('/models/purple_planet.glb');
+ const mixer=useRef(null);
+ useFrame((_,delta)=>{
+  if(reduced)return;
+  const step=Math.min(delta,.1);
+  if(mixer.current)mixer.current.update(step);
+  else if(rotation.current)rotation.current.rotation.y+=step*.075;
+ });
+ const {scene,animations}=useGLTF('/models/purple_planet.glb');
  const model=React.useMemo(()=>{
   const clone=scene.clone(true);
   const bounds=new THREE.Box3().setFromObject(clone);
@@ -270,9 +276,9 @@ function DistantPurplePlanet({reduced}){
   wrapper.scale.setScalar(CELESTIAL_LAYOUT.stationPlanet.diameter/Math.max(size.x,size.y,size.z,0.001));
   return wrapper;
  },[scene]);
- // Local material copies preserve the cached GLB and its authored texture maps.
- // A restrained violet tint and surface emission keep the dark hemisphere purple
- // under the shared launch lighting; geometry, placement and scale stay unchanged.
+ // Preserve the GLB's distinct purple surface and pink/white cloud emission.
+ // Its emissive colors are intentionally untextured: assigning the diffuse map
+ // as an emissive map darkens them and changes the authored appearance.
  useEffect(()=>{
   const owned=[];
   model.traverse(object=>{
@@ -280,12 +286,9 @@ function DistantPurplePlanet({reduced}){
    const original=object.material;
    const materials=(Array.isArray(original)?original:[original]).map(source=>{
     const material=source.clone();
-    if(material.color)material.color.lerp(new THREE.Color('#a775ed'),.42);
-    if(material.emissive){
-     material.emissive.lerp(new THREE.Color('#662bb0'),.65);
-     material.emissiveIntensity=Math.max(material.emissiveIntensity||0,.35);
-     if(!material.emissiveMap && material.map)material.emissiveMap=material.map;
-    }
+    // Transparent cloud shells blend over the opaque planet without masking
+    // each other in the depth buffer. Keep all authored maps and colors intact.
+    if(material.transparent)material.depthWrite=false;
     material.needsUpdate=true;
     return material;
    });
@@ -296,6 +299,21 @@ function DistantPurplePlanet({reduced}){
    object.material=original;materials.forEach(material=>material.dispose());
   });
  },[model]);
+ useEffect(()=>{
+  if(!animations.length)return;
+  const player=new THREE.AnimationMixer(model);
+  // The supplied Take 01 animates both the planet and an independent cloud
+  // layer. Fit one authored cycle to the approved ~84-second rotation.
+  const clip=animations[0];
+  const action=player.clipAction(clip);
+  action.setEffectiveTimeScale(clip.duration/84).play();
+  mixer.current=player;
+  return ()=>{
+   mixer.current=null;
+   player.stopAllAction();
+   player.uncacheRoot(model);
+  };
+ },[model,animations]);
  return <group ref={rotation} position={CELESTIAL_LAYOUT.stationPlanet.position} rotation={[0,0.4,0.1]}>
   <primitive object={model}/>
  </group>;
@@ -466,3 +484,4 @@ function App(){
  </>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
+
