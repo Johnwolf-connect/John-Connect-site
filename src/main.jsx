@@ -44,8 +44,12 @@ function UfoAccentLights({scene}){
       const dy=Math.abs(point.y-prev.y);
       // A short segment follows a continuous rib surface, never bridges gaps.
       if(dy<radius*0.012 && j%3!==0){
+       // Raycast hits are world-space. Convert into this mesh's local space
+       // so these strips remain physically attached during the entire flight.
        const offset=radius*0.0018;
-       segments.push(prev.x,prev.y-offset,prev.z,point.x,point.y-offset,point.z);
+       const a=obj.worldToLocal(prev.clone().add(new THREE.Vector3(0,-offset,0)));
+       const b=obj.worldToLocal(point.clone().add(new THREE.Vector3(0,-offset,0)));
+       segments.push(a.x,a.y,a.z,b.x,b.y,b.z);
       }
      }
      prev=point||null;
@@ -59,11 +63,11 @@ function UfoAccentLights({scene}){
    });
    const lines=new THREE.LineSegments(geometry,material);
    lines.name='surface-fitted-underside-rib-leds';
-   scene.add(lines);
-   parts.push({lines,geometry,material});
+   obj.add(lines);
+   parts.push({obj,lines,geometry,material});
   });
-  return ()=>parts.forEach(({lines,geometry,material})=>{
-   scene.remove(lines);geometry.dispose();material.dispose();
+  return ()=>parts.forEach(({obj,lines,geometry,material})=>{
+   obj.remove(lines);geometry.dispose();material.dispose();
   });
  },[scene]);
  return <>
