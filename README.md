@@ -26,3 +26,20 @@ This is a real-model React migration and first implementation of the requested s
 
 ## Forward-exit update
 The UFO now travels along negative Z through the front hangar opening before climbing. Camera remains behind the craft. Exact exit clearance and composition must be visually checked in the browser; coordinates are an initial path, not a verified collision-free trajectory.
+
+## Model asset synchronization
+
+Running `npm run dev` now first runs `scripts/sync-models.mjs`. It checks
+`public/models/` for the project's actual GLBs, then searches existing copies
+under `assets/`, `~/Downloads`, and `~/Desktop` (up to three directory levels)
+and copies exact filename matches into `public/models/` without overwriting
+existing files.
+
+Models currently referenced: `platform.glb`, `ufo.glb`,
+`black_hole.glb`, `purple_planet.glb`, and
+`audras_moon-web-optimized.glb`.
+
+Use `npm run models` to rerun the check manually. Missing assets produce
+warnings rather than invented replacements. The large original GLBs remain
+excluded from Git history; GitHub code commits alone do **not** deliver binary
+models that are absent from both your local system and repository.
