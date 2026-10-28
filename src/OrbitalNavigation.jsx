@@ -26,11 +26,39 @@ function haloTexture(){
  tex.colorSpace=THREE.SRGBColorSpace;
  return tex;
 }
+// A silhouette-only purple atmosphere. The Fresnel term suppresses the
+// center of the sphere so the original GLB's details remain visible.
+const RIM_VERTEX=`
+ varying vec3 vNormalView;
+ varying vec3 vPositionView;
+ void main(){
+  vec4 viewPosition=modelViewMatrix*vec4(position,1.0);
+  vPositionView=viewPosition.xyz;
+  vNormalView=normalize(normalMatrix*normal);
+  gl_Position=projectionMatrix*viewPosition;
+ }
+`;
+const RIM_FRAGMENT=`
+ precision highp float;
+ varying vec3 vNormalView;
+ varying vec3 vPositionView;
+ uniform float uStrength;
+ void main(){
+  vec3 viewDir=normalize(-vPositionView);
+  float fresnel=1.0-abs(dot(normalize(vNormalView),viewDir));
+  float thin=pow(fresnel,16.0);
+  float wide=pow(fresnel,5.5);
+  float alpha=uStrength*(thin*0.76+wide*0.22);
+  vec3 color=mix(vec3(0.37,0.05,0.95),vec3(0.85,0.46,1.0),thin);
+  gl_FragColor=vec4(color,alpha);
+ }
+`;
 const haloCache={texture:null};
 function Orbit({definition,index,interaction,reduced}){
  const {scene,animations}=useGLTF(definition.file);
  const orbit=useRef();
  const halo=useRef();
+ const rim=useRef();
  const light=useRef();
  const glow=useRef(0);
  const model=useMemo(()=>{
@@ -61,8 +89,9 @@ function Orbit({definition,index,interaction,reduced}){
   const target=isActive?1:0.10;
   glow.current=THREE.MathUtils.damp(glow.current,target,reduced?100:9,Math.min(delta,.1));
   const g=glow.current;
-  if(halo.current)halo.current.material.opacity=g*.9;
-  if(light.current)light.current.intensity=g*14;
+  if(halo.current)halo.current.material.opacity=g*.52;
+  if(rim.current)rim.current.uniforms.uStrength.value=g*1.4;
+  if(light.current)light.current.intensity=g*2.6;
   orbit.current.position.y=reduced?0:Math.sin(clock.elapsedTime*1.05+index*1.7)*.30;
   orbit.current.rotation.y=reduced?0:Math.sin(clock.elapsedTime*.22+index)*.22;
   if(!reduced)mixer?.update(Math.min(delta,.1));
@@ -74,8 +103,14 @@ function Orbit({definition,index,interaction,reduced}){
    <spriteMaterial map={texture} color="#a144ff" opacity={.1}
     transparent depthWrite={false} blending={THREE.AdditiveBlending}/>
   </sprite>
-  <pointLight ref={light} position={[0,0,2]} color="#993eff" intensity={0} distance={16} decay={2}/>
+  <pointLight ref={light} position={[0,0,2]} color="#993eff" intensity={0} distance={12} decay={2}/>
   <primitive object={model}/>
+  <mesh renderOrder={3}>
+   <sphereGeometry args={[definition.size*.53,64,48]}/>
+   <shaderMaterial ref={rim} vertexShader={RIM_VERTEX} fragmentShader={RIM_FRAGMENT}
+    uniforms={{uStrength:{value:0}}} transparent depthWrite={false}
+    depthTest={false} blending={THREE.AdditiveBlending} side={THREE.FrontSide} toneMapped={false}/>
+  </mesh>
  </group>;
 }
 class AssetBoundary extends React.Component{
