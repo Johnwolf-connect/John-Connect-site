@@ -17,12 +17,12 @@ function UfoAccentLights(){
    <meshBasicMaterial color={LED_PURPLE} side={THREE.DoubleSide} toneMapped={false}/>
   </mesh>
   <pointLight position={[0,-0.35,0]} color={LED_PURPLE} intensity={2.2} distance={7} decay={2}/>
-  {/* Upper LED: provisional placement, to be aligned with the actual GLB rim. */}
-  <mesh rotation={[-Math.PI/2,0,0]} position={[0,0.42,0]}>
-   <ringGeometry args={[0.88,0.94,96]}/>
-   <meshBasicMaterial color={LED_PURPLE} side={THREE.DoubleSide} toneMapped={false}/>
+  {/* The GLB is about 9.37 units wide and 2.50 units tall. The upper crown rim sits near y=2, radius=1.5. */}
+  <mesh rotation={[Math.PI/2,0,0]} position={[0,2.02,0]}>
+   <torusGeometry args={[1.5,0.028,8,128]}/>
+   <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
   </mesh>
-  <pointLight position={[0,0.55,0]} color={LED_PURPLE} intensity={1.6} distance={5} decay={2}/>
+  <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={1.8} distance={4.5} decay={2}/>
  </>;
 }
 function Chamber({progress,onFrame}){
