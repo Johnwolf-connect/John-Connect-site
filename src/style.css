@@ -8,3 +8,15 @@
 @keyframes arrive{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}@keyframes panelReveal{0%{opacity:0;scale:.86}40%{opacity:.4}100%{opacity:1;scale:1}}@keyframes copyReveal{0%,35%{opacity:0}100%{opacity:1}}
 @media(max-width:600px){.glass-grid{width:86vw;grid-template-columns:repeat(3,26vw);gap:4vw;top:47%}.glass-card{padding:12px 6px;min-height:150px;height:41vw;border-radius:10px}.card-number{left:10px;top:14px}.card-title{font-size:clamp(17px,4.7vw,25px)}.choose-caption{font-size:8px;top:40%;letter-spacing:.2em}.content-glass{padding:25px 22px;top:44%;max-height:46vh}.overlay{max-width:290px}.panel-copy h2{margin-right:40px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.glass-card{transform:none}}
+
+/* 3D orbital navigation: invisible hit zones over actual GLB objects. */
+.orbit-navigation .choose-caption{top:34%;font-size:10px;letter-spacing:.34em;color:#d8c5f2;text-shadow:0 0 14px #8c44d77a}
+.orbit-grid{position:absolute;top:42%;left:50%;width:72vw;transform:translateX(-50%);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;animation:arrive 1.2s both}
+.orbit-choice{pointer-events:auto;position:relative;height:35vh;min-height:190px;display:flex;align-items:flex-end;justify-content:center;border:0;background:transparent;color:#f8f1ff;cursor:pointer;padding:0 5px 0;touch-action:manipulation}
+.orbit-hit{position:absolute;inset:0;border-radius:50%;background:transparent}
+.orbit-label{position:relative;display:block;font:400 clamp(19px,2.6vw,35px) Georgia,serif;letter-spacing:.025em;text-shadow:0 2px 12px #000,0 0 12px #ad6aff33;transition:color .22s,text-shadow .22s,transform .28s}
+.orbit-choice:hover .orbit-label,.orbit-choice:focus-visible .orbit-label{color:#f4ddff;text-shadow:0 0 12px #b55bff,0 0 28px #8e35fa;transform:translateY(-4px)}
+.orbit-choice:focus-visible{outline:2px solid #d4a3ff;outline-offset:-5px;border-radius:22px}
+.orbit-navigation.is-open .choose-caption,.orbit-navigation.is-open .orbit-grid{display:none}
+@media(max-width:600px){.orbit-grid{width:90vw;top:44%}.orbit-choice{height:28vh;min-height:150px}.orbit-label{font-size:clamp(16px,4.5vw,24px)}.orbit-navigation .choose-caption{top:37%;font-size:8px;letter-spacing:.18em}}
+@media(prefers-reduced-motion:reduce){.orbit-label{transition:none}.orbit-grid{animation:none}}
