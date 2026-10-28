@@ -410,14 +410,15 @@ const SEARCHLIGHT_FRAGMENT=`
  uniform float uOpacity;
  void main(){
   // Narrow at the UFO, spreading softly over the selected orbit.
-  float width=mix(0.47,0.062,vBeamUv.y);
+  // A narrow source that opens into a broad, diffuse atmospheric column.
+  // At the planet, the light has no hard edge or concentrated center.
+  float width=mix(0.48,0.055,vBeamUv.y);
   float radial=abs(vBeamUv.x-0.5)/width;
-  float feather=exp(-3.8*radial*radial);
-  float ends=smoothstep(0.0,0.075,vBeamUv.y)*
-             (1.0-smoothstep(0.94,1.0,vBeamUv.y));
-  float strength=mix(0.83,0.56,vBeamUv.y);
-  float alpha=uOpacity*feather*ends*strength;
-  vec3 violet=mix(vec3(0.31,0.10,0.70),vec3(0.72,0.46,1.0),pow(feather,2.0));
+  float feather=exp(-2.1*radial*radial);
+  float sourceFade=1.0-smoothstep(0.96,1.0,vBeamUv.y);
+  float depthFade=mix(0.16,0.88,pow(vBeamUv.y,0.7));
+  float alpha=uOpacity*feather*sourceFade*depthFade;
+  vec3 violet=mix(vec3(0.26,0.07,0.60),vec3(0.60,0.32,0.96),pow(feather,2.0));
   gl_FragColor=vec4(violet,alpha);
  }
 `;
@@ -497,20 +498,21 @@ function Chamber({progress,onFrame,navigation,reduced}){
   ship.current.rotation.x*=1-travel;
   ship.current.rotation.z*=1-travel;
   const beamOn=navigation.current.selected===null && navigation.current.hovered!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.8;
-  // Fade a soft, feathered beam in only after the ship reaches the target.
-  // Its lower edge reaches the orbit's actual world-space center, rather than
-  // scaling a solid triangle far below the object.
-  const beamHeight=restingY-(28-fieldHeight*.045)-0.8;
+  // Let the searchlight pass BEHIND the orbit and continue below the
+  // viewport. Its diffuse tail disappears gradually, with no visible cutoff.
+  const beamHeight=fieldHeight*1.62;
   const beamOpacity=beamMaterial.current.uniforms.uOpacity;
-  beamOpacity.value=THREE.MathUtils.damp(beamOpacity.value,beamOn?.54:0,11,Math.min(delta,.1));
+  beamOpacity.value=THREE.MathUtils.damp(beamOpacity.value,beamOn?.26:0,8,Math.min(delta,.1));
   if(beamSpot.current){
-   beamSpot.current.intensity=THREE.MathUtils.damp(beamSpot.current.intensity,beamOn?18:0,10,Math.min(delta,.1));
-   beamSpot.current.distance=beamHeight+2;
-   beamSpot.current.target.position.set(0,-beamHeight-0.6,0);
+   // Only a little physical light reaches the object. The bright edge is
+   // produced by the orbit's silhouette rim, not a solid illuminated patch.
+   beamSpot.current.intensity=THREE.MathUtils.damp(beamSpot.current.intensity,beamOn?2.4:0,8,Math.min(delta,.1));
+   beamSpot.current.distance=fieldHeight*.55;
+   beamSpot.current.target.position.set(0,-fieldHeight*.4,0);
   }
   beam.current.visible=beamOpacity.value>.002;
-  beam.current.scale.set(8.6,beamHeight,1);
-  beam.current.position.set(0,-0.8-beamHeight*.5,0);
+  beam.current.scale.set(12.5,beamHeight,1);
+  beam.current.position.set(0,-0.8-beamHeight*.5,-3.6);
   beam.current.quaternion.copy(camera.quaternion);
 
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
@@ -522,7 +524,7 @@ function Chamber({progress,onFrame,navigation,reduced}){
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
   <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
   <group ref={ship}><spotLight ref={beamSpot} position={[0,-0.7,0]} color="#b78aff" intensity={0} distance={12} angle={0.43} penumbra={0.95} decay={1.5}/><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/>
-   <mesh ref={beam} visible={false} renderOrder={5}><planeGeometry args={[1,1]}/><shaderMaterial ref={beamMaterial} vertexShader={SEARCHLIGHT_VERTEX} fragmentShader={SEARCHLIGHT_FRAGMENT} uniforms={{uOpacity:{value:0}}} transparent depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} toneMapped={false}/></mesh>
+   <mesh ref={beam} visible={false} renderOrder={0}><planeGeometry args={[1,1]}/><shaderMaterial ref={beamMaterial} vertexShader={SEARCHLIGHT_VERTEX} fragmentShader={SEARCHLIGHT_FRAGMENT} uniforms={{uOpacity:{value:0}}} transparent depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} toneMapped={false}/></mesh>
   </group>
   <PassingTraffic source={ufo.scene} reduced={reduced}/>
  </>;
