@@ -286,48 +286,9 @@ function DistantPurplePlanet({reduced}){
   wrapper.scale.setScalar(CELESTIAL_LAYOUT.stationPlanet.diameter/Math.max(size.x,size.y,size.z,0.001));
   return wrapper;
  },[scene]);
- // Preserve the GLB's distinct purple surface and pink/white cloud emission.
- // Its emissive colors are intentionally untextured: assigning the diffuse map
- // as an emissive map darkens them and changes the authored appearance.
- useEffect(()=>{
-  const owned=[];
-  model.traverse(object=>{
-   if(!object.isMesh || !object.material)return;
-   const original=object.material;
-   const materials=(Array.isArray(original)?original:[original]).map(source=>{
-    const material=source.clone();
-    // The source GLB uses a beige-gray diffuse texture for PurplePlanet;
-    // the purple identity comes from its violet material treatment.
-    // Keep the original detail map, but prevent the chamber's strong white
-    // lights and tone mapping from bleaching the surface to pale gray.
-    if(source.name==='PurplePlanet'){
-     const purple=new THREE.MeshBasicMaterial({
-      name:source.name,
-      map:source.map,
-      color:'#9252ed',
-      toneMapped:false,
-      side:source.side,
-      transparent:false,
-      depthWrite:true
-     });
-     material.dispose();
-     return purple;
-    }
-    // Preserve the original translucent cloud textures and their alpha.
-    if(material.transparent){
-     material.depthWrite=false;
-     material.opacity=Math.min(material.opacity,0.42);
-    }
-    material.needsUpdate=true;
-    return material;
-   });
-   object.material=Array.isArray(original)?materials:materials[0];
-   owned.push({object,original,materials});
-  });
-  return ()=>owned.forEach(({object,original,materials})=>{
-   object.material=original;materials.forEach(material=>material.dispose());
-  });
- },[model]);
+ // Display the source GLB materials without overrides. Keep its original
+ // textures, color, opacity, emission, and tone mapping as authored.
+ // The model is cloned above for scene placement; no GLB asset is modified.
  useEffect(()=>{
   if(!animations.length)return;
   const player=new THREE.AnimationMixer(model);
