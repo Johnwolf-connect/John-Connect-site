@@ -7,6 +7,18 @@ import './style.css';
 const clamp=(v)=>Math.min(1,Math.max(0,v));
 const ease=(v)=>{const t=clamp(v);return t*t*(3-2*t)};
 const vec=(v)=>new THREE.Vector3(...v);
+// LED accents are attached to the UFO group; original materials remain unchanged.
+// Dimensions are provisional until the local GLB is visually checked.
+const LED_PURPLE='#8b3dff';
+function UfoAccentLights(){
+ return <>
+  <mesh rotation={[-Math.PI/2,0,0]} position={[0,-0.22,0]}>
+   <ringGeometry args={[1.05,1.11,64]}/>
+   <meshBasicMaterial color={LED_PURPLE} side={THREE.DoubleSide} toneMapped={false}/>
+  </mesh>
+  <pointLight position={[0,-0.35,0]} color={LED_PURPLE} intensity={2.2} distance={7} decay={2}/>
+ </>;
+}
 function Chamber({progress,onFrame}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
@@ -39,7 +51,7 @@ function Chamber({progress,onFrame}){
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
   <primitive object={platform.scene} />
-  <group ref={ship}><primitive object={ufo.scene}/></group>
+  <group ref={ship}><primitive object={ufo.scene}/><UfoAccentLights/></group>
  </>;
 }
 function App(){
