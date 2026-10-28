@@ -281,8 +281,9 @@ function CosmicVortex(){
   float thickness=mix(0.017,0.031,envelope);
   float backDisk=gauss(y-0.012,thickness*thickness)*envelope;
   float frontDisk=gauss(y+0.012,thickness*thickness)*envelope;
-  float disk=(backDisk+frontDisk)*0.62;
-  disk*=0.72+0.18*textureWave+0.16*fine;
+  float turbulence=0.72+0.18*textureWave+0.16*fine;
+  // Far side passes behind the shadow; near side crosses IN FRONT of it.
+  float disk=backDisk*0.62*turbulence;
   // Strong horizontal tangent highlights on both sides.
   float tangent=gauss(abs(x)-horizon,0.018)*gauss(y,0.0014);
   // Warm, narrow gravitational lens arcs; brighter toward the equator.
@@ -301,10 +302,13 @@ function CosmicVortex(){
   vec3 lightColor=warm*(disk*0.75+arcLight*1.4+outer+rimHalo+tangent*0.9);
   lightColor+=vec3(1.0,0.85,0.67)*arcLight*0.55;
   lightColor+=warm*halo*0.35;
+  // Composite the shadow first, then the near-side accretion band ON TOP.
+  // Otherwise the event horizon cuts a black gap through the horizontal ring.
+  float foreground=frontDisk*turbulence*envelope;
+  vec3 foregroundColor=vec3(1.0,0.78,0.54)*foreground*1.18;
   float brightness=max(lightColor.r,max(lightColor.g,lightColor.b));
-  float alpha=clamp(brightness*0.83+shadow,0.0,0.98);
-  // Black hole interior stays truly dark, not peach/pink.
-  vec3 color=mix(lightColor,vec3(0.001,0.001,0.003),shadow);
+  float alpha=clamp(brightness*0.83+shadow+foreground*0.75,0.0,0.98);
+  vec3 color=mix(lightColor,vec3(0.001,0.001,0.003),shadow)+foregroundColor;
   gl_FragColor=vec4(color,alpha);
  }
  `,[]);
