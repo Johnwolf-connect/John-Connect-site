@@ -257,7 +257,7 @@ function CosmicVortex(){
 // Sized from the GLB's actual dimensions; no replacement sphere or generated texture.
 function DistantPurplePlanet({reduced}){
  const rotation=useRef();
- useFrame((_,delta)=>{if(rotation.current && !reduced)rotation.current.rotation.y+=Math.min(delta,.1)*.018;});
+ useFrame((_,delta)=>{if(rotation.current && !reduced)rotation.current.rotation.y+=Math.min(delta,.1)*.075;});
  const {scene}=useGLTF('/models/purple_planet.glb');
  const model=React.useMemo(()=>{
   const clone=scene.clone(true);
@@ -270,6 +270,32 @@ function DistantPurplePlanet({reduced}){
   wrapper.scale.setScalar(CELESTIAL_LAYOUT.stationPlanet.diameter/Math.max(size.x,size.y,size.z,0.001));
   return wrapper;
  },[scene]);
+ // Local material copies preserve the cached GLB and its authored texture maps.
+ // A restrained violet tint and surface emission keep the dark hemisphere purple
+ // under the shared launch lighting; geometry, placement and scale stay unchanged.
+ useEffect(()=>{
+  const owned=[];
+  model.traverse(object=>{
+   if(!object.isMesh || !object.material)return;
+   const original=object.material;
+   const materials=(Array.isArray(original)?original:[original]).map(source=>{
+    const material=source.clone();
+    if(material.color)material.color.lerp(new THREE.Color('#a775ed'),.42);
+    if(material.emissive){
+     material.emissive.lerp(new THREE.Color('#662bb0'),.65);
+     material.emissiveIntensity=Math.max(material.emissiveIntensity||0,.35);
+     if(!material.emissiveMap && material.map)material.emissiveMap=material.map;
+    }
+    material.needsUpdate=true;
+    return material;
+   });
+   object.material=Array.isArray(original)?materials:materials[0];
+   owned.push({object,original,materials});
+  });
+  return ()=>owned.forEach(({object,original,materials})=>{
+   object.material=original;materials.forEach(material=>material.dispose());
+  });
+ },[model]);
  return <group ref={rotation} position={CELESTIAL_LAYOUT.stationPlanet.position} rotation={[0,0.4,0.1]}>
   <primitive object={model}/>
  </group>;
