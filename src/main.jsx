@@ -5,6 +5,7 @@ import {useGLTF,Environment} from '@react-three/drei';
 import * as THREE from 'three';
 import './style.css';
 import Navigation from './Navigation.jsx';
+import OrbitalNavigation from './OrbitalNavigation.jsx';
 import {ARRIVAL,shipAnchor} from './navigation.js';
 import {CELESTIAL_LAYOUT} from './celestial-layout.js';
 const clamp=(v)=>Math.min(1,Math.max(0,v));
@@ -397,7 +398,7 @@ function DistantMoon({reduced}){
 function Chamber({progress,onFrame,navigation,reduced}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
- const ship=useRef(),beam=useRef(),beamMaterial=useRef();
+ const ship=useRef(),beam=useRef(),beamMaterial=useRef(),beamSpot=useRef();
  const hoverX=useRef(0);
  const cameraTarget=useRef(new THREE.Vector3());
  const pointer=useRef({x:0,y:0});
@@ -456,14 +457,16 @@ function Chamber({progress,onFrame,navigation,reduced}){
   camera.lookAt(cameraTarget.current);
   const fieldHeight=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*distance;
   const fieldWidth=fieldHeight*camera.aspect;
-  const targetX=(shipAnchor(navigation.current.active,navigation.current.selected!==null,narrow)-.5)*fieldWidth;
-  hoverX.current=THREE.MathUtils.damp(hoverX.current,targetX,reduced?1000:5,Math.min(delta,.1));
+  const focused=navigation.current.selected!==null?navigation.current.selected:navigation.current.hovered;
+  const targetX=(shipAnchor(focused===null?1:focused,navigation.current.selected!==null,narrow)-.5)*fieldWidth;
+  hoverX.current=THREE.MathUtils.damp(hoverX.current,targetX,reduced?1000:12,Math.min(delta,.1));
   const restingY=28+fieldHeight*.23-1;
   ship.current.position.lerp(new THREE.Vector3(hoverX.current,restingY+(reduced?0:Math.sin(clock.elapsedTime*1.4)*.08),-140),travel);
   ship.current.rotation.x*=1-travel;
   ship.current.rotation.z*=1-travel;
-  const beamOn=navigation.current.selected!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.4;
-  beamMaterial.current.opacity=THREE.MathUtils.damp(beamMaterial.current.opacity,beamOn?.15:0,5,Math.min(delta,.1));
+  const beamOn=focused!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.8;
+  beamMaterial.current.opacity=THREE.MathUtils.damp(beamMaterial.current.opacity,beamOn?.33:0,12,Math.min(delta,.1));
+  if(beamSpot.current)beamSpot.current.intensity=THREE.MathUtils.damp(beamSpot.current.intensity,beamOn?15:0,10,Math.min(delta,.1));
   beam.current.visible=beamMaterial.current.opacity>.002;
   beam.current.scale.set(1,fieldHeight*.30,1);
   beam.current.position.set(0,-fieldHeight*.15,0);
@@ -471,12 +474,12 @@ function Chamber({progress,onFrame,navigation,reduced}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><PlanetaryBounceGlow reduced={reduced}/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet reduced={reduced}/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon reduced={reduced}/></OptionalSpaceAsset>
+  <DeepSpace/><PlanetaryBounceGlow reduced={reduced}/><OrbitalNavigation interaction={navigation} reduced={reduced}/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet reduced={reduced}/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon reduced={reduced}/></OptionalSpaceAsset>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
   <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
-  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/>
+  <group ref={ship}><pointLight ref={beamSpot} position={[0,-7.5,0]} color="#b55cff" intensity={0} distance={16} decay={2}/><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/>
    <mesh ref={beam} visible={false}><cylinderGeometry args={[.35,5,1,48,1,true]}/><meshBasicMaterial ref={beamMaterial} color="#a663ff" transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending}/></mesh>
   </group>
   <PassingTraffic source={ufo.scene} reduced={reduced}/>
@@ -496,9 +499,9 @@ function PassingTraffic({source,reduced}){
 }
 function App(){
  const progress=useRef(0),onFrame=useRef(null),navigation=useRef({active:0,selected:null});
- const [pct,setPct]=useState(0),[active,setActive]=useState(0),[selected,setSelected]=useState(null),[error,setError]=useState('');
+ const [pct,setPct]=useState(0),[active,setActive]=useState(0),[hovered,setHovered]=useState(null),[selected,setSelected]=useState(null),[error,setError]=useState('');
  const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
- navigation.current={active,selected};
+ navigation.current={active,selected,hovered,arrived:pct>=ARRIVAL*100};
  const close=React.useCallback(()=>setSelected(null),[]);
  useEffect(()=>{
   const query=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -535,7 +538,7 @@ function App(){
   <div className="scroll-track" aria-hidden="true"/>
   {!arrived && <header className={`overlay ${pct>50?'quiet':''}`}><div className="eyebrow">ATLANTA / THE ASCENT</div><h1>Beyond the familiar.</h1><p>Scroll to leave the dock and explore.</p>{error&&<div className="error">{error}</div>}
    <button onClick={()=>window.scrollTo({top:(document.documentElement.scrollHeight-window.innerHeight)*.94,behavior:reduced?'instant':'smooth'})}>EXPLORE</button></header>}
-  {arrived && <Navigation active={active} selected={selected} reduced={reduced} onHover={setActive} onSelect={i=>{setActive(i);setSelected(i);}} onClose={close}/>}
+  {arrived && <Navigation active={active} selected={selected} reduced={reduced} onHover={i=>{setActive(i);setHovered(i);}} onLeave={()=>setHovered(null)} onSelect={i=>{setActive(i);setHovered(i);setSelected(i);}} onClose={close}/>}
   <footer aria-hidden={selected!==null}><span>{phase}</span><div className="progress"><div style={{width:`${pct}%`}}/></div><span>{Math.round(pct)}%</span></footer>
  </>;
 }
