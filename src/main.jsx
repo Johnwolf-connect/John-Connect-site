@@ -193,19 +193,23 @@ function DeepSpace(){
   <pointsMaterial color="#b6b2cb" size={0.85} sizeAttenuation transparent opacity={0.72} depthWrite={false}/>
  </points>;
 }
-// Stage 2: a distant, deliberately subdued planetary silhouette.
-// Procedural placeholder until the selected planet GLB is integrated.
-function DistantPlanet(){
- return <group position={[105,42,-310]}>
-  <mesh rotation={[0.12,-0.3,0]}>
-   <sphereGeometry args={[47,64,48]}/>
-   <meshStandardMaterial color="#191923" roughness={1} metalness={0}/>
-  </mesh>
-  <mesh scale={[1.012,1.012,1.012]}>
-   <sphereGeometry args={[47,64,48]}/>
-   <meshBasicMaterial color="#554477" transparent opacity={0.13} side={THREE.BackSide} depthWrite={false}/>
-  </mesh>
-  <directionalLight position={[110,80,20]} intensity={0.75} color="#a79bbd"/>
+// Use the supplied space asset rather than a procedural planet.
+// Keep this under its own Suspense boundary so missing local GLBs do not hide the UFO.
+function CosmicVortex(){
+ const {scene}=useGLTF('/models/black_hole.glb');
+ const model=React.useMemo(()=>{
+  const copy=scene.clone(true);
+  const bounds=new THREE.Box3().setFromObject(copy);
+  const size=bounds.getSize(new THREE.Vector3());
+  const center=bounds.getCenter(new THREE.Vector3());
+  copy.position.sub(center);
+  const wrapper=new THREE.Group();
+  wrapper.add(copy);
+  wrapper.scale.setScalar(85/Math.max(size.x,size.y,size.z,1));
+  return wrapper;
+ },[scene]);
+ return <group position={[94,52,-265]} rotation={[Math.PI/2,0,-0.15]}>
+  <primitive object={model}/>
  </group>;
 }
 function Chamber({progress,onFrame}){
@@ -236,7 +240,7 @@ function Chamber({progress,onFrame}){
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><DistantPlanet/>
+  <DeepSpace/><React.Suspense fallback={null}><CosmicVortex/></React.Suspense>
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
