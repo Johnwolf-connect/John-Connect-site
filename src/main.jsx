@@ -293,7 +293,14 @@ function Chamber({progress,onFrame}){
   else if(p<.70){from=tracking;to=exit;t=ease((p-.38)/.32)}
   else{from=exit;to=chase;t=ease((p-.70)/.30)}
   camera.position.copy(vec(from).lerp(vec(to),t));
-  camera.lookAt(0,y+0.5,z);
+  // Soft cursor-driven camera pan, layered over the approved chase framing.
+  // Keep the motion subtle and fade it during flight; no change to the path.
+  const panWeight=1-0.65*ease((p-0.25)/0.65);
+  const panX=smoothPointer.current.x*0.42*panWeight;
+  const panY=-smoothPointer.current.y*0.24*panWeight;
+  camera.position.x+=panX;
+  camera.position.y+=panY;
+  camera.lookAt(panX*0.3,y+0.5+panY*0.3,z);
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
