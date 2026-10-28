@@ -11,35 +11,60 @@ const vec=(v)=>new THREE.Vector3(...v);
 // Dimensions are provisional until the local GLB is visually checked.
 const LED_PURPLE='#8b3dff';
 const LED_SOFT='#6630a8';
-function UfoAccentLights(){
- // Model bounds: radius 4.685, underside black assembly y=0.005..0.943.
- // Selected concentric mechanical zones, not an indiscriminate wireframe.
- const lowerBands=[
-  {radius:1.18,y:0.15,tube:0.012},
-  {radius:2.68,y:0.28,tube:0.014},
-  {radius:4.42,y:0.48,tube:0.009}
- ];
+// Build underside accents from the actual black mechanical mesh edges.
+// No synthetic concentric rings: only short, recessed structural segments.
+function UfoAccentLights({scene}){
+ useEffect(()=>{
+  const additions=[];
+  scene.traverse(obj=>{
+   if(!obj.isMesh || !/UFO_BLACK/i.test(obj.name) || !obj.geometry) return;
+   const geo=obj.geometry;
+   geo.computeBoundingBox();
+   const bb=geo.boundingBox;
+   const radius=Math.max(bb.max.x-bb.min.x,bb.max.z-bb.min.z)/2;
+   const bottom=bb.min.y, height=bb.max.y-bottom;
+   const edges=new THREE.EdgesGeometry(geo,62);
+   const p=edges.getAttribute('position');
+   const selected=[];
+   if(p){
+    for(let i=0;i<p.count;i+=2){
+     const ax=p.getX(i),ay=p.getY(i),az=p.getZ(i);
+     const bx=p.getX(i+1),by=p.getY(i+1),bz=p.getZ(i+1);
+     const mx=(ax+bx)/2,mz=(az+bz)/2;
+     const r=Math.hypot(mx,mz)/radius;
+     const len=Math.hypot(bx-ax,by-ay,bz-az);
+     // Restrict to visible radial machinery, away from the smooth outer shell.
+     if(r<0.34 || r>0.83 || (ay+by)/2>bottom+height*0.68) continue;
+     if(len<radius*0.012 || len>radius*0.16) continue;
+     const dr=Math.abs((bx-ax)*mx+(bz-az)*mz)/(Math.max(0.001,len*Math.hypot(mx,mz)));
+     if(dr<0.76) continue; // follow radial ribs, not circular contours
+     selected.push(ax,ay,az,bx,by,bz);
+     if(selected.length>=3600) break;
+    }
+   }
+   edges.dispose();
+   if(!selected.length)return;
+   const linesGeo=new THREE.BufferGeometry();
+   linesGeo.setAttribute('position',new THREE.Float32BufferAttribute(selected,3));
+   const mat=new THREE.LineBasicMaterial({
+    color:LED_PURPLE,transparent:true,opacity:0.72,depthTest:true,depthWrite:false
+   });
+   const lines=new THREE.LineSegments(linesGeo,mat);
+   lines.name='geometry-following-underside-leds';
+   obj.add(lines);
+   additions.push({obj,lines,linesGeo,mat});
+  });
+  return ()=>additions.forEach(({obj,lines,linesGeo,mat})=>{
+   obj.remove(lines);linesGeo.dispose();mat.dispose();
+  });
+ },[scene]);
  return <>
-  {lowerBands.map(({radius,y,tube},i)=>
-   <mesh key={i} rotation={[Math.PI/2,0,0]} position={[0,y,0]}>
-    <torusGeometry args={[radius,tube,6,128]}/>
-    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
-   </mesh>
-  )}
-  {/* Eight short accents mark the radial machinery, with gaps between them. */}
-  {Array.from({length:8},(_,i)=>{
-   const a=i*Math.PI/4;
-   return <mesh key={i} rotation={[Math.PI/2,0,0]} position={[0,0.31,0]}>
-    <torusGeometry args={[3.25,0.011,6,16,a-0.12,0.24]}/>
-    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
-   </mesh>;
-  })}
-  <pointLight position={[0,-0.15,0]} color={LED_PURPLE} intensity={0.65} distance={4} decay={2}/>
-  {/* Preserve the upper crown LED. */}
+  {/* Keep the approved upper crown; light the engine from its interior. */}
   <mesh rotation={[Math.PI/2,0,0]} position={[0,2.02,0]}>
    <torusGeometry args={[1.5,0.028,8,128]}/>
    <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
   </mesh>
+  <pointLight position={[0,0.12,0]} color={LED_PURPLE} intensity={0.8} distance={2.5} decay={2}/>
   <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={0.75} distance={3.5} decay={2}/>
  </>;
 }
@@ -170,7 +195,7 @@ function Chamber({progress,onFrame}){
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
   <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
-  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights/></group>
+  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/></group>
  </>;
 }
 function App(){
