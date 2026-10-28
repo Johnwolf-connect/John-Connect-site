@@ -11,13 +11,30 @@ const vec=(v)=>new THREE.Vector3(...v);
 // Dimensions are provisional until the local GLB is visually checked.
 const LED_PURPLE='#8b3dff';
 function UfoAccentLights(){
+ // Model bounds: radius 4.685, underside black assembly y=0.005..0.943.
+ // Selected concentric mechanical zones, not an indiscriminate wireframe.
+ const lowerBands=[
+  {radius:1.18,y:0.15,tube:0.018},
+  {radius:2.68,y:0.28,tube:0.021},
+  {radius:4.42,y:0.48,tube:0.015}
+ ];
  return <>
-  <mesh rotation={[-Math.PI/2,0,0]} position={[0,-0.22,0]}>
-   <ringGeometry args={[1.05,1.11,64]}/>
-   <meshBasicMaterial color={LED_PURPLE} side={THREE.DoubleSide} toneMapped={false}/>
-  </mesh>
-  <pointLight position={[0,-0.35,0]} color={LED_PURPLE} intensity={2.2} distance={7} decay={2}/>
-  {/* The GLB is about 9.37 units wide and 2.50 units tall. The upper crown rim sits near y=2, radius=1.5. */}
+  {lowerBands.map(({radius,y,tube},i)=>
+   <mesh key={i} rotation={[Math.PI/2,0,0]} position={[0,y,0]}>
+    <torusGeometry args={[radius,tube,6,128]}/>
+    <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
+   </mesh>
+  )}
+  {/* Eight short accents mark the radial machinery, with gaps between them. */}
+  {Array.from({length:8},(_,i)=>{
+   const a=i*Math.PI/4;
+   return <mesh key={i} rotation={[Math.PI/2,0,a]} position={[0,0.31,0]}>
+    <torusGeometry args={[3.25,0.016,6,20,a-0.12,0.24]}/>
+    <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
+   </mesh>;
+  })}
+  <pointLight position={[0,-0.15,0]} color={LED_PURPLE} intensity={1.6} distance={5} decay={2}/>
+  {/* Preserve the upper crown LED. */}
   <mesh rotation={[Math.PI/2,0,0]} position={[0,2.02,0]}>
    <torusGeometry args={[1.5,0.028,8,128]}/>
    <meshBasicMaterial color={LED_PURPLE} toneMapped={false}/>
@@ -25,6 +42,7 @@ function UfoAccentLights(){
   <pointLight position={[0,2.12,0]} color={LED_PURPLE} intensity={1.8} distance={4.5} decay={2}/>
  </>;
 }
+
 // Follow the actual GLB mesh edges rather than inventing architectural outlines.
 // High-angle edges emphasize structural breaks while avoiding wireframe triangles.
 function StructuralLEDs({scene,kind}){
@@ -33,7 +51,7 @@ function StructuralLEDs({scene,kind}){
   scene.traverse(obj=>{
    if(!obj.isMesh || !obj.geometry) return;
    // The UFO's black lower assembly contains its underside mechanical detailing.
-   if(kind==='ufo' && !/BLACK/i.test(obj.name)) return;
+   if(kind==='ufo') return; // Deliberate underside accents are handled by UfoAccentLights.
    // Select platform architecture, excluding tiny high-density surface details.
    if(kind==='platform' && (obj.geometry.index?.count||obj.geometry.attributes.position.count)>60000) return;
    const edges=new THREE.EdgesGeometry(obj.geometry,48);
