@@ -91,13 +91,13 @@ function RecolorBuiltInLights({scene}){
  useEffect(()=>{
   const swaps=[],lights=[];
   const violet=new THREE.Color(LED_PURPLE);
-  const isBlue=color=>{
+  const isBlueOrCyan=color=>{
    if(!color) return false;
    const hsl={h:0,s:0,l:0};color.getHSL(hsl);
-   return hsl.h>=0.52 && hsl.h<=0.72 && hsl.s>0.3;
+   return hsl.h>=0.45 && hsl.h<=0.72 && hsl.s>0.3;
   };
   scene.traverse(obj=>{
-   if(obj.isLight && isBlue(obj.color)){
+   if(obj.isLight && isBlueOrCyan(obj.color)){
     lights.push([obj,obj.color.clone()]);
     obj.color.copy(violet);
    }
@@ -106,12 +106,13 @@ function RecolorBuiltInLights({scene}){
    let changed=false;
    const replacements=originals.map(mat=>{
     if(!mat) return mat;
-    const luminous=mat.emissive && isBlue(mat.emissive) && (mat.emissiveIntensity??1)>0;
+    const platformCyan=mat.name==='Emissive_Cyan__0';
+    const luminous=(mat.emissive && isBlueOrCyan(mat.emissive) && (mat.emissiveIntensity??1)>0) || platformCyan;
     const namedLight=/led|neon|emissive|glow|light|strip/i.test(mat.name||'');
-    const blueLightSurface=namedLight && isBlue(mat.color);
+    const blueLightSurface=namedLight && isBlueOrCyan(mat.color);
     if(!luminous && !blueLightSurface) return mat;
     const next=mat.clone();
-    if(luminous) next.emissive.copy(violet);
+    if(luminous && next.emissive) next.emissive.copy(violet);
     if(blueLightSurface && next.color) next.color.copy(violet);
     swaps.push(next);
     changed=true;
