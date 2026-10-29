@@ -66,7 +66,8 @@ export default function WarpTunnel({progress,reduced}){
  const intensity=useRef(0);
  const grid=useRef();
  const lineMaterial=useRef();
- const ringMaterial=useRef();
+ const ringMaterial=useMemo(()=>new THREE.MeshBasicMaterial({color:'#7044d9',transparent:true,opacity:0,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}),[]);
+ useEffect(()=>()=>ringMaterial.dispose(),[ringMaterial]);
  useFrame(({camera},delta)=>{
   if(!rig.current)return;
   const t=progress.current;
@@ -79,7 +80,7 @@ export default function WarpTunnel({progress,reduced}){
   rig.current.position.copy(camera.position);
   rig.current.quaternion.copy(camera.quaternion);
   if(lineMaterial.current)lineMaterial.current.opacity=strength*.65;
-  if(ringMaterial.current)ringMaterial.current.opacity=strength*.21;
+  ringMaterial.opacity=strength*.21;
   if(grid.current)grid.current.material.opacity=strength*.13;
   for(const m of morph.materials)m.opacity=strength*.13;
   // Scroll-driven travel remains reversible and reproducible.
@@ -102,8 +103,7 @@ export default function WarpTunnel({progress,reduced}){
   </group>
   {rings.map((r,i)=><mesh key={i} position={[0,0,r.z]} rotation={[0,0,i*.23]} scale={[r.radius,r.radius,1]}>
    <ringGeometry args={[.995,1.005,72]}/>
-   <meshBasicMaterial ref={i===0?ringMaterial:undefined} color="#7044d9"
-    transparent opacity={0} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} toneMapped={false}/>
+   <primitive object={ringMaterial} attach="material"/>
   </mesh>)}
   <lineSegments geometry={streakGeometry}>
    <lineBasicMaterial ref={lineMaterial} color="#bb8bff" transparent opacity={0}
