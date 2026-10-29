@@ -4,9 +4,9 @@ import {Canvas,useFrame} from '@react-three/fiber';
 import {useGLTF,Environment} from '@react-three/drei';
 import * as THREE from 'three';
 import './style.css';
-import Navigation from './Navigation.jsx';
-import OrbitalNavigation from './OrbitalNavigation.jsx';
-import {ARRIVAL,shipAnchor} from './navigation.js';
+
+import WarpTunnel from './WarpTunnel.jsx';
+
 import {CELESTIAL_LAYOUT} from './celestial-layout.js';
 const clamp=(v)=>Math.min(1,Math.max(0,v));
 const ease=(v)=>{const t=clamp(v);return t*t*(3-2*t)};
@@ -397,42 +397,10 @@ function DistantMoon({reduced}){
 }
 // A feathered volumetric searchlight, not an opaque cone.
 // The camera-facing beam is transparent at its edges and brightens toward its axis.
-const SEARCHLIGHT_VERTEX=`
- varying vec2 vBeamUv;
- void main(){
-  vBeamUv=uv;
-  gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
- }
-`;
-const SEARCHLIGHT_FRAGMENT=`
- precision highp float;
- varying vec2 vBeamUv;
- uniform float uOpacity;
- void main(){
-  // Narrow at the UFO, spreading softly over the selected orbit.
-  // A narrow source that opens into a broad, diffuse atmospheric column.
-  // At the planet, the light has no hard edge or concentrated center.
-  float width=mix(0.48,0.055,vBeamUv.y);
-  float radial=abs(vBeamUv.x-0.5)/width;
-  float feather=exp(-2.1*radial*radial);
-  float sourceFade=1.0-smoothstep(0.96,1.0,vBeamUv.y);
-  float depthFade=mix(0.16,0.88,pow(vBeamUv.y,0.7));
-  float alpha=uOpacity*feather*sourceFade*depthFade;
-  vec3 violet=mix(vec3(0.26,0.07,0.60),vec3(0.60,0.32,0.96),pow(feather,2.0));
-  gl_FragColor=vec4(violet,alpha);
- }
-`;
-function Chamber({progress,onFrame,navigation,reduced}){
+function Chamber({progress,onFrame,navigation,reduced,warpEnabled}){
  const platform=useGLTF('/models/platform.glb');
  const ufo=useGLTF('/models/ufo.glb');
- const ship=useRef(),beam=useRef(),beamMaterial=useRef(),beamSpot=useRef();
- useEffect(()=>{
-  if(!ship.current||!beamSpot.current)return;
-  const target=beamSpot.current.target;
-  ship.current.add(target);
-  return ()=>ship.current?.remove(target);
- },[]);
- const hoverX=useRef(0);
+ const ship=useRef();
  const cameraTarget=useRef(new THREE.Vector3());
  const pointer=useRef({x:0,y:0});
  const smoothPointer=useRef({x:0,y:0});
@@ -480,57 +448,34 @@ function Chamber({progress,onFrame,navigation,reduced}){
   camera.position.x+=panX;
   camera.position.y+=panY;
   cameraTarget.current.set(panX*0.3,y+0.5+panY*0.3,z);
-  // The approved departure occupies the first 55%; the next segment reveals space.
-  const travel=ease((total-.55)/.35);
-  const width=window.innerWidth, narrow=width<600;
-  const distance=narrow?48:32;
-  const destination=new THREE.Vector3(0,28,-140+distance);
-  camera.position.lerp(destination,travel);
-  cameraTarget.current.lerp(new THREE.Vector3(0,28,-140),travel);
+  // From 55% onward the ship stays centered in a third-person chase shot.
+  // The UFO is our stationary visual anchor while the tunnel creates speed.
+  const transition=ease((total-.55)/.14);
+  const chaseShip=new THREE.Vector3(0,28,-140);
+  const chaseCamera=new THREE.Vector3(0,31,-107);
+  const oldShip=ship.current.position.clone();
+  ship.current.position.copy(oldShip.lerp(chaseShip,transition));
+  camera.position.lerp(chaseCamera,transition);
+  cameraTarget.current.lerp(ship.current.position,transition);
   camera.lookAt(cameraTarget.current);
-  const fieldHeight=2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*distance;
-  const fieldWidth=fieldHeight*camera.aspect;
-  const focused=navigation.current.selected!==null?navigation.current.selected:navigation.current.hovered;
-  const targetX=(shipAnchor(focused===null?1:focused,navigation.current.selected!==null,narrow)-.5)*fieldWidth;
-  hoverX.current=THREE.MathUtils.damp(hoverX.current,targetX,reduced?1000:12,Math.min(delta,.1));
-  const restingY=28+fieldHeight*.23-1;
-  ship.current.position.lerp(new THREE.Vector3(hoverX.current,restingY+(reduced?0:Math.sin(clock.elapsedTime*1.4)*.08),-140),travel);
-  ship.current.rotation.x*=1-travel;
-  ship.current.rotation.z*=1-travel;
-  const beamOn=navigation.current.selected===null && navigation.current.hovered!==null && total>=ARRIVAL && Math.abs(hoverX.current-targetX)<.8;
-  // Let the searchlight pass BEHIND the orbit and continue below the
-  // viewport. Its diffuse tail disappears gradually, with no visible cutoff.
-  const beamHeight=fieldHeight*1.62;
-  const beamOpacity=beamMaterial.current.uniforms.uOpacity;
-  beamOpacity.value=THREE.MathUtils.damp(beamOpacity.value,beamOn?.26:0,8,Math.min(delta,.1));
-  if(beamSpot.current){
-   // Only a little physical light reaches the object. The bright edge is
-   // produced by the orbit's silhouette rim, not a solid illuminated patch.
-   beamSpot.current.intensity=THREE.MathUtils.damp(beamSpot.current.intensity,beamOn?2.4:0,8,Math.min(delta,.1));
-   beamSpot.current.distance=fieldHeight*.55;
-   beamSpot.current.target.position.set(0,-fieldHeight*.4,0);
+  ship.current.rotation.x*=1-transition;
+  ship.current.rotation.z*=1-transition;
+  // Subtle ship vibration during acceleration, tapering at arrival.
+  const warp=total>.63&&total<.94?ease((total-.63)/.1)*(1-ease((total-.83)/.11)):0;
+  if(!reduced && warp>0){
+   ship.current.position.x+=Math.sin(clock.elapsedTime*17)*warp*.028;
+   ship.current.position.y+=Math.cos(clock.elapsedTime*21)*warp*.018;
   }
-  beam.current.visible=beamOpacity.value>.002;
-  beam.current.scale.set(12.5,beamHeight,1);
-  // Keep the beam at the ship/orbit depth. Pushing it 3.6 units farther
-  // into perspective space shifted its screen projection toward the center,
-  // so it missed the left/right navigation orbs despite sharing their X.
-  // A tiny offset retains depth ordering without visible horizontal drift.
-  beam.current.position.set(0,-0.8-beamHeight*.5,-0.05);
-  beam.current.quaternion.copy(camera.quaternion);
-
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
  return <>
-  <DeepSpace/><PlanetaryBounceGlow reduced={reduced}/><OrbitalNavigation interaction={navigation} reduced={reduced}/><OptionalSpaceAsset><CosmicVortex/></OptionalSpaceAsset><OptionalSpaceAsset><DistantPurplePlanet reduced={reduced}/></OptionalSpaceAsset><OptionalSpaceAsset><DistantMoon reduced={reduced}/></OptionalSpaceAsset>
+  <DeepSpace/>
+  {warpEnabled&&<OptionalSpaceAsset><React.Suspense fallback={null}><WarpTunnel progress={progress} reduced={reduced}/></React.Suspense></OptionalSpaceAsset>}
   <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
   <directionalLight position={[8,18,12]} intensity={3.0}/>
   <directionalLight position={[-9,8,-10]} intensity={1.4}/>
   <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
-  <group ref={ship}><spotLight ref={beamSpot} position={[0,-0.7,0]} color="#b78aff" intensity={0} distance={12} angle={0.43} penumbra={0.95} decay={1.5}/><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/>
-   <mesh ref={beam} visible={false} renderOrder={0}><planeGeometry args={[1,1]}/><shaderMaterial ref={beamMaterial} vertexShader={SEARCHLIGHT_VERTEX} fragmentShader={SEARCHLIGHT_FRAGMENT} uniforms={{uOpacity:{value:0}}} transparent depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} toneMapped={false}/></mesh>
-  </group>
-  <PassingTraffic source={ufo.scene} reduced={reduced}/>
+  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/></group>
  </>;
 }
 function PassingTraffic({source,reduced}){
@@ -577,16 +522,16 @@ function App(){
   window.addEventListener('resize',update);window.addEventListener('keydown',key);update();
   return ()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update);window.removeEventListener('keydown',key);};
  },[]);
- const arrived=pct>=ARRIVAL*100;
- const phase=pct<9?'01 / DOCKING STATION':pct<38?'02 / DEPARTURE':pct<55?'03 / THE ASCENT':!arrived?'04 / OPEN SPACE':'05 / EXPLORE';
+ const arrived=pct>=94;
+ const phase=pct<9?'01 / DOCKING STATION':pct<38?'02 / DEPARTURE':pct<63?'03 / THE ASCENT':pct<94?'04 / WARP SPEED':'05 / ARRIVAL';
  return <>
   <div className="scene"><Canvas gl={{antialias:true,powerPreference:'high-performance'}} camera={{fov:53,near:.1,far:700,position:[0,3.55,8.4]}} onCreated={({gl})=>gl.setClearColor('#090c10')} onError={e=>setError(String(e))}>
-   <React.Suspense fallback={null}><Chamber progress={progress} onFrame={onFrame} navigation={navigation} reduced={reduced}/></React.Suspense>
+   <React.Suspense fallback={null}><Chamber progress={progress} onFrame={onFrame} navigation={navigation} reduced={reduced} warpEnabled={pct>42}/></React.Suspense>
   </Canvas></div>
   <div className="scroll-track" aria-hidden="true"/>
-  {!arrived && <header className={`overlay ${pct>50?'quiet':''}`}><div className="eyebrow">ATLANTA / THE ASCENT</div><h1>Beyond the familiar.</h1><p>Scroll to leave the dock and explore.</p>{error&&<div className="error">{error}</div>}
-   <button onClick={()=>window.scrollTo({top:(document.documentElement.scrollHeight-window.innerHeight)*.94,behavior:reduced?'instant':'smooth'})}>EXPLORE</button></header>}
-  {arrived && <Navigation active={active} selected={selected} reduced={reduced} onHover={i=>{setActive(i);setHovered(i);}} onLeave={()=>setHovered(null)} onSelect={i=>{setActive(i);setHovered(i);setSelected(i);}} onClose={close}/>}
+  {pct<63 && <header className={`overlay ${pct>50?'quiet':''}`}><div className="eyebrow">ATLANTA / THE ASCENT</div><h1>Beyond the familiar.</h1><p>Scroll to leave the dock and explore.</p>{error&&<div className="error">{error}</div>}
+   <button onClick={()=>window.scrollTo({top:(document.documentElement.scrollHeight-window.innerHeight)*.79,behavior:reduced?'instant':'smooth'})}>EXPLORE</button></header>}
+  {/* Arrival environment and navigation will be designed after the warp transition is approved. */}
   <footer aria-hidden={selected!==null}><span>{phase}</span><div className="progress"><div style={{width:`${pct}%`}}/></div><span>{Math.round(pct)}%</span></footer>
  </>;
 }
