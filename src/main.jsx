@@ -451,15 +451,19 @@ function Chamber({progress,onFrame,navigation,reduced,warpEnabled}){
   // From 55% onward the ship stays centered in a third-person chase shot.
   // The UFO is our stationary visual anchor while the tunnel creates speed.
   const transition=ease((total-.55)/.14);
+  // One continuous flight direction: world -Z from launch through warp.
+  // The chase camera sits directly behind the UFO (positive Z), never
+  // overtakes it or swings to face the ship's nose during the transition.
   const chaseShip=new THREE.Vector3(0,28,-140);
-  const chaseCamera=new THREE.Vector3(0,31,-107);
-  const oldShip=ship.current.position.clone();
-  ship.current.position.copy(oldShip.lerp(chaseShip,transition));
+  const chaseOffset=new THREE.Vector3(0,3,33);
+  const chaseCamera=chaseShip.clone().add(chaseOffset);
+  ship.current.position.lerp(chaseShip,transition);
   camera.position.lerp(chaseCamera,transition);
   cameraTarget.current.lerp(ship.current.position,transition);
   camera.lookAt(cameraTarget.current);
   ship.current.rotation.x*=1-transition;
   ship.current.rotation.z*=1-transition;
+  ship.current.rotation.y=0;
   // Subtle ship vibration during acceleration, tapering at arrival.
   const warp=total>.63&&total<.94?ease((total-.63)/.1)*(1-ease((total-.83)/.11)):0;
   if(!reduced && warp>0){
