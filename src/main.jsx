@@ -71,8 +71,8 @@ function App(){
     <div className="section-label" data-reveal><span className="label-dot"/>04 / THE NEXT CHAPTER</div>
     <p className="contact-intro" data-reveal>HAVE SOMETHING IN MIND?</p>
     <h2 data-reveal>LET'S MAKE<br/><span>IT <em>HAPPEN.</em></span></h2>
-    <a className="contact-cta" href="mailto:hello@johnwolf.design?subject=Let's%20create%20something"><span>START A CONVERSATION</span><Arrow diagonal/></a>
-    <p className="contact-note">Email address is a placeholder until confirmed.</p>
+    <a className="contact-cta" href="https://john-wolf-portfolio-test.vercel.app/" target="_blank" rel="noopener noreferrer"><span>VIEW MY CURRENT PORTFOLIO</span><Arrow diagonal/></a>
+    <p className="contact-note">Direct contact information will be added when confirmed.</p>
    </section>
   </main>
   <footer className="site-footer"><a className="footer-logo" href="#home">JW<span>.</span></a><span>INDEPENDENT BY DESIGN.</span><a href="#home">BACK TO TOP ↑</a><span>© {new Date().getFullYear()} JOHN WOLF</span></footer>
