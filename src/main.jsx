@@ -494,7 +494,7 @@ function App(){
  const progress=useRef(0),onFrame=useRef(null),navigation=useRef({active:0,selected:null});
  const [pct,setPct]=useState(0),[active,setActive]=useState(0),[hovered,setHovered]=useState(null),[selected,setSelected]=useState(null),[error,setError]=useState('');
  const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
- navigation.current={active,selected,hovered,arrived:pct>=ARRIVAL*100};
+ navigation.current={active,selected,hovered,arrived:pct>=94};
  const close=React.useCallback(()=>setSelected(null),[]);
  useEffect(()=>{
   const query=window.matchMedia('(prefers-reduced-motion: reduce)');
