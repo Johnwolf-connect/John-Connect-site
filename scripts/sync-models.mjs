@@ -10,7 +10,8 @@ const project=resolve(import.meta.dirname,'..');
 const target=join(project,'public','models');
 mkdirSync(target,{recursive:true});
 const otherNames=['platform.glb','ufo.glb','black_hole.glb','audras_moon-web-optimized.glb',
- 'technotron.glb','amethyst_torus.glb','the_great_morpheus.glb'];
+ 'technotron.glb','amethyst_torus.glb','the_great_morpheus.glb',
+ 'space-time_grid_blendshapes_looping_animation.glb'];
 const aliases={'the_great_morpheus.glb':['the_great_morpheus(1).glb']};
 const planet='purple_planet.glb';
 const originalName='purple_planet(5).glb';
