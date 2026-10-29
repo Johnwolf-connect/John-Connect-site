@@ -1,540 +1,81 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {Canvas,useFrame} from '@react-three/fiber';
-import {useGLTF,Environment} from '@react-three/drei';
-import * as THREE from 'three';
 import './style.css';
 
-import WarpTunnel from './WarpTunnel.jsx';
-
-import {CELESTIAL_LAYOUT} from './celestial-layout.js';
-const clamp=(v)=>Math.min(1,Math.max(0,v));
-const ease=(v)=>{const t=clamp(v);return t*t*(3-2*t)};
-const vec=(v)=>new THREE.Vector3(...v);
-// LED accents are attached to the UFO group; original materials remain unchanged.
-// Dimensions are provisional until the local GLB is visually checked.
-const LED_PURPLE='#8b3dff';
-const LED_SOFT='#6630a8';
-// Build underside accents from the actual black mechanical mesh edges.
-// No synthetic concentric rings: only short, recessed structural segments.
-// Sample the real underside surface and fit short light strips onto the radial ribs.
-// Unlike line overlays, each segment sits just below the visible underside surface.
-function UfoAccentLights({scene}){
- const engineGlow=useRef();
- const crownGlow=useRef();
- useFrame(({clock})=>{
-  const pulse=Math.sin(clock.elapsedTime*1.45);
-  if(engineGlow.current) engineGlow.current.intensity=0.8+0.12*pulse;
-  if(crownGlow.current) crownGlow.current.intensity=0.75+0.08*pulse;
- });
- useEffect(()=>{
-  const parts=[];
-  scene.updateMatrixWorld(true);
-  scene.traverse(obj=>{
-   if(!obj.isMesh || !/UFO_BLACK/i.test(obj.name) || !obj.geometry)return;
-   const box=new THREE.Box3().setFromObject(obj);
-   const center=box.getCenter(new THREE.Vector3());
-   const radius=Math.max(box.max.x-box.min.x,box.max.z-box.min.z)/2;
-   const down=new THREE.Vector3(0,1,0);
-   const ray=new THREE.Raycaster();
-   ray.firstHitOnly=true;
-   const segments=[];
-   // Surface-projected, discrete ribs; the ray hits the actual mechanical mesh.
-   for(let spoke=0;spoke<48;spoke++){
-    const angle=spoke*Math.PI*2/48;
-    const ux=Math.cos(angle),uz=Math.sin(angle);
-    let prev=null;
-    for(let j=0;j<=30;j++){
-     const r=radius*(0.36+j*0.014);
-     const origin=new THREE.Vector3(center.x+ux*r,box.min.y-radius*0.4,center.z+uz*r);
-     ray.set(origin,down);
-     ray.far=radius*1.5;
-     const hit=ray.intersectObject(obj,false)[0];
-     const point=hit?.point;
-     if(prev && point && point.distanceTo(prev)<radius*0.055){
-      const dy=Math.abs(point.y-prev.y);
-      // A short segment follows a continuous rib surface, never bridges gaps.
-      if(dy<radius*0.012 && j%3!==0){
-       // Raycast hits are world-space. Convert into this mesh's local space
-       // so these strips remain physically attached during the entire flight.
-       const offset=radius*0.0018;
-       const a=obj.worldToLocal(prev.clone().add(new THREE.Vector3(0,-offset,0)));
-       const b=obj.worldToLocal(point.clone().add(new THREE.Vector3(0,-offset,0)));
-       segments.push(a.x,a.y,a.z,b.x,b.y,b.z);
-      }
-     }
-     prev=point||null;
-    }
-   }
-   if(!segments.length)return;
-   const geometry=new THREE.BufferGeometry();
-   geometry.setAttribute('position',new THREE.Float32BufferAttribute(segments,3));
-   const material=new THREE.LineBasicMaterial({
-    color:LED_PURPLE,transparent:true,opacity:0.72,depthTest:true,depthWrite:false
-   });
-   const lines=new THREE.LineSegments(geometry,material);
-   lines.name='surface-fitted-underside-rib-leds';
-   obj.add(lines);
-   parts.push({obj,lines,geometry,material});
-  });
-  return ()=>parts.forEach(({obj,lines,geometry,material})=>{
-   obj.remove(lines);geometry.dispose();material.dispose();
-  });
- },[scene]);
- return <>
-  <mesh rotation={[Math.PI/2,0,0]} position={[0,2.02,0]}>
-   <torusGeometry args={[1.5,0.028,8,128]}/>
-   <meshBasicMaterial color={LED_SOFT} toneMapped={false}/>
-  </mesh>
-  <pointLight ref={engineGlow} position={[0,0.12,0]} color={LED_PURPLE} intensity={0.8} distance={2.5} decay={2}/>
-  <pointLight ref={crownGlow} position={[0,2.12,0]} color={LED_PURPLE} intensity={0.75} distance={3.5} decay={2}/>
- </>;
-}
-
-// Restrained platform accent lighting: only long, nearly horizontal architectural
-// edges are candidates. This deliberately avoids tracing every mesh triangle.
-function StructuralLEDs({scene,kind}){
- useEffect(()=>{
-  if(kind!=='platform') return;
-  const added=[];
-  scene.traverse(obj=>{
-   if(!obj.isMesh || !obj.geometry) return;
-   const size=new THREE.Vector3();
-   obj.geometry.computeBoundingBox();
-   obj.geometry.boundingBox.getSize(size);
-   if(Math.max(size.x,size.z)<2) return;
-   const edges=new THREE.EdgesGeometry(obj.geometry,65);
-   const positions=edges.getAttribute('position');
-   if(!positions){edges.dispose();return;}
-   const selected=[];
-   for(let i=0;i<positions.count;i+=2){
-    const ax=positions.getX(i),ay=positions.getY(i),az=positions.getZ(i);
-    const bx=positions.getX(i+1),by=positions.getY(i+1),bz=positions.getZ(i+1);
-    const length=Math.hypot(bx-ax,by-ay,bz-az);
-    if(length<0.8 || Math.abs(by-ay)>0.08*length) continue;
-    selected.push(ax,ay,az,bx,by,bz);
-   }
-   edges.dispose();
-   if(selected.length<6 || selected.length>9000) return;
-   const geometry=new THREE.BufferGeometry();
-   geometry.setAttribute('position',new THREE.Float32BufferAttribute(selected,3));
-   const material=new THREE.LineBasicMaterial({
-    color:LED_PURPLE,transparent:true,opacity:0.38,depthWrite:false,depthTest:true
-   });
-   const lines=new THREE.LineSegments(geometry,material);
-   lines.name='subtle-platform-architectural-led';
-   obj.add(lines);
-   added.push({obj,lines,geometry,material});
-  });
-  return ()=>added.forEach(({obj,lines,geometry,material})=>{
-   obj.remove(lines);geometry.dispose();material.dispose();
-  });
- },[scene,kind]);
- return null;
-}
-// Recolor existing blue light-emitting materials and actual light objects in the GLBs.
-// Diffuse chrome/paint colors are deliberately not recolored.
-function RecolorBuiltInLights({scene,platform=false}){
- useEffect(()=>{
-  const swaps=[],lights=[];
-  const violet=new THREE.Color(LED_PURPLE);
-  const isBlueOrCyan=color=>{
-   if(!color) return false;
-   const hsl={h:0,s:0,l:0};color.getHSL(hsl);
-   return hsl.h>=0.45 && hsl.h<=0.72 && hsl.s>0.3;
-  };
-  scene.traverse(obj=>{
-   if(obj.isLight && isBlueOrCyan(obj.color)){
-    lights.push([obj,obj.color.clone()]);
-    obj.color.copy(violet);
-   }
-   if(!obj.isMesh || !obj.material) return;
-   const originals=Array.isArray(obj.material)?obj.material:[obj.material];
-   let changed=false;
-   const replacements=originals.map(mat=>{
-    if(!mat) return mat;
-    const platformCyan=mat.name==='Emissive_Cyan__0';
-    const luminous=(mat.emissive && isBlueOrCyan(mat.emissive) && (mat.emissiveIntensity??1)>0) || platformCyan;
-    const namedLight=/led|neon|emissive|glow|light|strip/i.test(mat.name||'');
-    const blueLightSurface=namedLight && isBlueOrCyan(mat.color);
-    if(!luminous && !blueLightSurface) return mat;
-    const next=mat.clone();
-    if(luminous && next.emissive){
-     next.emissive.copy(violet);
-     // Boost the existing platform light strips, not the UFO or non-emissive surfaces.
-     if(platform) next.emissiveIntensity=Math.max(2.2,next.emissiveIntensity??1);
-    }
-    if(blueLightSurface && next.color) next.color.copy(violet);
-    swaps.push(next);
-    changed=true;
-    return next;
-   });
-   if(changed){
-    const previous=obj.material;
-    obj.material=Array.isArray(previous)?replacements:replacements[0];
-    swaps.push({obj,previous});
-   }
-  });
-  return ()=>{
-   swaps.forEach(item=>{
-    if(item.obj) item.obj.material=item.previous;
-    else item.dispose();
-   });
-   lights.forEach(([light,color])=>light.color.copy(color));
-  };
- },[scene]);
- return null;
-}
-// First universe layer: sparse, deterministic deep-space stars beyond the hangar.
-// This requires no additional GLBs and leaves the approved flight untouched.
-function DeepSpace(){
- const nearby=React.useMemo(()=>{
-  // Sparse stars surrounding the flight corridor, with no stars on the path.
-  // Camera translation provides real parallax; these never follow the camera.
-  let seed=9183;
-  const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  const positions=[];
-  for(let i=0;i<180;i++){
-   const angle=rand()*Math.PI*2, radius=18+rand()*65;
-   positions.push(Math.cos(angle)*radius,28+Math.sin(angle)*radius,-65-rand()*260);
-  }
-  const geometry=new THREE.BufferGeometry();
-  geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
-  return geometry;
- },[]);
- useEffect(()=>()=>nearby.dispose(),[nearby]);
- const stars=React.useMemo(()=>{
-  let seed=73129;
-  const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296};
-  const points=[];
-  for(let i=0;i<1100;i++){
-   const x=(rand()-.5)*850;
-   const y=(rand()-.5)*600+55;
-   const z=-120-rand()*450;
-   // Avoid a conspicuous star cluster directly in the hangar opening.
-   points.push(x,y,z);
-  }
-  const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));
-  return geo;
- },[]);
- useEffect(()=>()=>stars.dispose(),[stars]);
- return <><points geometry={stars} frustumCulled={false}>
-  <pointsMaterial color="#b6b2cb" size={0.85} sizeAttenuation transparent opacity={0.72} depthWrite={false}/>
- </points><points geometry={nearby}>
-  <pointsMaterial color="#d7c5f2" size={0.12} sizeAttenuation transparent opacity={0.65} depthWrite={false}/>
- </points></>;
-}
-// Use the supplied space asset rather than a procedural planet.
-// Keep this under its own Suspense boundary so missing local GLBs do not hide the UFO.
-// Optional universe assets must never bring down the main animated scene.
-class SpaceAssetBoundary extends React.Component{
- constructor(props){super(props);this.state={failed:false};}
- static getDerivedStateFromError(){return {failed:true};}
- componentDidCatch(error){console.warn('Optional universe GLB unavailable:',error);}
- render(){return this.state.failed?null:this.props.children;}
-}
-function OptionalSpaceAsset({children}){
- return <SpaceAssetBoundary><React.Suspense fallback={null}>{children}</React.Suspense></SpaceAssetBoundary>;
-}
-// The Sketchfab source contains large gray reflective light shells. They create
-// the flat metal-disc appearance in our bright hangar lighting. Keep the original
-// geometry and texture maps, but render its accretion light independently of
-// directional/ambient illumination, without gray metallic reflections.
-// Preserve the source GLB's authored black-hole materials and lensing details.
-// Its horizontal accretion disk already exists as the 'black hole_ring' group.
-// The previous extra 90-degree scene rotation turned that disk face-on,
-// producing the pink target seen in the screenshot.
-// Reference-led cinematic black hole. This is an animated camera-facing
-// shader, not a recolor of the original GLB. The source GLB remains untouched.
-// A horizontal rotating accretion disk passes behind and in front of a dark
-// event horizon; gravitational lensing forms warm arcs above and below it.
-function CosmicVortex(){
- const surface=useRef();
- const uniforms=React.useMemo(()=>({uTime:{value:0}}),[]);
- useFrame(({camera,clock})=>{
-  if(!surface.current)return;
-  surface.current.quaternion.copy(camera.quaternion);
-  uniforms.uTime.value=clock.elapsedTime;
- });
- const vertex=React.useMemo(()=>`
- varying vec2 vUv;
- void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}
- `,[]);
- const fragment=React.useMemo(()=>`
- precision highp float;
- varying vec2 vUv;
- uniform float uTime;
- float gauss(float x,float width){return exp(-x*x/max(width,0.00001));}
- float noise(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
- void main(){
-  // Plane coordinates: center radius ~0.15 in UV, broad disk spans ~0.9.
-  vec2 p=(vUv-0.5)*vec2(2.65,1.35);
-  float x=p.x,y=p.y,r=length(p);
-  float horizon=0.175;
-  // Dust/gas rotates within the horizontal plane; brightness remains
-  // asymmetric and irregular rather than looking like a perfect ellipse.
-  float phase=atan(y,x)*2.8+uTime*0.33;
-  float textureWave=sin(x*31.0+uTime*1.2+sin(x*12.0-uTime*0.5)*2.0);
-  float fine=noise(vec2(floor(x*220.0-uTime*13.0),floor(y*310.0)));
-  float extent=1.10;
-  float envelope=1.0-smoothstep(0.22,extent,abs(x));
-  float thickness=mix(0.017,0.031,envelope);
-  float backDisk=gauss(y-0.012,thickness*thickness)*envelope;
-  float frontDisk=gauss(y+0.012,thickness*thickness)*envelope;
-  float turbulence=0.72+0.18*textureWave+0.16*fine;
-  // Far side passes behind the shadow; near side crosses IN FRONT of it.
-  float disk=backDisk*0.62*turbulence;
-  // Strong horizontal tangent highlights on both sides.
-  float tangent=gauss(abs(x)-horizon,0.018)*gauss(y,0.0014);
-  // Warm, narrow gravitational lens arcs; brighter toward the equator.
-  float theta=atan(y,x);
-  float rim=gauss(r-(horizon+0.017),0.000075);
-  float upper=smoothstep(0.0,0.025,y);
-  float lower=smoothstep(0.0,0.025,-y);
-  float arcLight=rim*(0.78*upper+0.5*lower);
-  float outer=gauss(r-(horizon+0.034),0.0005)*0.15;
-  float rimHalo=gauss(r-(horizon+0.019),0.003)*0.18;
-  float halo=gauss(r,0.075)*0.065;
-  // Dark shadow blocks the disk and background, with a warm photon rim.
-  float shadow=1.0-smoothstep(horizon-0.008,horizon+0.002,r);
-  disk*=1.0-shadow;
-  vec3 warm=vec3(1.0,0.69,0.42);
-  vec3 lightColor=warm*(disk*0.75+arcLight*1.4+outer+rimHalo+tangent*0.9);
-  lightColor+=vec3(1.0,0.85,0.67)*arcLight*0.55;
-  lightColor+=warm*halo*0.35;
-  // Composite the shadow first, then the near-side accretion band ON TOP.
-  // Otherwise the event horizon cuts a black gap through the horizontal ring.
-  float foreground=frontDisk*turbulence*envelope;
-  vec3 foregroundColor=vec3(1.0,0.78,0.54)*foreground*1.18;
-  float brightness=max(lightColor.r,max(lightColor.g,lightColor.b));
-  float alpha=clamp(brightness*0.83+shadow+foreground*0.75,0.0,0.98);
-  vec3 color=mix(lightColor,vec3(0.001,0.001,0.003),shadow)+foregroundColor;
-  gl_FragColor=vec4(color,alpha);
- }
- `,[]);
- const diameter=CELESTIAL_LAYOUT.vortex.diameter;
- return <mesh ref={surface} position={CELESTIAL_LAYOUT.vortex.position} renderOrder={4}>
-  <planeGeometry args={[diameter*2.5,diameter*1.25]}/>
-  <shaderMaterial vertexShader={vertex} fragmentShader={fragment} uniforms={uniforms}
-   transparent depthWrite={false} side={THREE.DoubleSide} toneMapped={false}/>
- </mesh>;
-}
-// A restrained reflection of the concealed purple planet. This illuminates the
-// lower departure opening without revealing or replacing the actual GLB.
-function PlanetaryBounceGlow({reduced}){
- const glow=useRef();
- useFrame(({clock})=>{
-  if(glow.current)glow.current.intensity=reduced?0.45:0.45+0.045*Math.sin(clock.elapsedTime*0.55);
- });
- return <pointLight ref={glow} position={[-6,-3,-17]} color="#8e51d8" intensity={0.45} distance={30} decay={2}/>;
-}
-
-// A vast body beneath the station establishes scale as the floor leaves the frame.
-// Sized from the GLB's actual dimensions; no replacement sphere or generated texture.
-function DistantPurplePlanet({reduced}){
- const rotation=useRef();
- const mixer=useRef(null);
- useFrame((_,delta)=>{
-  if(reduced)return;
-  const step=Math.min(delta,.1);
-  if(mixer.current)mixer.current.update(step);
-  else if(rotation.current)rotation.current.rotation.y+=step*.075;
- });
- const {scene,animations}=useGLTF('/models/purple_planet.glb');
- const model=React.useMemo(()=>{
-  const clone=scene.clone(true);
-  const bounds=new THREE.Box3().setFromObject(clone);
-  const size=bounds.getSize(new THREE.Vector3());
-  const center=bounds.getCenter(new THREE.Vector3());
-  clone.position.sub(center);
-  const wrapper=new THREE.Group();
-  wrapper.add(clone);
-  wrapper.scale.setScalar(CELESTIAL_LAYOUT.stationPlanet.diameter/Math.max(size.x,size.y,size.z,0.001));
-  return wrapper;
- },[scene]);
- // Display the source GLB materials without overrides. Keep its original
- // textures, color, opacity, emission, and tone mapping as authored.
- // The model is cloned above for scene placement; no GLB asset is modified.
- useEffect(()=>{
-  if(!animations.length)return;
-  const player=new THREE.AnimationMixer(model);
-  // The supplied Take 01 animates both the planet and an independent cloud
-  // layer. Fit one authored cycle to the approved ~84-second rotation.
-  const clip=animations[0];
-  const action=player.clipAction(clip);
-  action.setEffectiveTimeScale(clip.duration/84).play();
-  mixer.current=player;
-  return ()=>{
-   mixer.current=null;
-   player.stopAllAction();
-   player.uncacheRoot(model);
-  };
- },[model,animations]);
- return <group ref={rotation} position={CELESTIAL_LAYOUT.stationPlanet.position} rotation={[0,0.4,0.1]}>
-  <primitive object={model}/>
- </group>;
-}
-// Existing spherical moon asset, web-optimized for the live scene.
-function DistantMoon({reduced}){
- const rotation=useRef();
- useFrame((_,delta)=>{if(rotation.current && !reduced)rotation.current.rotation.y+=Math.min(delta,.1)*.009;});
- const {scene}=useGLTF('/models/audras_moon-web-optimized.glb');
- const model=React.useMemo(()=>{
-  const copy=scene.clone(true);
-  const bounds=new THREE.Box3().setFromObject(copy);
-  const size=bounds.getSize(new THREE.Vector3());
-  const center=bounds.getCenter(new THREE.Vector3());
-  copy.position.sub(center);
-  const holder=new THREE.Group();
-  holder.add(copy);
-  holder.scale.setScalar(CELESTIAL_LAYOUT.moon.diameter/Math.max(size.x,size.y,size.z,0.001));
-  return holder;
- },[scene]);
- return <group ref={rotation} position={CELESTIAL_LAYOUT.moon.position} rotation={[0.18,-0.35,0.1]}>
-  <primitive object={model}/>
- </group>;
-}
-// A feathered volumetric searchlight, not an opaque cone.
-// The camera-facing beam is transparent at its edges and brightens toward its axis.
-function Chamber({progress,onFrame,navigation,reduced,warpEnabled}){
- const platform=useGLTF('/models/platform.glb');
- const ufo=useGLTF('/models/ufo.glb');
- const ship=useRef();
- const cameraTarget=useRef(new THREE.Vector3());
- const pointer=useRef({x:0,y:0});
- const smoothPointer=useRef({x:0,y:0});
- useEffect(()=>{
-  const move=e=>{pointer.current.x=(e.clientX/window.innerWidth-0.5)*2;pointer.current.y=(e.clientY/window.innerHeight-0.5)*2;};
-  const reset=()=>{pointer.current.x=0;pointer.current.y=0;};
-  window.addEventListener('pointermove',move,{passive:true});
-  window.addEventListener('blur',reset);
-  document.addEventListener('pointerleave',reset);
-  return ()=>{window.removeEventListener('pointermove',move);window.removeEventListener('blur',reset);document.removeEventListener('pointerleave',reset);};
- },[]);
- const roof=11.112;
- useFrame(({camera,clock},delta)=>{
-  const total=progress.current;
-  const p=clamp(total/.55);
-  const pointerEase=1-Math.exp(-3.5*Math.min(delta,0.1));
-  smoothPointer.current.x+= (pointer.current.x-smoothPointer.current.x)*pointerEase;
-  smoothPointer.current.y+= (pointer.current.y-smoothPointer.current.y)*pointerEase;
-  // The front hangar exit is along negative Z, directly ahead of the initial camera.
-  // Stay near docking-pad altitude until clear of the structure; climb afterward.
-  const depart=ease((p-.12)/.56);
-  const climb=ease((p-.68)/.32);
-  const y=1.4 + depart*0.8 + climb*12 + (reduced?0:Math.sin(clock.elapsedTime*1.6)*.07);
-  const z=-depart*34 - climb*16;
-  ship.current.position.set(0,y,z);
-  // Gentle cursor-follow tilt, strongest while docked; fades during cinematic chase.
-  const cursorWeight=1-0.7*ease((p-0.22)/0.55);
-  ship.current.rotation.x=-smoothPointer.current.y*0.028*cursorWeight;
-  ship.current.rotation.z=-smoothPointer.current.x*0.038*cursorWeight;
-  // Keep the camera behind the UFO (positive Z) throughout the forward exit.
-  const close=[0,3.55,8.4];
-  const tracking=[5.5,4.8,-5];
-  const exit=[9,6.5,-19];
-  const chase=[5,11,-37];
-  let from,to,t;
-  if(p<.38){from=close;to=tracking;t=ease((p-.10)/.28)}
-  else if(p<.70){from=tracking;to=exit;t=ease((p-.38)/.32)}
-  else{from=exit;to=chase;t=ease((p-.70)/.30)}
-  camera.position.copy(vec(from).lerp(vec(to),t));
-  // Soft cursor-driven camera pan, layered over the approved chase framing.
-  // Keep the motion subtle and fade it during flight; no change to the path.
-  const panWeight=1-0.65*ease((p-0.25)/0.65);
-  const panX=smoothPointer.current.x*0.42*panWeight;
-  const panY=-smoothPointer.current.y*0.24*panWeight;
-  camera.position.x+=panX;
-  camera.position.y+=panY;
-  cameraTarget.current.set(panX*0.3,y+0.5+panY*0.3,z);
-  // Follow the UFO along the same world -Z heading as the departure.
-  const chase=ease((total-.55)/.16);
-  const distance=85*ease((total-.55)/.39);
-  const flightShip=new THREE.Vector3(0,14.2,-50-distance);
-  const offset=new THREE.Vector3(5,-3.2,13).lerp(new THREE.Vector3(0,2.5,23),chase);
-  const flightCamera=flightShip.clone().add(offset);
-  const follow=ease((total-.55)/.035);
-  ship.current.position.lerp(flightShip,follow);
-  camera.position.lerp(flightCamera,follow);
-  cameraTarget.current.lerp(flightShip.clone().add(new THREE.Vector3(0,.15,0)),follow);
-  camera.lookAt(cameraTarget.current);
-  ship.current.rotation.x*=1-follow;
-  ship.current.rotation.z*=1-follow;
-  ship.current.rotation.y=0;
-  const warp=total>.63&&total<.94?ease((total-.63)/.1)*(1-ease((total-.83)/.11)):0;
-  if(!reduced && warp>0){
-   ship.current.position.x+=Math.sin(clock.elapsedTime*17)*warp*.018;
-   ship.current.position.y+=Math.cos(clock.elapsedTime*21)*warp*.012;
-  }
-  if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
- });
- return <>
-  <DeepSpace/>
-  {warpEnabled&&<OptionalSpaceAsset><React.Suspense fallback={null}><WarpTunnel progress={progress} reduced={reduced}/></React.Suspense></OptionalSpaceAsset>}
-  <ambientLight intensity={1.4}/><hemisphereLight args={['#e2e8ef','#20252b',1.7]}/>
-  <directionalLight position={[8,18,12]} intensity={3.0}/>
-  <directionalLight position={[-9,8,-10]} intensity={1.4}/>
-  <RecolorBuiltInLights scene={platform.scene} platform/><StructuralLEDs scene={platform.scene} kind="platform"/><primitive object={platform.scene} />
-  <group ref={ship}><RecolorBuiltInLights scene={ufo.scene}/><StructuralLEDs scene={ufo.scene} kind="ufo"/><primitive object={ufo.scene}/><UfoAccentLights scene={ufo.scene}/></group>
- </>;
-}
-function PassingTraffic({source,reduced}){
- const group=useRef();
- const copies=React.useMemo(()=>[source.clone(true),source.clone(true),source.clone(true)],[source]);
- useFrame(({clock})=>{
-  group.current.children.forEach((ship,i)=>{
-   const t=reduced?i*.7:clock.elapsedTime*(.025+i*.006)+i*2.1;
-   ship.position.set(Math.sin(t)*65,32+i*9,-185-i*26);
-   ship.rotation.z=Math.cos(t)*.08;
-  });
- });
- return <group ref={group}>{copies.map((model,i)=><group key={i} scale={.16+i*.04}><primitive object={model}/></group>)}</group>;
-}
+const expertise=['BRAND IDENTITY','ART DIRECTION','WEB EXPERIENCES','VISUAL COMMUNICATION'];
+const work=[
+ {number:'01',type:'IDENTITY / CREATIVE DIRECTION',title:'Riches',desc:'A study in confidence, restraint and deliberate visual identity.',theme:'riches',symbol:'R.'},
+ {number:'02',type:'DIGITAL / INTERACTION',title:'Digital worlds',desc:'Experimental interfaces, spatial thinking and immersive web concepts.',theme:'worlds',symbol:'◉'},
+ {number:'03',type:'BRANDING / DESIGN SYSTEMS',title:'Identity systems',desc:'Distinctive visual languages built to work across every touchpoint.',theme:'systems',symbol:'JW'}
+];
+function Arrow({diagonal=false}){return <span aria-hidden="true" className="arrow">{diagonal?'↗':'→'}</span>}
 function App(){
- const progress=useRef(0),onFrame=useRef(null),navigation=useRef({active:0,selected:null});
- const [pct,setPct]=useState(0),[active,setActive]=useState(0),[hovered,setHovered]=useState(null),[selected,setSelected]=useState(null),[error,setError]=useState('');
- const [reduced,setReduced]=useState(()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches);
- navigation.current={active,selected,hovered,arrived:pct>=94};
- const close=React.useCallback(()=>setSelected(null),[]);
+ const [menu,setMenu]=useState(false);
+ const [scroll,setScroll]=useState(0);
+ const cursor=useRef(null);
  useEffect(()=>{
-  const query=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const changed=()=>setReduced(query.matches);query.addEventListener('change',changed);
-  return ()=>query.removeEventListener('change',changed);
+  const onScroll=()=>setScroll(window.scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight));
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in-view');observer.unobserve(e.target);}}),{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('[data-reveal]').forEach(el=>observer.observe(el));
+  return ()=>{window.removeEventListener('scroll',onScroll);observer.disconnect();};
  },[]);
  useEffect(()=>{
-  if(selected===null)return;
-  const previous=document.body.style.overflow;
-  document.body.style.overflow='hidden';
-  return ()=>{document.body.style.overflow=previous;};
- },[selected]);
- useEffect(()=>{
-  const maxScroll=()=>Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
-  const update=()=>{progress.current=clamp(window.scrollY/maxScroll());setPct(progress.current*100);};
-  const key=e=>{
-   if(navigation.current.selected!==null || e.target.closest('button,a,input,textarea,select,[contenteditable]'))return;
-   const steps={ArrowDown:.035,ArrowUp:-.035,PageDown:.22,PageUp:-.22,' ':e.shiftKey?-.22:.22,Home:-1,End:1};
-   if(!(e.key in steps))return;
-   e.preventDefault();
-   const next=e.key==='Home'?0:e.key==='End'?1:clamp(progress.current+steps[e.key]);
-   window.scrollTo({top:next*maxScroll(),behavior:'instant'});
-  };
-  window.addEventListener('scroll',update,{passive:true});
-  window.addEventListener('resize',update);window.addEventListener('keydown',key);update();
-  return ()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update);window.removeEventListener('keydown',key);};
+  const onMove=e=>{if(cursor.current){cursor.current.style.setProperty('--mx',e.clientX+'px');cursor.current.style.setProperty('--my',e.clientY+'px');}};
+  window.addEventListener('pointermove',onMove,{passive:true});
+  return ()=>window.removeEventListener('pointermove',onMove);
  },[]);
- const arrived=pct>=94;
- const phase=pct<9?'01 / DOCKING STATION':pct<38?'02 / DEPARTURE':pct<63?'03 / THE ASCENT':pct<94?'04 / WARP SPEED':'05 / ARRIVAL';
- return <>
-  <div className="scene"><Canvas gl={{antialias:true,powerPreference:'high-performance'}} camera={{fov:53,near:.1,far:700,position:[0,3.55,8.4]}} onCreated={({gl})=>gl.setClearColor('#090c10')} onError={e=>setError(String(e))}>
-   <React.Suspense fallback={null}><Chamber progress={progress} onFrame={onFrame} navigation={navigation} reduced={reduced} warpEnabled={pct>42}/></React.Suspense>
-  </Canvas></div>
-  <div className="scroll-track" aria-hidden="true"/>
-  {pct<63 && <header className={`overlay ${pct>50?'quiet':''}`}><div className="eyebrow">ATLANTA / THE ASCENT</div><h1>Beyond the familiar.</h1><p>Scroll to leave the dock and explore.</p>{error&&<div className="error">{error}</div>}
-   <button onClick={()=>window.scrollTo({top:(document.documentElement.scrollHeight-window.innerHeight)*.79,behavior:reduced?'instant':'smooth'})}>EXPLORE</button></header>}
-  {/* Arrival environment and navigation will be designed after the warp transition is approved. */}
-  <footer aria-hidden={selected!==null}><span>{phase}</span><div className="progress"><div style={{width:`${pct}%`}}/></div><span>{Math.round(pct)}%</span></footer>
- </>;
+ const navigate=()=>setMenu(false);
+ return <div className="site" ref={cursor}>
+  <div className="reading-progress" style={{transform:`scaleX(${scroll})`}}/>
+  <header className="site-header">
+   <a className="wordmark" href="#home" onClick={navigate} aria-label="John Wolf, home">JOHN<span>WOLF</span><span className="wordmark-dot">.</span></a>
+   <div className="header-right"><span className="availability"><span className="status-dot"/>INDEPENDENT CREATIVE</span>
+    <button className="menu-toggle" type="button" aria-expanded={menu} aria-controls="site-menu" onClick={()=>setMenu(v=>!v)}>{menu?'CLOSE':'MENU'}<span className={`menu-icon ${menu?'open':''}`}><i/><i/></span></button>
+   </div>
+  </header>
+  <nav id="site-menu" className={`menu-panel ${menu?'is-open':''}`} aria-hidden={!menu}>
+   {[['01','Work','#work'],['02','About','#about'],['03','Expertise','#expertise'],['04','Contact','#contact']].map(([n,label,url])=><a key={n} tabIndex={menu?0:-1} href={url} onClick={navigate}><small>{n}</small>{label}<Arrow diagonal/></a>)}
+  </nav>
+  <main>
+   <section className="hero" id="home">
+    <div className="hero-topline"><span>INDEPENDENT DESIGNER & CREATIVE DIRECTOR</span><span>EST. 2004 <span className="hero-star">✳</span> ALWAYS EVOLVING</span></div>
+    <div className="hero-main">
+     <p className="hero-kicker" data-reveal>DESIGN IS NOT JUST WHAT YOU SEE.<br/>IT'S WHAT YOU REMEMBER.</p>
+     <h1 className="hero-title" data-reveal><span>MAKE</span><span>IT <em>MEAN</em></span><span>SOMETHING<span className="title-period">.</span></span></h1>
+     <div className="hero-bottom"><p>Identity. Direction. Digital.<br/>Crafting experiences with a point of view.</p><a className="circle-link" href="#work" aria-label="Explore selected work"><span>EXPLORE<br/>WORK</span><span className="circle-arrow">↘</span></a></div>
+    </div>
+    <div className="hero-art" aria-hidden="true"><div className="art-orbit orbit-one"/><div className="art-orbit orbit-two"/><div className="art-core"/><span className="art-caption">FORM / FEELING / FUNCTION</span></div>
+    <div className="hero-index"><span>SCROLL TO DISCOVER</span><span>01 — 05</span></div>
+   </section>
+   <div className="marquee" aria-label="Design with intention"><div className="marquee-track">{Array.from({length:4},(_,i)=><span key={i}>CREATE WITH INTENTION <b>✳</b> THINK BEYOND THE EXPECTED <b>✳</b> </span>)}</div></div>
+   <section className="intro section-pad" id="about">
+    <div className="section-label" data-reveal><span className="label-dot"/>01 / THE APPROACH</div>
+    <div className="intro-body"><h2 data-reveal>NOT JUST<br/><span className="purple-italic">DIFFERENT.</span><br/>DISTINCTIVE.</h2><div className="intro-side" data-reveal><span className="asterisk">✳</span><p>I'm John Wolf. I build brands, visual identities and digital experiences that don't just look good — they communicate something worth remembering.</p><p>With over two decades in design, I bring strategy, craft and a restless curiosity to every creative challenge.</p><a className="text-link" href="#expertise">WHAT I DO <Arrow/></a></div></div>
+   </section>
+   <section className="work-section section-pad" id="work">
+    <div className="section-heading"><div className="section-label" data-reveal><span className="label-dot"/>02 / SELECTED THINKING</div><p data-reveal>A GLIMPSE INTO THE WORK<br/>AND THE WAY I THINK.</p></div>
+    <h2 className="work-heading" data-reveal>WORK<span className="purple-italic"> / </span>IDEAS<span className="heading-star">✳</span></h2>
+    <div className="work-grid">{work.map(item=><article className={`work-card ${item.theme}`} key={item.number} data-reveal>
+     <div className="work-visual"><span className="visual-top">{item.number} / JOHN WOLF</span><div className="work-symbol">{item.symbol}</div><span className="visual-bottom">{item.type}</span></div>
+     <div className="work-meta"><div><span className="work-type">{item.type}</span><h3>{item.title}</h3><p>{item.desc}</p></div><span className="work-arrow" aria-hidden="true">↗</span></div>
+    </article>)}</div>
+    <p className="work-disclaimer">SELECTED CREATIVE DIRECTIONS / FULL CASE STUDIES COMING SOON</p>
+   </section>
+   <section className="expertise section-pad" id="expertise">
+    <div className="section-label" data-reveal><span className="label-dot"/>03 / WHAT I BRING</div>
+    <div className="expertise-layout"><h2 data-reveal>ONE MIND.<br/><span className="purple-italic">MANY</span><br/>DIMENSIONS.</h2><div className="expertise-list">{expertise.map((item,i)=><div className="expertise-row" key={item} data-reveal><span>0{i+1}</span><h3>{item}</h3><span className="expertise-plus">↗</span></div>)}</div></div>
+   </section>
+   <section className="statement"><div className="statement-inner" data-reveal><span>THE PHILOSOPHY</span><p>GOOD DESIGN<br/>GETS NOTICED.<br/><em>GREAT DESIGN</em><br/>GETS FELT.</p><span className="statement-mark">✳</span></div></section>
+   <section className="contact section-pad" id="contact">
+    <div className="section-label" data-reveal><span className="label-dot"/>04 / THE NEXT CHAPTER</div>
+    <p className="contact-intro" data-reveal>HAVE SOMETHING IN MIND?</p>
+    <h2 data-reveal>LET'S MAKE<br/><span>IT <em>HAPPEN.</em></span></h2>
+    <a className="contact-cta" href="mailto:hello@johnwolf.design?subject=Let's%20create%20something"><span>START A CONVERSATION</span><Arrow diagonal/></a>
+    <p className="contact-note">Email address is a placeholder until confirmed.</p>
+   </section>
+  </main>
+  <footer className="site-footer"><a className="footer-logo" href="#home">JW<span>.</span></a><span>INDEPENDENT BY DESIGN.</span><a href="#home">BACK TO TOP ↑</a><span>© {new Date().getFullYear()} JOHN WOLF</span></footer>
+ </div>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
-
