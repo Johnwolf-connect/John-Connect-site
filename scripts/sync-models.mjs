@@ -11,8 +11,9 @@ const target=join(project,'public','models');
 mkdirSync(target,{recursive:true});
 const otherNames=['platform.glb','ufo.glb','black_hole.glb','audras_moon-web-optimized.glb',
  'technotron.glb','amethyst_torus.glb','the_great_morpheus.glb',
- 'space-time_grid_blendshapes_looping_animation.glb'];
-const aliases={'the_great_morpheus.glb':['the_great_morpheus(1).glb']};
+ 'nebula_traveller.glb'];
+const aliases={'the_great_morpheus.glb':['the_great_morpheus(1).glb'],
+ 'nebula_traveller.glb':['nebula_traveller (1).glb','nebula_traveller(1).glb']};
 const planet='purple_planet.glb';
 const originalName='purple_planet(5).glb';
 const approvedSha='d9c8694975801df074264107e5199a6936498eb72b6f2f119641685fbba81144';
