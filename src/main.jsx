@@ -448,27 +448,24 @@ function Chamber({progress,onFrame,navigation,reduced,warpEnabled}){
   camera.position.x+=panX;
   camera.position.y+=panY;
   cameraTarget.current.set(panX*0.3,y+0.5+panY*0.3,z);
-  // From 55% onward the ship stays centered in a third-person chase shot.
-  // The UFO is our stationary visual anchor while the tunnel creates speed.
-  const transition=ease((total-.55)/.14);
-  // One continuous flight direction: world -Z from launch through warp.
-  // The chase camera sits directly behind the UFO (positive Z), never
-  // overtakes it or swings to face the ship's nose during the transition.
-  const chaseShip=new THREE.Vector3(0,28,-140);
-  const chaseOffset=new THREE.Vector3(0,3,33);
-  const chaseCamera=chaseShip.clone().add(chaseOffset);
-  ship.current.position.lerp(chaseShip,transition);
-  camera.position.lerp(chaseCamera,transition);
-  cameraTarget.current.lerp(ship.current.position,transition);
+  // Follow the UFO along the same world -Z heading as the departure.
+  const chase=ease((total-.55)/.16);
+  const distance=85*ease((total-.55)/.39);
+  const flightShip=new THREE.Vector3(0,14.2,-50-distance);
+  const offset=new THREE.Vector3(5,-3.2,13).lerp(new THREE.Vector3(0,2.5,23),chase);
+  const flightCamera=flightShip.clone().add(offset);
+  const follow=ease((total-.55)/.035);
+  ship.current.position.lerp(flightShip,follow);
+  camera.position.lerp(flightCamera,follow);
+  cameraTarget.current.lerp(flightShip.clone().add(new THREE.Vector3(0,.15,0)),follow);
   camera.lookAt(cameraTarget.current);
-  ship.current.rotation.x*=1-transition;
-  ship.current.rotation.z*=1-transition;
+  ship.current.rotation.x*=1-follow;
+  ship.current.rotation.z*=1-follow;
   ship.current.rotation.y=0;
-  // Subtle ship vibration during acceleration, tapering at arrival.
   const warp=total>.63&&total<.94?ease((total-.63)/.1)*(1-ease((total-.83)/.11)):0;
   if(!reduced && warp>0){
-   ship.current.position.x+=Math.sin(clock.elapsedTime*17)*warp*.028;
-   ship.current.position.y+=Math.cos(clock.elapsedTime*21)*warp*.018;
+   ship.current.position.x+=Math.sin(clock.elapsedTime*17)*warp*.018;
+   ship.current.position.y+=Math.cos(clock.elapsedTime*21)*warp*.012;
   }
   if(onFrame.current && clock.elapsedTime%0.15<0.025)onFrame.current({y,roof,inside:camera.position.y<roof});
  });
