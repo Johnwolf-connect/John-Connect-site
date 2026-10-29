@@ -3,10 +3,10 @@ import {useFrame} from '@react-three/fiber';
 import {useGLTF} from '@react-three/drei';
 import * as THREE from 'three';
 
-// The uploaded space-time grid has one 14.98s clip animating 359 morph targets.
-// Preserve its geometry, embedded textures, and authored animation; use a single
-// instance to avoid multiplying an already expensive morph-target workload.
-export const WARP_FILE='/models/space-time_grid_blendshapes_looping_animation.glb';
+// Nebula Traveller: a compact spherical mesh with one morph-target animation.
+// The sphere becomes a moving warp envelope around the camera and spacecraft.
+// Preserve the supplied material and authored morph animation.
+export const WARP_FILE='/models/nebula_traveller.glb';
 const clamp=v=>Math.min(1,Math.max(0,v));
 const smooth=v=>{const t=clamp(v);return t*t*(3-2*t);};
 export function warpEnvelope(progress){
@@ -55,14 +55,14 @@ export default function WarpTunnel({progress,reduced}){
   const strength=intensity.current;
   rig.current.visible=strength>.008;
   if(!rig.current.visible)return;
-  // Tunnel surrounds the flight corridor, including the camera and UFO,
-  // rather than appearing as a separate object in front of the spacecraft.
+  // The UFO always flies toward world -Z. Align the envelope with the
+  // camera's forward axis, keeping both the UFO and the camera inside it.
   rig.current.quaternion.copy(camera.quaternion);
   rig.current.position.copy(camera.position).addScaledVector(
-   forward.clone().applyQuaternion(camera.quaternion),18
+   forward.clone().applyQuaternion(camera.quaternion),17
   );
-  // Source torus faces local Z; stretch its depth into a flight corridor.
-  rig.current.scale.set(9.5,9.5,32);
+  // Spherical source: uniform scaling prevents an unintended sideways tunnel.
+  rig.current.scale.setScalar(46);
   for(const material of materials.cloned)material.opacity=strength*.88;
   // Animation plays faster during acceleration and eases as warp dissipates.
   mixer?.update(dt*(1.0+strength*1.4));
