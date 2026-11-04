@@ -49,13 +49,8 @@
 @media(max-width:720px){.scroll-gallery-sticky{grid-template-columns:1fr;grid-template-rows:38% 62%}.project-info{padding:28px;justify-content:end}.project-info h3{font-size:38px;margin:12px 0}.project-info p{font-size:12px;line-height:1.35}.project-info .project-date{font-size:9px}.project-progress{margin-top:14px}.project-detail{margin-top:8px}.stage-logo{height:42vh;width:75%}.stage-index{bottom:18px;right:20px}}
 @media(prefers-reduced-motion:reduce){.project-info-body{animation:none}.stage-logo{will-change:auto}}
 
-/* Cinematic handoff from the homepage into Design Tools. */
-.hero-reference{position:sticky;top:0;z-index:1;transform-origin:50% 40%;animation:hero-depart linear both;animation-timeline:scroll(root);animation-range:0 100svh}
-.design-tools{z-index:2;box-shadow:0 -20px 60px rgba(0,0,0,.07)}
-@keyframes hero-depart{0%,32%{transform:scale(1);filter:brightness(1);opacity:1}75%{transform:scale(.88) translateY(-3vh);filter:brightness(.75);opacity:.75}100%{transform:scale(.82) translateY(-8vh);filter:brightness(.6);opacity:0}}
-@media(prefers-reduced-motion:reduce){.hero-reference{position:relative;animation:none;transform:none;opacity:1;filter:none}}
-
-/* MorphSVG swipe is clipped to the hero: invisible until scroll begins. */
-.hero-reference{position:relative;overflow:hidden}
+/* The homepage stays fixed while the MorphSVG wave reveals Design Tools. */
+.hero-reference{position:sticky;top:0;z-index:1;animation:none!important;transform:none!important;filter:none!important;opacity:1!important;overflow:hidden}
+.design-tools{z-index:2;box-shadow:none}
 .hero-curved-swipe{position:absolute;inset:0;width:100%;height:100%;z-index:8;pointer-events:none;display:block}
-@media(prefers-reduced-motion:reduce){.hero-curved-swipe{display:none}}
+@media(prefers-reduced-motion:reduce){.hero-reference{position:relative}.hero-curved-swipe{display:none}}
