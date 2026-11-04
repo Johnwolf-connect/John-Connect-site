@@ -3,27 +3,22 @@ import {gsap} from 'gsap';
 import './design-tools.css';
 
 const tools=[
- {name:'Adobe Photoshop',slug:'adobephotoshop',detail:'Image editing, compositing, retouching, and visual exploration.'},
- {name:'Adobe Illustrator',slug:'adobeillustrator',detail:'Precision vector artwork, logos, icons, and identity systems.'},
- {name:'Adobe After Effects',slug:'adobeaftereffects',detail:'Motion graphics, expressive typography, and cinematic animation.'},
- {name:'VS Code',slug:'visualstudiocode',detail:'Writing, refining, and organizing modern web experiences.'},
+ {name:'CSS3',slug:'css3',detail:'Responsive layouts, visual styling, and expressive web animation.'},
+ {name:'LottieFiles',slug:'lottiefiles',detail:'Lightweight animations for polished websites and digital experiences.'},
+ {name:'Adobe Photoshop',slug:'photoshop',detail:'Image editing, compositing, retouching, and visual exploration.'},
+ {name:'Adobe Illustrator',slug:'illustrator',detail:'Precision vector artwork, logos, icons, and identity systems.'},
  {name:'GitHub',slug:'github',detail:'Version control, collaboration, and reliable project development.'},
- {name:'GSAP',slug:'greensock',detail:'Expressive interactions, scroll choreography, and polished motion.'},
- {name:'Three.js',slug:'threedotjs',detail:'Interactive 3D environments and immersive digital storytelling.'},
+ {name:'GSAP',slug:'gsap',detail:'Expressive interactions, scroll choreography, and polished motion.'},
  {name:'Canva',slug:'canva',detail:'Fast visual concepts and flexible social design systems.'},
- {name:'ChatGPT',slug:'openai',detail:'Creative research, ideation, prototyping, and problem solving.'},
- {name:'Claude',slug:'anthropic',detail:'Research, writing exploration, and creative development.'},
- {name:'Parcel',slug:'parcel',detail:'Streamlined frontend builds and rapid development workflows.'},
+ {name:'ChatGPT',slug:'chatgpt',detail:'Creative research, ideation, prototyping, and problem solving.'},
  {name:'Procreate',slug:'procreate',detail:'Expressive digital illustration, sketching, and original artwork.'},
- {name:'Adobe Firefly',slug:'adobefirefly',detail:'Generative visual exploration and concept development.'}
+ {name:'Adobe Firefly',slug:'firefly',detail:'Generative visual exploration and concept development.'}
 ];
 const intro='Software applications used to conceptualize, plan, and create visual content. They help shape everything from visual identities to interactive websites and digital experiences.';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const smooth=v=>v*v*(3-2*v);
 function ToolIcon({tool}){
- const [failed,setFailed]=useState(false);
- return failed?<span className="tool-icon-fallback">{tool.name.split(' ').map(s=>s[0]).join('').slice(0,3)}</span>:
- <img src={'https://cdn.simpleicons.org/'+tool.slug} alt="" draggable="false" onError={()=>setFailed(true)}/>;
+ return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>;
 }
 export default function DesignTools(){
  const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),reducedRef=useRef(false),travel=useRef(null);
