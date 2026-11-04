@@ -54,3 +54,8 @@
 .design-tools{z-index:2;box-shadow:0 -20px 60px rgba(0,0,0,.07)}
 @keyframes hero-depart{0%,32%{transform:scale(1);filter:brightness(1);opacity:1}75%{transform:scale(.88) translateY(-3vh);filter:brightness(.75);opacity:.75}100%{transform:scale(.82) translateY(-8vh);filter:brightness(.6);opacity:0}}
 @media(prefers-reduced-motion:reduce){.hero-reference{position:relative;animation:none;transform:none;opacity:1;filter:none}}
+
+/* MorphSVG swipe is clipped to the hero: invisible until scroll begins. */
+.hero-reference{position:relative;overflow:hidden}
+.hero-curved-swipe{position:absolute;inset:0;width:100%;height:100%;z-index:8;pointer-events:none;display:block}
+@media(prefers-reduced-motion:reduce){.hero-curved-swipe{display:none}}
