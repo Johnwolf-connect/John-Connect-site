@@ -45,35 +45,33 @@ export default function DesignTools(){
    host.style.setProperty('--tool-panel-opacity',String(reducedRef.current?1:clamp((p-.24)/.10,0,1)));
    const dt=previous.current?Math.min(50,time-previous.current):16;
    previous.current=time;
-   // Finish the entire entrance before the orbit begins to revolve.
-   const orbitBlend=smooth(clamp((p-.60)/.08,0,1));
-   if(!reducedRef.current&&p>.60&&p<.99)angle.current+=dt*.000085*orbitBlend;
-   const keys=tools.filter(t=>t.name!==chosen.current);
+   // Work backward from each final circular slot. Every icon shares the same
+   // flight envelope, preserving angular spacing for the entire entrance.
+   const entrance=reducedRef.current?1:clamp((p-.15)/.40,0,1);
+   const t=smooth(entrance);
+   const orbitBlend=smooth(clamp((p-.58)/.09,0,1));
+   if(!reducedRef.current&&p>.58&&p<.99)angle.current+=dt*.000085*orbitBlend;
+   const keys=tools.filter(tool=>tool.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
    const radius=Math.min(width,height)*.40;
    const bezier=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
+   // A shared S-curve moves the whole circular formation into place.
+   // Individual positions never cross because their angular slots stay fixed.
+   const offsetX=bezier(-width*1.75,-width*.98,width*.19,0,t);
+   const offsetY=bezier(height*.28,-height*.42,height*.25,0,t);
+   const approachRadius=radius*(.88+.12*t);
+   const sweep=(1-t)*(-Math.PI*.24);
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
-    const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length;
-    const x=width*.5+Math.cos(a)*radius;
-    const y=height*.5+Math.sin(a)*radius;
-    const index=tools.findIndex(t=>t.name===tool.name);
-    // Distinct but coordinated flight paths avoid the diagonal queue and pileups.
-    // The path has a sweeping S-shaped approach, then eases into each orbital slot.
-    const stagger=index*.017;
-    const enter=reducedRef.current?1:clamp((p-.17-stagger)/.20,0,1);
-    const t=smooth(enter);
-    const lane=(index%4-1.5);
-    const sx=-width*.17,sy=height*(.66+lane*.085);
-    const c1x=width*.16,c1y=height*(.10+lane*.085);
-    const c2x=width*.82,c2y=height*(.86+lane*.035);
-    // Interpolate a flowing S route into the final orbit position without snapping.
-    const px=bezier(sx,c1x,c2x,x,t);
-    const py=bezier(sy,c1y,c2y,y,t);
-    node.style.left=px+'px';node.style.top=py+'px';
-    node.style.transform=`translate(-50%,-50%) scale(${.78+.22*t})`;
-    node.style.opacity=String(smooth(clamp(enter/.16,0,1)));
-    node.style.pointerEvents=enter>.995?'auto':'none';
+    const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length+sweep;
+    const x=width*.5+offsetX+Math.cos(a)*approachRadius;
+    const y=height*.5+offsetY+Math.sin(a)*approachRadius;
+    // The reveal is staggered, not the physical flight: no icon can catch another.
+    const reveal=reducedRef.current?1:smooth(clamp((entrance-i*.028)/.35,0,1));
+    node.style.left=x+'px';node.style.top=y+'px';
+    node.style.transform=`translate(-50%,-50%) scale(${.84+.16*t})`;
+    node.style.opacity=String(reveal);
+    node.style.pointerEvents=entrance>.995?'auto':'none';
    });
    frame.current=requestAnimationFrame(animate);
   };
