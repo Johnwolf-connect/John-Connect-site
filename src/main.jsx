@@ -19,7 +19,7 @@ function CurvedSwipe(){
   const ctx=gsap.context(()=>{
    gsap.set(path.current,{attr:{d:WAVE_START}});
    const timeline=gsap.timeline({
-    scrollTrigger:{trigger:hero,start:'top top',end:'+=140%',pin:true,pinSpacing:true,scrub:true,anticipatePin:1,invalidateOnRefresh:true}
+    scrollTrigger:{trigger:hero,start:'top top',end:'+=100%',pin:true,pinSpacing:true,scrub:true,anticipatePin:1,invalidateOnRefresh:true}
    });
    timeline.to(path.current,{morphSVG:WAVE_MIDDLE,duration:.48,ease:'none'})
      .to(path.current,{morphSVG:WAVE_END,duration:.52,ease:'none'});
