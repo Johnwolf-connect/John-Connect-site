@@ -41,37 +41,40 @@ export default function DesignTools(){
    if(!host||!field)return;
    const hero=host.closest('.hero');
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
-   const visible=reducedRef.current||p>.13;
-   host.style.setProperty('--tool-panel-opacity',String(reducedRef.current?1:clamp((p-.24)/.10,0,1)));
+   // One scroll-driven arrival: formation, copy, then interaction.
+   const panel=reducedRef.current?1:smooth(clamp((p-.28)/.20,0,1));
+   host.style.setProperty('--tool-panel-opacity',String(panel));
+   const information=host.querySelector('.design-tools-information');
+   if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
+   const prompt=host.querySelector('.design-tools-center');
+   if(prompt)prompt.style.opacity=String(reducedRef.current?1:smooth(clamp((p-.46)/.10,0,1)));
    const dt=previous.current?Math.min(50,time-previous.current):16;
    previous.current=time;
-   // Work backward from each final circular slot. Every icon shares the same
-   // flight envelope, preserving angular spacing for the entire entrance.
-   const entrance=reducedRef.current?1:clamp((p-.15)/.40,0,1);
-   const t=smooth(entrance);
-   const orbitBlend=smooth(clamp((p-.58)/.09,0,1));
-   if(!reducedRef.current&&p>.58&&p<.99)angle.current+=dt*.000085*orbitBlend;
+   const entrance=reducedRef.current?1:clamp((p-.12)/.36,0,1);
+   const t=1-Math.pow(1-entrance,3);
+   const orbitBlend=smooth(clamp((p-.52)/.12,0,1));
+   if(!reducedRef.current&&p>.52&&p<.99)angle.current+=dt*.000085*orbitBlend;
    const keys=tools.filter(tool=>tool.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
    const radius=Math.min(width,height)*.40;
-   const bezier=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
-   // A shared S-curve moves the whole circular formation into place.
-   // Individual positions never cross because their angular slots stay fixed.
-   const offsetX=bezier(-width*1.75,-width*.98,width*.19,0,t);
-   const offsetY=bezier(height*.28,-height*.42,height*.25,0,t);
-   const approachRadius=radius*(.88+.12*t);
-   const sweep=(1-t)*(-Math.PI*.24);
+   // Keep the entire formation inside its own column. The shared offset,
+   // radius and reveal prevent icons from passing through the copy.
+   const offsetX=width*.08*(1-t);
+   const offsetY=height*.10*(1-t);
+   const approachRadius=radius*(.94+.06*t);
+   const sweep=(1-t)*(-Math.PI*.10);
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
     const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length+sweep;
     const x=width*.5+offsetX+Math.cos(a)*approachRadius;
     const y=height*.5+offsetY+Math.sin(a)*approachRadius;
-    // The reveal is staggered, not the physical flight: no icon can catch another.
-    const reveal=reducedRef.current?1:smooth(clamp((entrance-i*.028)/.35,0,1));
+    const reveal=reducedRef.current?1:smooth(clamp(entrance/.55,0,1));
     node.style.left=x+'px';node.style.top=y+'px';
     node.style.transform=`translate(-50%,-50%) scale(${.84+.16*t})`;
     node.style.opacity=String(reveal);
-    node.style.pointerEvents=entrance>.995?'auto':'none';
+    const interactive=reducedRef.current||p>=.56;
+    node.style.pointerEvents=interactive?'auto':'none';
+    node.tabIndex=interactive?0:-1;
    });
    frame.current=requestAnimationFrame(animate);
   };
