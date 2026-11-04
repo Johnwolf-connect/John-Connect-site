@@ -6,32 +6,46 @@ import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
 import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
 gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
-// The Design Tools section is the sheet itself: one pinned scene, no handoff gap.
-const SHEET_START='M 0 1 Q .5 1 1 1 L 1 1 L 0 1 Z';
-const SHEET_MIDDLE='M 0 .68 Q .5 .04 1 .68 L 1 1 L 0 1 Z';
-const SHEET_END='M 0 0 Q .5 0 1 0 L 1 1 L 0 1 Z';
+// A full-width, scroll-driven sheet. Polygon points stay within the viewport,
+// avoiding SVG objectBoundingBox clipping artifacts on Safari and Chromium.
+function sheetClip(progress){
+ const p=Math.max(0,Math.min(1,progress));
+ if(p>=.34)return 'inset(0)';
+ const phase=p/.34;
+ const edge=100*(1-phase);
+ const arch=Math.sin(Math.PI*phase)*64;
+ const points=[];
+ for(let i=0;i<=40;i++){
+  const x=i/40;
+  const dome=1-Math.pow(2*x-1,2);
+  const y=Math.max(0,Math.min(100,edge-arch*dome));
+  points.push(`${(x*100).toFixed(2)}% ${y.toFixed(3)}%`);
+ }
+ points.push('100% 100%','0% 100%');
+ return `polygon(${points.join(',')})`;
+}
 function CurvedSwipe(){
- const path=useRef(null),svg=useRef(null);
+ const marker=useRef(null);
  useEffect(()=>{
-  const hero=svg.current?.closest('.hero');
-  if(!hero||!path.current||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const hero=marker.current?.closest('.hero');
+  const sheet=hero?.querySelector('.design-tools');
+  if(!hero||!sheet||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const ctx=gsap.context(()=>{
-   gsap.set(path.current,{attr:{d:SHEET_START}});
-   hero.style.setProperty('--tools-progress','0');
-   const timeline=gsap.timeline({
-    scrollTrigger:{
-     trigger:hero,start:'top top',end:'+=260%',pin:true,pinSpacing:true,
-     scrub:true,anticipatePin:1,invalidateOnRefresh:true,
-     onUpdate:self=>hero.style.setProperty('--tools-progress',String(self.progress))
-    }
+   const render=progress=>{
+    hero.style.setProperty('--tools-progress',String(progress));
+    sheet.style.clipPath=sheetClip(progress);
+   };
+   render(0);
+   ScrollTrigger.create({
+    trigger:hero,start:'top top',end:'+=260%',pin:true,pinSpacing:true,
+    scrub:true,anticipatePin:1,invalidateOnRefresh:true,
+    onUpdate:self=>render(self.progress),
+    onRefresh:self=>render(self.progress)
    });
-   timeline.to(path.current,{morphSVG:SHEET_MIDDLE,duration:.15,ease:'none'})
-     .to(path.current,{morphSVG:SHEET_END,duration:.19,ease:'none'})
-     .to({}, {duration:.66});
   },hero);
-  return()=>{ctx.revert();hero.style.removeProperty('--tools-progress')};
+  return()=>{ctx.revert();sheet.style.removeProperty('clip-path');hero.style.removeProperty('--tools-progress')};
  },[]);
- return <svg ref={svg} className="hero-curved-swipe" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><defs><clipPath id="sheet-clip" clipPathUnits="objectBoundingBox"><path ref={path} d={SHEET_START}/></clipPath></defs></svg>;
+ return <span ref={marker} aria-hidden="true" style={{display:'none'}}/>;
 }
 
 const projects=[
