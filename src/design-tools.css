@@ -14,3 +14,16 @@
 /* Raise Design Tools heading while preserving the flock stage. */
 .design-tools-stage{padding-top:clamp(34px,5svh,64px)}
 @media(max-width:720px){.design-tools-stage{padding-top:36px}}
+
+/* Section 2 is the curved sheet, not a second scrolling section below it. */
+.hero-reference .design-tools{
+ position:absolute;inset:0;height:100%;min-height:0;margin:0;padding:0;
+ z-index:31;overflow:hidden;isolation:auto;clip-path:url(#sheet-clip);
+}
+.hero-reference .design-tools-stage{
+ position:absolute;inset:0;top:0;height:100%;width:100%;overflow:hidden;
+ padding-top:clamp(34px,5svh,64px);
+}
+@media(prefers-reduced-motion:reduce){
+ .hero-reference .design-tools{display:none}
+}
