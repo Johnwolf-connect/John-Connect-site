@@ -60,7 +60,13 @@
 
 /* Clean white sheet with a moving, breathing purple light field. */
 .hero-reference .design-tools-stage{isolation:isolate;background:#fff}
-.design-tools-stage::before,
+.design-tools-stage::before{
+ content:"";position:absolute;inset:-12%;z-index:0;pointer-events:none;
+ background:
+  radial-gradient(ellipse 36% 42% at var(--glow-x,50%) var(--glow-y,50%),#9900ff 0%,#9900ff99 28%,transparent 72%),
+  radial-gradient(ellipse 40% 32% at var(--glow-second-x,25%) var(--glow-second-y,65%),#9900ffcc 0%,#9900ff50 35%,transparent 75%);
+ filter:blur(22px);opacity:var(--glow-breath,.8);
+}
 .design-tools-stage::after{display:none}
 .design-tools-layout{position:relative;z-index:1}
 .design-tools-center{color:#74657e}
