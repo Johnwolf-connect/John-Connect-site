@@ -21,7 +21,22 @@ function App(){
  return <div onMouseMove={move}>
   <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Riches</a><a href="#about">About</a></nav></header>
   <main id="top">
-   <section className="hero"><span className="kicker">INDEPENDENT CREATIVE DESIGNER / VISUAL COMMUNICATION</span><h1>Make it<br/><i>mean</i> something<span className="purple">.</span></h1><div className="hero-foot"><p>Identity, digital design, and experiences<br/>built with intention.</p><a href="#work">Explore selected work <span aria-hidden="true">↘</span></a></div><div className="hero-circle" aria-hidden="true"/></section>
+   <section className="hero hero-reference">
+    <div className="hero-copy">
+     <div className="hero-lockup">
+      <h1><span>JOHN</span><span>WOLF</span></h1>
+      <div className="hero-services" aria-label="Creative disciplines"><span>VISUAL DESIGN</span><span>BRAND DEVELOPMENT</span><span>WEB DESIGN</span></div>
+     </div>
+     <p className="hero-description">I build visual identities and digital experiences that make ideas impossible to overlook.</p>
+     <a className="hero-cta" href="#work">VIEW PORTFOLIO <span aria-hidden="true">↗</span></a>
+    </div>
+    <div className="hero-visual" aria-label="Portrait area">
+     <div className="hero-purple-shape" aria-hidden="true"/>
+     <img className="hero-portrait" src="/john-wolf-portrait.png" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
+     <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
+    </div>
+    <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
+   </section>
    <section id="work" className="work-intro"><span className="kicker">01 / SELECTED LOGO DESIGN</span><h2>Twelve identities.<br/><i>Distinct voices.</i></h2><p>A curated collection of original marks. Select any identity to explore.</p></section>
    <div className="gallery" aria-label="Selected logo gallery">{[0,1,2,3].map((group)=><section key={group} className={'gallery-band '+(group%2?'dark':'light')} aria-label={'Logo collection '+(group+1)}><div className="gallery-grid">{projects.slice(group*3,group*3+3).map((project,j)=>{const i=group*3+j;return <button type="button" className={'logo-card card-'+j} key={project[2]} style={{'--dx':(pointer.x*(j===1?-.65:1))+'px','--dy':(pointer.y*(j===2?-.8:.65))+'px'}} onClick={()=>setActive(project)} aria-label={'View '+project[0]}><div className="mark"><Mark project={project}/></div><div className="card-label"><span>{String(i+1).padStart(2,'0')} / {project[0]}</span><span aria-hidden="true">↗</span></div></button>})}</div></section>)}</div>
    <section id="riches" className="riches"><div className="riches-text"><span className="kicker">02 / FEATURED BRAND IDENTITY</span><h2>RICHES<br/>COSMETICS<span className="purple">.</span></h2><blockquote>“Confidence is not an attitude.<br/>It is a discipline.”</blockquote><p>A brand built from philosophy into a complete visual system. The identity is grounded in clarity, restraint, and intentional design.</p><button className="explore" onClick={()=>setActive('riches')}>Explore the identity <span>↗</span></button></div><div className="riches-art" aria-hidden="true"><div className="riches-monogram">R</div><span>THE CODE / IDENTITY / VISUAL LANGUAGE</span></div></section>
