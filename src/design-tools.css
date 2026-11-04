@@ -86,3 +86,11 @@
 @media(prefers-reduced-motion:reduce){
  .design-tool-orbit-item{transition:none}
 }
+
+/* Stable landing geometry: the traveling artwork meets the same-size detail image. */
+.design-tool-feature-icon{height:155px;transition:opacity .25s}
+.design-tool-feature-icon img{width:124px;height:124px;object-fit:contain}
+@media(max-width:720px){
+ .design-tool-feature-icon{height:68px}
+ .design-tool-feature-icon img{width:65px;height:65px}
+}
