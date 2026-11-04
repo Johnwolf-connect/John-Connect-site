@@ -3,3 +3,27 @@
 /* Scroll reveal choreography */
 @media(prefers-reduced-motion:no-preference){.gallery-band .logo-card{animation:logo-arrive both;animation-timeline:view();animation-range:entry 0% cover 42%}.work-intro h2,.about h2{animation:heading-arrive both;animation-timeline:view();animation-range:entry 0% cover 35%}.hero-circle{animation:orb-drift 14s ease-in-out infinite alternate}}@keyframes logo-arrive{from{opacity:.12;translate:0 95px;scale:.88}to{opacity:1;translate:0 0;scale:1}}@keyframes heading-arrive{from{opacity:.2;translate:0 70px}to{opacity:1;translate:0 0}}@keyframes orb-drift{to{transform:translate(-45px,55px) rotate(14deg)}}
 
+
+/* John Wolf: portrait-led editorial hero */
+.header{height:68px;position:absolute;padding:0 clamp(24px,4.5vw,70px);justify-content:center;z-index:20}
+.header .wordmark{position:absolute;left:clamp(24px,4.5vw,70px);font-size:12px;letter-spacing:-.04em}
+.header nav{gap:clamp(25px,4vw,65px);font-size:11px;font-weight:500}
+.hero-reference{background:#fff;min-height:100svh;padding:0;display:grid;grid-template-columns:51% 49%;align-items:stretch;isolation:isolate}
+.hero-copy{padding:clamp(110px,16vh,180px) 20px 100px clamp(35px,5vw,95px);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;z-index:2;position:relative}
+.hero-lockup{display:flex;align-items:center;gap:clamp(16px,2vw,34px);max-width:100%}
+.hero-reference .hero-lockup h1{font-family:'DM Sans',Arial,sans-serif;font-size:clamp(68px,7.4vw,128px);font-weight:500;letter-spacing:-.092em;line-height:.8;margin:0;white-space:nowrap}
+.hero-lockup h1 span{display:block}.hero-lockup h1 span:last-child{font-weight:400}
+.hero-services{border-left:3px solid #171717;padding:7px 0 7px clamp(14px,1.5vw,24px);display:flex;flex-direction:column;gap:9px;white-space:nowrap;font-size:clamp(10px,1.15vw,17px);font-style:italic;letter-spacing:-.025em;color:#666}
+.hero-description{font-size:clamp(16px,1.5vw,21px);line-height:1.52;color:#5c5c5c;max-width:400px;margin:55px 0 28px}
+.hero-cta{background:#8045ed;color:#fff;border-radius:99px;padding:15px 26px;display:inline-flex;gap:18px;align-items:center;font-size:12px;font-weight:700;letter-spacing:.02em;transition:transform .3s,background .3s}
+.hero-cta:hover{background:#622ac9;transform:translateY(-4px)}
+.hero-visual{position:relative;min-width:0;overflow:hidden;display:flex;align-items:end;justify-content:center}
+.hero-purple-shape{position:absolute;width:66%;height:105%;right:7%;top:11%;background:#8248f5;border-radius:230px 230px 0 0;transform:rotate(32deg) translate(2%,3%);transform-origin:bottom center;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.hero-reference:hover .hero-purple-shape{transform:rotate(29deg) translate(-1%,2%)}
+.hero-portrait{position:absolute;z-index:2;bottom:0;right:0;max-width:none;width:110%;height:94%;object-fit:contain;object-position:bottom right;filter:grayscale(1)}
+.portrait-placeholder{display:none;position:absolute;z-index:2;bottom:0;right:4%;width:85%;height:75%;align-items:end;justify-content:center;color:#171717;font-size:clamp(130px,24vw,380px);font-weight:700;letter-spacing:-.13em;line-height:1;opacity:.8}
+.portrait-missing .portrait-placeholder{display:flex}
+.hero-scroll{position:absolute;z-index:5;bottom:27px;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;letter-spacing:.15em;font-weight:700;display:flex;align-items:center;gap:12px}
+@media(max-width:1000px){.hero-reference .hero-lockup h1{font-size:clamp(54px,7.5vw,80px)}.hero-services{font-size:11px}.hero-copy{padding-left:28px}.hero-description{margin-top:42px}.hero-portrait{width:125%}}
+@media(max-width:720px){.header{justify-content:flex-end;padding:0 20px}.header .wordmark{left:20px}.header nav{gap:17px}.hero-reference{min-height:850px;grid-template-columns:1fr;grid-template-rows:52% 48%}.hero-copy{padding:120px 22px 20px;justify-content:center}.hero-lockup{gap:15px}.hero-reference .hero-lockup h1{font-size:clamp(55px,12vw,88px)}.hero-services{font-size:clamp(9px,2.2vw,12px);padding-left:12px;gap:6px}.hero-description{margin:32px 0 20px;max-width:360px;font-size:16px}.hero-visual{min-height:0}.hero-purple-shape{width:50%;height:120%;top:15%;right:20%}.hero-portrait{height:110%;width:100%;object-position:bottom center}.portrait-placeholder{height:75%;width:75%;font-size:190px}.hero-scroll{left:auto;right:20px;bottom:18px;transform:none}}
+@media(prefers-reduced-motion:reduce){.hero-purple-shape,.hero-cta{transition:none}}
