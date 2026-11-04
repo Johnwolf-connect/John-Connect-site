@@ -19,14 +19,14 @@ export default function DesignTools(){
    // Keep the stage visible for a full scroll beat before beginning the exit.
    const travel=Math.max(1,rect.height-vh);
    const progress=clamp(-rect.top/travel,0,1);
-   const entry=clamp(progress/.22,0,1);
+   const entry=clamp(progress/.14,0,1);
    const exit=clamp((progress-.82)/.18,0,1);
    const leave=exit*exit*(3-2*exit);
    // A visibly curved leading edge rises over the homepage and flattens once in place.
    const reveal=clamp((vh-rect.top)/(vh*.9),0,1);
    root.style.setProperty('--curve-height',`${Math.round((1-reveal)*26)}svh`);
-   root.style.setProperty('--heading-opacity',String(clamp((progress-.27)/.09,0,1)));
-   root.style.setProperty('--heading-shift',`${Math.round((1-clamp((progress-.27)/.09,0,1))*22)}px`);
+   root.style.setProperty('--heading-opacity',String(clamp((progress-.045)/.075,0,1)));
+   root.style.setProperty('--heading-shift',`${Math.round((1-clamp((progress-.045)/.075,0,1))*22)}px`);
    const stage=root.querySelector('.design-tools-stage').getBoundingClientRect();
    items.current.forEach((node,i)=>{
     if(!node)return;
