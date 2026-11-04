@@ -54,3 +54,11 @@
 .design-tools{z-index:2;box-shadow:none}
 .hero-curved-swipe{position:absolute;inset:0;width:100%;height:100%;z-index:8;pointer-events:none;display:block}
 @media(prefers-reduced-motion:reduce){.hero-reference{position:relative}.hero-curved-swipe{display:none}}
+
+/* Keep the MorphSVG wipe above the incoming section while the hero is pinned.
+   Previously Design Tools (z-index:2) covered the hero (z-index:1), hiding the curve. */
+@media (prefers-reduced-motion:no-preference){
+  .hero-reference{z-index:4;}
+  .hero-curved-swipe{z-index:30;overflow:visible;will-change:contents;}
+  .design-tools{position:relative;z-index:2;}
+}
