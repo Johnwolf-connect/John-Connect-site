@@ -7,7 +7,7 @@ import {ScrollTrigger} from 'gsap/ScrollTrigger';
 import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
 gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
 const WAVE_START='M 0 1050 C 280 1050 720 1050 1000 1050 L 1000 1100 L 0 1100 Z';
-const WAVE_MIDDLE='M 0 660 C 280 280 720 860 1000 460 L 1000 1100 L 0 1100 Z';
+const WAVE_MIDDLE='M 0 570 C 330 250 670 250 1000 570 L 1000 1100 L 0 1100 Z';
 const WAVE_END='M 0 -120 C 280 -120 720 -120 1000 -120 L 1000 1100 L 0 1100 Z';
 function CurvedSwipe(){const path=useRef(null),wrapper=useRef(null);useEffect(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const hero=wrapper.current?.closest('.hero');if(!hero||!path.current)return;const timeline=gsap.timeline({scrollTrigger:{trigger:hero,start:'top top',end:'bottom top',scrub:true,invalidateOnRefresh:true}});timeline.to(path.current,{morphSVG:WAVE_START,duration:.12,ease:'none'}).to(path.current,{morphSVG:WAVE_MIDDLE,duration:.44,ease:'none'}).to(path.current,{morphSVG:WAVE_END,duration:.44,ease:'none'},'>').to(path.current,{fill:'#ffffff',stroke:'#ffffff',duration:.12,ease:'none'},'<.32');return()=>{timeline.scrollTrigger?.kill();timeline.kill()}},[]);return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#f2eaff" stroke="#8045db" strokeWidth="5" vectorEffect="non-scaling-stroke"/></svg>}
 
