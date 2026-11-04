@@ -4,3 +4,10 @@
 .design-tools{height:240svh;min-height:0;padding:0;overflow:visible}
 .design-tools-stage{position:sticky;top:0;height:100svh;overflow:hidden;padding:100px clamp(25px,6vw,100px) 60px;background:#fff}
 @media(max-width:720px){.design-tools{height:210svh;min-height:0;padding:0}.design-tools-stage{padding:95px 24px 35px}}
+
+/* Curved white reveal at the leading edge of the pinned Design Tools scene. */
+.design-tools{--curve-height:26svh;--heading-opacity:0;--heading-shift:22px;z-index:1}
+.design-tools-stage{clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+.design-tools::before{content:"";position:absolute;z-index:0;pointer-events:none;left:0;right:0;top:calc(-1 * var(--curve-height));height:calc(var(--curve-height) + 3px);background:#fff;border-radius:50% 50% 0 0 / 100% 100% 0 0}
+.design-tools-heading{opacity:var(--heading-opacity);transform:translateY(var(--heading-shift));transition:none}
+@media(prefers-reduced-motion:reduce){.design-tools{--curve-height:0svh;--heading-opacity:1;--heading-shift:0px}}
