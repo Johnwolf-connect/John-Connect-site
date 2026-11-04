@@ -26,7 +26,7 @@ function ToolIcon({tool}){
  <img src={'https://cdn.simpleicons.org/'+tool.slug} alt="" draggable="false" onError={()=>setFailed(true)}/>;
 }
 export default function DesignTools(){
- const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),reducedRef=useRef(false);
+ const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),reducedRef=useRef(false),travel=useRef(null);
  const [selected,setSelected]=useState(null),[reduced,setReduced]=useState(false);
  chosen.current=selected;
  useEffect(()=>{
@@ -37,6 +37,7 @@ export default function DesignTools(){
  },[]);
  useEffect(()=>{
   let previousTime=null,rotation=0;
+  const positions=new Map();
   const animate=time=>{
    const host=root.current,field=orbit.current;
    if(!host||!field)return;
@@ -76,7 +77,14 @@ export default function DesignTools(){
     const landing=firstLanding+i*interval;
     const ride=motion?1:clamp((p-(landing-flight))/flight,0,1);
     const entryX=width*.5-radius,entryY=height*.5;
-    const a=Math.PI+clock(Math.max(p,landing))-clock(landing)+idleAngle;
+    let a=Math.PI+clock(Math.max(p,landing))-clock(landing)+idleAngle;
+    if(!motion&&p>=.58){
+     const target=Math.PI+clock(p)-clock(firstLanding)-i*2*Math.PI/keys.length+idleAngle;
+     const previous=positions.get(tool.name)??a;
+     const delta=Math.atan2(Math.sin(target-previous),Math.cos(target-previous));
+     a=previous+delta*(1-Math.exp(-elapsed/ .24));
+    }
+    positions.set(tool.name,a);
     // The last control point matches the circle's tangent and speed exactly.
     // All icons follow the same broad cross-page swoop, separated in time.
     const xTrack=cubic(origin,origin+(entryX-origin)*.42,entryX,entryX,ride);
@@ -101,20 +109,32 @@ export default function DesignTools(){
   frame.current=requestAnimationFrame(animate);
   return()=>cancelAnimationFrame(frame.current);
  },[]);
+ useEffect(()=>()=>{if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
  const choose=tool=>{
-  if(selected===tool.name)return;
-  const source=buttons.current[tool.name];
+  if(selected===tool.name||travel.current)return;
+  const source=buttons.current[tool.name]?.querySelector('.design-tool-orbit-icon');
   const destination=root.current?.querySelector('.design-tool-feature-icon');
   if(!source||!destination||reduced){setSelected(tool.name);return}
   const from=source.getBoundingClientRect();
-  const to=destination.getBoundingClientRect();
   const ghost=source.cloneNode(true);
-  ghost.removeAttribute('id');
-  ghost.className='design-tool-travel';
+  ghost.setAttribute('aria-hidden','true');
   Object.assign(ghost.style,{position:'fixed',left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px',margin:'0',transform:'none',opacity:'1',pointerEvents:'none',zIndex:'9999'});
   document.body.appendChild(ghost);
+  travel.current=ghost;
+  destination.style.visibility='hidden';
   setSelected(tool.name);
-  gsap.fromTo(ghost,{x:0,y:0,scale:1},{x:to.left-from.left,y:to.top-from.top,scale:1.75,duration:.72,ease:'power3.inOut',onComplete:()=>ghost.remove()});
+  // Measure the actual rendered detail icon after React lays out the selection.
+  requestAnimationFrame(()=>{
+   if(travel.current!==ghost)return;
+   const target=destination.firstElementChild||destination;
+   const to=target.getBoundingClientRect();
+   const x=to.left+to.width/2-(from.left+from.width/2);
+   const y=to.top+to.height/2-(from.top+from.height/2);
+   gsap.to(ghost,{x,y,scaleX:to.width/from.width,scaleY:to.height/from.height,duration:.85,ease:'power2.inOut',onComplete:()=>{
+    destination.style.visibility='';
+    ghost.remove();travel.current=null;
+   }});
+  });
  };
  const current=tools.find(t=>t.name===selected);
  return <section id="design-tools" ref={root} className="design-tools" aria-label="Interactive design tools">
