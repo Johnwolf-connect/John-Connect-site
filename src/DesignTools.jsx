@@ -36,14 +36,20 @@ export default function DesignTools(){
   return()=>mq.removeEventListener?.('change',sync);
  },[]);
  useEffect(()=>{
+  let previousTime=null,rotation=0;
   const animate=time=>{
    const host=root.current,field=orbit.current;
    if(!host||!field)return;
    const hero=host.closest('.hero');
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
-   // Each icon rides the same curved track before peeling into its slot.
-   // Progress is entirely scroll-driven, so reversing scroll retraces the ride.
+   // The ride follows scroll; the assembled circle also has a slow idle orbit.
    const motion=reducedRef.current;
+   const elapsed=previousTime===null?0:Math.min(50,Math.max(0,time-previousTime))/1000;
+   previousTime=time;
+   const idleBlend=motion?0:smooth(clamp((p-.54)/.10,0,1));
+   if(!motion&&p>=.54&&p<.78&&!document.hidden)rotation+=elapsed*.10*idleBlend;
+   if(p<=.54||motion)rotation=0;
+   const idleAngle=rotation*idleBlend;
    const leave=motion?0:smooth(clamp((p-.78)/.20,0,1));
    const panel=(motion?1:smooth(clamp((p-.53)/.09,0,1)))*(1-leave);
    host.style.setProperty('--tool-panel-opacity',String(panel));
@@ -70,7 +76,7 @@ export default function DesignTools(){
     const landing=firstLanding+i*interval;
     const ride=motion?1:clamp((p-(landing-flight))/flight,0,1);
     const entryX=width*.5-radius,entryY=height*.5;
-    const a=Math.PI+clock(Math.max(p,landing))-clock(landing);
+    const a=Math.PI+clock(Math.max(p,landing))-clock(landing)+idleAngle;
     // The last control point matches the circle's tangent and speed exactly.
     // All icons follow the same broad cross-page swoop, separated in time.
     const xTrack=cubic(origin,origin+(entryX-origin)*.42,entryX,entryX,ride);
