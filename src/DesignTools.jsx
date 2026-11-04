@@ -26,7 +26,7 @@ function ToolIcon({tool}){
  <img src={'https://cdn.simpleicons.org/'+tool.slug} alt="" draggable="false" onError={()=>setFailed(true)}/>;
 }
 export default function DesignTools(){
- const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),angle=useRef(0),previous=useRef(0),chosen=useRef(null),reducedRef=useRef(false);
+ const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),reducedRef=useRef(false);
  const [selected,setSelected]=useState(null),[reduced,setReduced]=useState(false);
  chosen.current=selected;
  useEffect(()=>{
@@ -41,38 +41,41 @@ export default function DesignTools(){
    if(!host||!field)return;
    const hero=host.closest('.hero');
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
-   // One scroll-driven arrival: formation, copy, then interaction.
-   const panel=reducedRef.current?1:smooth(clamp((p-.28)/.20,0,1));
+   // Each icon rides the same curved track before peeling into its slot.
+   // Progress is entirely scroll-driven, so reversing scroll retraces the ride.
+   const motion=reducedRef.current;
+   const leave=motion?0:smooth(clamp((p-.78)/.20,0,1));
+   const panel=(motion?1:smooth(clamp((p-.35)/.20,0,1)))*(1-leave);
    host.style.setProperty('--tool-panel-opacity',String(panel));
    const information=host.querySelector('.design-tools-information');
    if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
    const prompt=host.querySelector('.design-tools-center');
-   if(prompt)prompt.style.opacity=String(reducedRef.current?1:smooth(clamp((p-.46)/.10,0,1)));
-   const dt=previous.current?Math.min(50,time-previous.current):16;
-   previous.current=time;
-   const entrance=reducedRef.current?1:clamp((p-.12)/.36,0,1);
-   const t=1-Math.pow(1-entrance,3);
-   const orbitBlend=smooth(clamp((p-.52)/.12,0,1));
-   if(!reducedRef.current&&p>.52&&p<.99)angle.current+=dt*.000085*orbitBlend;
+   if(prompt)prompt.style.opacity=String((motion?1:smooth(clamp((p-.56)/.06,0,1)))*(1-leave));
    const keys=tools.filter(tool=>tool.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
    const radius=Math.min(width,height)*.40;
-   // Keep the entire formation inside its own column. The shared offset,
-   // radius and reveal prevent icons from passing through the copy.
-   const offsetX=width*.08*(1-t);
-   const offsetY=height*.10*(1-t);
-   const approachRadius=radius*(.94+.06*t);
-   const sweep=(1-t)*(-Math.PI*.10);
+   const turn=motion?0:smooth(clamp((p-.58)/.20,0,1))*.16;
+   const cubic=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
-    const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length+sweep;
-    const x=width*.5+offsetX+Math.cos(a)*approachRadius;
-    const y=height*.5+offsetY+Math.sin(a)*approachRadius;
-    const reveal=reducedRef.current?1:smooth(clamp(entrance/.55,0,1));
+    const ride=motion?1:clamp((p-.13-i*.011)/.30,0,1);
+    const t=smooth(ride);
+    const dock=smooth(clamp((ride-.48)/.52,0,1));
+    const a=-Math.PI/2+i*2*Math.PI/keys.length+turn;
+    const finalX=width*.5+Math.cos(a)*radius;
+    const finalY=height*.5+Math.sin(a)*radius;
+    // A rising swoop, a dip, then a broad bend into the circle.
+    const trackX=cubic(width*1.18,width*.16,width*1.06,width*.5,t);
+    const trackY=cubic(height*.94,-height*.22,height*.88,height*.10,t);
+    const departure=motion?0:smooth(clamp((p-.78-i*.003)/.18,0,1));
+    const x=trackX*(1-dock)+finalX*dock+width*.78*departure;
+    const y=trackY*(1-dock)+finalY*dock-height*.28*Math.sin(departure*Math.PI/2);
+    const bank=(1-dock)*Math.sin(t*Math.PI*2)*12-departure*10;
+    const reveal=motion?1:smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
     node.style.left=x+'px';node.style.top=y+'px';
-    node.style.transform=`translate(-50%,-50%) scale(${.84+.16*t})`;
+    node.style.transform=`translate(-50%,-50%) rotate(${bank}deg) scale(${.82+.18*dock-.10*departure})`;
     node.style.opacity=String(reveal);
-    const interactive=reducedRef.current||p>=.56;
+    const interactive=motion||(p>=.58&&p<.78);
     node.style.pointerEvents=interactive?'auto':'none';
     node.tabIndex=interactive?0:-1;
    });
