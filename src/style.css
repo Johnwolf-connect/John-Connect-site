@@ -62,3 +62,8 @@
   .hero-curved-swipe{z-index:30;overflow:visible;will-change:contents;}
   .design-tools{position:relative;z-index:2;}
 }
+
+/* GSAP owns the hero pin; the wave starts below the viewport and morphs through a full reveal. */
+.hero-reference{position:relative!important;top:auto!important;z-index:4;}
+.hero-curved-swipe{position:absolute;inset:0;width:100%;height:100%;z-index:30;pointer-events:none;overflow:hidden;}
+.design-tools{position:relative;z-index:2;}
