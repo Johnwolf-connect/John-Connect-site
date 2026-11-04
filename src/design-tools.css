@@ -1,29 +1,59 @@
-.design-tools{min-height:110svh;background:#fff;position:relative;overflow:hidden;padding:100px clamp(25px,6vw,100px) 60px;isolation:isolate}.design-tools-heading{position:relative;z-index:2;pointer-events:none}.design-tools-heading h2{font-size:clamp(48px,6.5vw,100px);letter-spacing:-.075em;line-height:1;margin:18px 0}.design-tools-heading h2 span{color:#8045db}.design-tools-field{position:absolute;inset:130px 3% 20px;pointer-events:none}.design-tool{position:absolute;left:calc(50% + var(--x));top:calc(53% + var(--y));width:clamp(54px,6vw,90px);height:clamp(54px,6vw,90px);margin-left:calc(clamp(54px,6vw,90px)/-2);margin-top:calc(clamp(54px,6vw,90px)/-2);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;will-change:transform,opacity}.design-tool img{width:75%;height:75%;object-fit:contain;filter:none}.design-tool-label{position:absolute;top:100%;font-size:10px;font-weight:600;white-space:nowrap;letter-spacing:.01em;color:#444}.design-tool-fallback{font-size:12px;font-weight:700;color:#8045db;text-align:center}.design-tools .kicker{color:#777}@media(max-width:720px){.design-tools{min-height:780px;padding:95px 24px 35px}.design-tools-heading h2{font-size:54px}.design-tools-field{inset:170px 4% 35px}.design-tool{width:42px;height:42px;margin:-21px}.design-tool-label{font-size:7px;max-width:58px;white-space:normal;text-align:center}.design-tool img{width:100%;height:100%}}@media(prefers-reduced-motion:reduce){.design-tool{transform:none!important;opacity:1!important;will-change:auto}}
-
-/* Extended pinned presentation: arrive, dwell, then leave near the end. */
-.design-tools{height:240svh;min-height:0;padding:0;overflow:visible}
-.design-tools-stage{position:sticky;top:0;height:100svh;overflow:hidden;padding:100px clamp(25px,6vw,100px) 60px;background:#fff}
-@media(max-width:720px){.design-tools{height:210svh;min-height:0;padding:0}.design-tools-stage{padding:95px 24px 35px}}
-
-/* Keep the curve inside the Design Tools viewport: never paint over the idle homepage. */
-.design-tools{--heading-opacity:0;--heading-shift:22px;z-index:1}
-.design-tools-stage{clip-path:none}
-.design-tools::before{content:none}
-.design-tools-heading{opacity:var(--heading-opacity);transform:translateY(var(--heading-shift));transition:none}
-@media(prefers-reduced-motion:reduce){.design-tools{--heading-opacity:1;--heading-shift:0px}.design-tools-stage{clip-path:none}}
-/* Raise Design Tools heading while preserving the flock stage. */
-.design-tools-stage{padding-top:clamp(34px,5svh,64px)}
-@media(max-width:720px){.design-tools-stage{padding-top:36px}}
-
-/* Section 2 is the curved sheet, not a second scrolling section below it. */
+/* A single cinematic sheet: editorial details left, revolving tool selector right. */
+.design-tools{--tool-panel-opacity:0;background:#fff;color:#141414}
 .hero-reference .design-tools{
- position:absolute;inset:0;height:100%;min-height:0;margin:0;padding:0;
- z-index:31;overflow:hidden;isolation:auto;clip-path:inset(100% 0 0 0);
+ position:absolute;inset:0;z-index:31;height:100%;width:100%;
+ min-height:0;margin:0;padding:0;overflow:hidden;
+ clip-path:inset(100% 0 0 0);
 }
 .hero-reference .design-tools-stage{
- position:absolute;inset:0;top:0;height:100%;width:100%;overflow:hidden;
- padding-top:clamp(34px,5svh,64px);
+ position:absolute;inset:0;width:100%;height:100%;
+ background:#fff;overflow:hidden;
+}
+.design-tools-layout{
+ width:100%;height:100%;display:grid;grid-template-columns:40% 60%;
+ align-items:center;gap:0;padding:clamp(42px,5vw,84px) clamp(26px,4vw,72px);
+}
+.design-tools-information{max-width:390px;align-self:center;opacity:var(--tool-panel-opacity);padding-right:24px}
+.design-tools-eyebrow{font-size:10px;letter-spacing:.2em;font-weight:700;color:#8b8b8b}
+.design-tools-information h2{font-size:clamp(30px,3.2vw,52px);line-height:1.08;letter-spacing:-.045em;margin:19px 0 24px;font-weight:700;animation:tool-content-enter .42s ease both}
+.design-tools-information p{font-size:clamp(13px,1.05vw,16px);line-height:1.95;color:#686868;max-width:345px;margin:22px 0;animation:tool-content-enter .48s ease both}
+.design-tool-feature-icon{height:0;opacity:0;display:flex;align-items:center;justify-content:flex-start;transition:height .4s,opacity .35s}
+.design-tool-feature-icon.is-visible{height:155px;opacity:1}
+.design-tool-feature-icon img{max-height:124px;max-width:130px;object-fit:contain;filter:drop-shadow(0 9px 17px #8045db14)}
+.design-tool-feature-icon .tool-icon-fallback{font-size:40px;width:112px;height:112px;border-radius:25px}
+.design-tools-reset{background:none;border:0;border-bottom:1px solid #aaa;padding:7px 0;color:#555;font-size:12px}
+.design-tools-reset:hover{color:#8045db;border-color:#8045db}
+.design-tools-orbit{height:min(76svh,680px);width:100%;position:relative;align-self:center;justify-self:center;min-width:0}
+.design-tools-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:clamp(16px,1.9vw,26px);font-weight:700;letter-spacing:.09em;white-space:nowrap;color:#d6d2d8;pointer-events:none}
+.design-tool-orbit-item{
+ position:absolute;width:clamp(52px,5.6vw,84px);min-height:76px;
+ padding:6px 2px;border:0;background:transparent;color:#333;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+ cursor:pointer;will-change:transform,opacity;
+}
+.design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,transform .3s,background .3s}
+.design-tool-orbit-icon img{max-height:83%;max-width:83%;object-fit:contain}
+.design-tool-orbit-item:hover .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:scale(1.17)}
+.design-tool-orbit-label{font-size:clamp(9px,.8vw,12px);font-weight:600;line-height:1.25;text-align:center;max-width:110px}
+.tool-icon-fallback{display:flex;align-items:center;justify-content:center;color:#8045db;background:#f3edfd;border-radius:12px;font-size:13px;font-weight:800;width:40px;height:40px}
+.design-tool-travel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;filter:drop-shadow(0 0 14px #8045db55)}
+.design-tool-travel .design-tool-orbit-icon{width:52px;height:52px}
+.design-tool-travel .design-tool-orbit-label{display:none}
+@keyframes tool-content-enter{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+@media(max-width:720px){
+ .design-tools-layout{grid-template-columns:1fr;grid-template-rows:38% 62%;padding:60px 20px 24px}
+ .design-tools-information{align-self:end;padding:0 6px;max-width:none}
+ .design-tools-information h2{font-size:32px;margin:9px 0 10px}
+ .design-tools-information p{font-size:12px;line-height:1.5;margin:10px 0}
+ .design-tool-feature-icon.is-visible{height:68px}
+ .design-tool-feature-icon img{max-height:65px;max-width:70px}
+ .design-tools-orbit{height:100%;width:100%}
+ .design-tools-center{font-size:14px}
+ .design-tool-orbit-item{width:50px;min-height:54px;gap:2px}
+ .design-tool-orbit-icon{width:30px;height:30px}
+ .design-tool-orbit-label{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){
  .hero-reference .design-tools{display:none}
+ .design-tool-orbit-item,.design-tools-information h2,.design-tools-information p{animation:none;transition:none}
 }
