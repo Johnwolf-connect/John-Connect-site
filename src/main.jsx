@@ -1,6 +1,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
+import DesignTools from './DesignTools.jsx';
 
 const projects=[
  ['Watson Home','Residential identity','watson-home'],['Snackablez','Food & lifestyle','snackablez'],
@@ -90,6 +91,7 @@ function App(){
     </div>
     <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
    </section>
+   <DesignTools/>
    <section id="work" className="work-intro"><span className="kicker">01 / SELECTED LOGO DESIGN</span><h2>Twelve identities.<br/><i>Distinct voices.</i></h2><p>A curated collection of original marks. Select any identity to explore.</p></section>
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <section id="riches" className="riches"><div className="riches-text"><span className="kicker">02 / FEATURED BRAND IDENTITY</span><h2>RICHES<br/>COSMETICS<span className="purple">.</span></h2><blockquote>“Confidence is not an attitude.<br/>It is a discipline.”</blockquote><p>A brand built from philosophy into a complete visual system. The identity is grounded in clarity, restraint, and intentional design.</p><button className="explore" onClick={()=>setActive('riches')}>Explore the identity <span>↗</span></button></div><div className="riches-art" aria-hidden="true"><div className="riches-monogram">R</div><span>THE CODE / IDENTITY / VISUAL LANGUAGE</span></div></section>
