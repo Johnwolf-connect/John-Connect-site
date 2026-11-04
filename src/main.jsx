@@ -6,11 +6,27 @@ import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
 import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
 gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
-const WAVE_START='M 0 1050 C 280 1050 720 1050 1000 1050 L 1000 1100 L 0 1100 Z';
-const WAVE_MIDDLE='M 0 570 C 330 250 670 250 1000 570 L 1000 1100 L 0 1100 Z';
-const WAVE_END='M 0 -120 C 280 -120 720 -120 1000 -120 L 1000 1100 L 0 1100 Z';
-function CurvedSwipe(){const path=useRef(null),wrapper=useRef(null);useEffect(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const hero=wrapper.current?.closest('.hero');if(!hero||!path.current)return;const timeline=gsap.timeline({scrollTrigger:{trigger:hero,start:'top top',end:'bottom top',scrub:true,invalidateOnRefresh:true}});timeline.to(path.current,{morphSVG:WAVE_START,duration:.12,ease:'none'}).to(path.current,{morphSVG:WAVE_MIDDLE,duration:.44,ease:'none'}).to(path.current,{morphSVG:WAVE_END,duration:.44,ease:'none'},'>').to(path.current,{fill:'#ffffff',stroke:'#ffffff',duration:.12,ease:'none'},'<.32');return()=>{timeline.scrollTrigger?.kill();timeline.kill()}},[]);return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#f2eaff" stroke="#8045db" strokeWidth="5" vectorEffect="non-scaling-stroke"/></svg>}
-
+const WAVE_START='M 0 1100 C 250 1100 750 1100 1000 1100 L 1000 1200 L 0 1200 Z';
+const WAVE_MIDDLE='M 0 520 C 260 130 740 130 1000 520 L 1000 1200 L 0 1200 Z';
+const WAVE_END='M 0 -150 C 250 -150 750 -150 1000 -150 L 1000 1200 L 0 1200 Z';
+function CurvedSwipe(){
+ const path=useRef(null),wrapper=useRef(null);
+ useEffect(()=>{
+  const hero=wrapper.current?.closest('.hero');
+  if(!hero||!path.current||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const context=gsap.context(()=>{
+   gsap.set(path.current,{attr:{d:WAVE_START}});
+   const timeline=gsap.timeline({
+    scrollTrigger:{trigger:hero,start:'top top',end:'+=120%',pin:true,pinSpacing:true,scrub:0.35,anticipatePin:1,invalidateOnRefresh:true}
+   });
+   timeline.to({}, {duration:.08})
+    .to(path.current,{morphSVG:WAVE_MIDDLE,duration:.46,ease:'none'})
+    .to(path.current,{morphSVG:WAVE_END,duration:.46,ease:'none'});
+  },hero);
+  return()=>context.revert();
+ },[]);
+ return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#ffffff"/></svg>;
+}
 
 const projects=[
  ['Watson Home','Residential identity','watson-home'],['Snackablez','Food & lifestyle','snackablez'],
