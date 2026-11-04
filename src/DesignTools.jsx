@@ -48,7 +48,9 @@ export default function DesignTools(){
    if(!reducedRef.current&&p>.22&&p<.99)angle.current+=dt*.000085;
    const keys=tools.filter(t=>t.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
-   const rx=width*.405,ry=height*.385;
+   // Equal radii make the orbit circular regardless of the panel aspect ratio.
+   const radius=Math.min(width,height)*.40;
+   const rx=radius,ry=radius;
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
     const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length;
