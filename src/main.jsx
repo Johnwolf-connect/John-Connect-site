@@ -82,13 +82,13 @@ function ScrollGallery({projects,onSelect}){
   return()=>{window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(frame)};
  },[projects]);
  const current=Math.max(0,Math.min(projects.length-1,Math.round(progress)));
- return <section className="scroll-gallery" ref={galleryRef} aria-label="Scroll through selected logo projects">
+ return <section id="work" className="scroll-gallery" ref={galleryRef} aria-label="Scroll through selected logo projects">
   <div className="scroll-gallery-sticky">
    <aside className="project-info" aria-live="off">
-    <span className="kicker">SELECTED WORK / {String(current+1).padStart(2,'0')} — {String(projects.length).padStart(2,'0')}</span>
+    <h2 className="logo-creations-title"><strong>Logo</strong> Creations.</h2>
+    <span className="kicker">LOGO SPOTLIGHT / {String(current+1).padStart(2,'0')} — {String(projects.length).padStart(2,'0')}</span>
     <div className="project-info-body" key={current}>
      <h3>{projects[current][0]}</h3>
-     <p className="project-date">PROJECT DATE / TO BE ADDED</p>
      <p>{projects[current][1]} — original identity design by John Wolf.</p>
      <button className="project-detail" onClick={()=>onSelect(projects[current])}>View project details ↗</button>
     </div>
@@ -98,9 +98,9 @@ function ScrollGallery({projects,onSelect}){
     {projects.map((project,i)=>{
      const delta=i-progress;
      const distance=Math.abs(delta);
-     const scale=reduced?(i===current?1:0.2):Math.max(.12,1-.73*Math.min(1,distance));
-     const y=reduced?(i-current)*130:delta*76;
-     const opacity=reduced?(i===current?1:0):Math.max(0,1-distance*.8);
+     const scale=reduced?(i===current?1:0.2):Math.max(.12,1-.80*Math.min(1,distance));
+     const y=reduced?(i-current)*130:Math.sign(delta)*(Math.min(1,distance)*22+Math.max(0,distance-1)*11);
+     const opacity=reduced?(i===current?1:0):Math.max(0,(distance<1?1-distance*.68:.32)*Math.min(1,Math.max(0,3.5-distance)));
      return <button key={project[2]} type="button" className="stage-logo" onClick={()=>onSelect(project)} aria-label={'View '+project[0]} tabIndex={i===current?0:-1} style={{transform:`translate3d(-50%,calc(-50% + ${y}vh),0) scale(${scale})`,opacity,zIndex:100-Math.round(distance*10),pointerEvents:distance<.5?'auto':'none'}}>
       <Mark project={project}/>
      </button>;
@@ -138,7 +138,6 @@ function App(){
     <CurvedSwipe/>
     <DesignTools/>
    </section>
-   <section id="work" className="work-intro"><span className="kicker">01 / SELECTED LOGO DESIGN</span><h2>Twelve identities.<br/><i>Distinct voices.</i></h2><p>A curated collection of original marks. Select any identity to explore.</p></section>
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <section id="riches" className="riches"><div className="riches-text"><span className="kicker">02 / FEATURED BRAND IDENTITY</span><h2>RICHES<br/>COSMETICS<span className="purple">.</span></h2><blockquote>“Confidence is not an attitude.<br/>It is a discipline.”</blockquote><p>A brand built from philosophy into a complete visual system. The identity is grounded in clarity, restraint, and intentional design.</p><button className="explore" onClick={()=>setActive('riches')}>Explore the identity <span>↗</span></button></div><div className="riches-art" aria-hidden="true"><div className="riches-monogram">R</div><span>THE CODE / IDENTITY / VISUAL LANGUAGE</span></div></section>
    <section id="about" className="about"><span className="kicker">03 / CREATIVE PRACTICE</span><h2>Design is how<br/>I make ideas <i>felt.</i></h2><p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p><a href="mailto:" onClick={e=>e.preventDefault()} className="contact-note">Contact details coming soon</a></section>
