@@ -45,7 +45,7 @@ export default function DesignTools(){
    // Progress is entirely scroll-driven, so reversing scroll retraces the ride.
    const motion=reducedRef.current;
    const leave=motion?0:smooth(clamp((p-.78)/.20,0,1));
-   const panel=(motion?1:smooth(clamp((p-.35)/.20,0,1)))*(1-leave);
+   const panel=(motion?1:smooth(clamp((p-.53)/.09,0,1)))*(1-leave);
    host.style.setProperty('--tool-panel-opacity',String(panel));
    const information=host.querySelector('.design-tools-information');
    if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
@@ -54,23 +54,34 @@ export default function DesignTools(){
    const keys=tools.filter(tool=>tool.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
    const radius=Math.min(width,height)*.40;
-   const turn=motion?0:smooth(clamp((p-.58)/.20,0,1))*.16;
+   const interval=.014,flight=.30,firstLanding=.36;
+   const speed=2*Math.PI/(tools.length*interval);
+   // Integrate one shared orbit clock. Arrivals use its exact position and
+   // tangent, then it gently slows to the browsing rotation.
+   const clock=q=>{
+    if(q<=.54)return speed*(q-firstLanding);
+    const d=Math.min(q-.54,.10),u=d/.10;
+    return speed*(.54-firstLanding)+speed*d+(.8-speed)*.10*(u*u/2)+Math.max(0,q-.64)*.8;
+   };
+   const origin=-field.getBoundingClientRect().left-80;
    const cubic=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
-    const ride=motion?1:clamp((p-.13-i*.011)/.30,0,1);
-    const t=smooth(ride);
-    const dock=smooth(clamp((ride-.48)/.52,0,1));
-    const a=-Math.PI/2+i*2*Math.PI/keys.length+turn;
+    const landing=firstLanding+i*interval;
+    const ride=motion?1:clamp((p-(landing-flight))/flight,0,1);
+    const entryX=width*.5-radius,entryY=height*.5;
+    const a=Math.PI+clock(Math.max(p,landing))-clock(landing);
+    // The last control point matches the circle's tangent and speed exactly.
+    // All icons follow the same broad cross-page swoop, separated in time.
+    const xTrack=cubic(origin,origin+(entryX-origin)*.42,entryX,entryX,ride);
+    const yTrack=cubic(height*.82,-height*.55,entryY+radius*speed*flight/3,entryY,ride);
     const finalX=width*.5+Math.cos(a)*radius;
     const finalY=height*.5+Math.sin(a)*radius;
-    // A rising swoop, a dip, then a broad bend into the circle.
-    const trackX=cubic(width*1.18,width*.16,width*1.06,width*.5,t);
-    const trackY=cubic(height*.94,-height*.22,height*.88,height*.10,t);
+    const dock=ride;
     const departure=motion?0:smooth(clamp((p-.78-i*.003)/.18,0,1));
-    const x=trackX*(1-dock)+finalX*dock+width*.78*departure;
-    const y=trackY*(1-dock)+finalY*dock-height*.28*Math.sin(departure*Math.PI/2);
-    const bank=(1-dock)*Math.sin(t*Math.PI*2)*12-departure*10;
+    const x=(ride<1?xTrack:finalX)+width*.78*departure;
+    const y=(ride<1?yTrack:finalY)-height*.28*Math.sin(departure*Math.PI/2);
+    const bank=(1-dock)*Math.sin(ride*Math.PI*2)*12-departure*10;
     const reveal=motion?1:smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
     node.style.left=x+'px';node.style.top=y+'px';
     node.style.transform=`translate(-50%,-50%) rotate(${bank}deg) scale(${.82+.18*dock-.10*departure})`;
