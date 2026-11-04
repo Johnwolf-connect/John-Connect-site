@@ -49,8 +49,8 @@
 @media(max-width:720px){.scroll-gallery-sticky{grid-template-columns:1fr;grid-template-rows:38% 62%}.project-info{padding:28px;justify-content:end}.project-info h3{font-size:38px;margin:12px 0}.project-info p{font-size:12px;line-height:1.35}.project-info .project-date{font-size:9px}.project-progress{margin-top:14px}.project-detail{margin-top:8px}.stage-logo{height:42vh;width:75%}.stage-index{bottom:18px;right:20px}}
 @media(prefers-reduced-motion:reduce){.project-info-body{animation:none}.stage-logo{will-change:auto}}
 
-/* One scroll owner: GSAP pins the hero; the sheet overlays it without moving hero content. */
-.hero-reference{position:relative!important;top:auto!important;z-index:4;overflow:hidden;animation:none!important;transform:none!important;filter:none!important;opacity:1!important}
+/* GSAP ScrollTrigger must control pin positioning and transforms. Never override its inline styles with !important. */
+.hero-reference{position:relative;z-index:4;overflow:hidden;animation:none;}
 .hero-curved-swipe{position:absolute;inset:0;width:100%;height:100%;z-index:30;pointer-events:none;display:block;overflow:hidden}
 .design-tools{position:relative;z-index:2;box-shadow:none}
 @media(prefers-reduced-motion:reduce){.hero-curved-swipe{display:none}}
