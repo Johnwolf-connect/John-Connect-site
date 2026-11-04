@@ -45,26 +45,39 @@ export default function DesignTools(){
    host.style.setProperty('--tool-panel-opacity',String(reducedRef.current?1:clamp((p-.24)/.10,0,1)));
    const dt=previous.current?Math.min(50,time-previous.current):16;
    previous.current=time;
-   if(!reducedRef.current&&p>.22&&p<.99)angle.current+=dt*.000085;
+   // Begin the orbit only as the entrance settles, preventing a sudden change of direction.
+   const orbitBlend=smooth(clamp((p-.33)/.10,0,1));
+   if(!reducedRef.current&&p>.29&&p<.99)angle.current+=dt*.000085*orbitBlend;
    const keys=tools.filter(t=>t.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
-   // Equal radii make the orbit circular regardless of the panel aspect ratio.
    const radius=Math.min(width,height)*.40;
-   const rx=radius,ry=radius;
+   const bezier=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
     const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length;
-    const x=width*.5+Math.cos(a)*rx;
-    const y=height*.5+Math.sin(a)*ry;
-    const stagger=i*.009;
-    const enter=reducedRef.current?1:smooth(clamp((p-.16-stagger)/.20,0,1));
-    // Icons trace a broad looping swoop into their orbital positions.
-    const incomingX=-width*.95*(1-enter);
-    const incomingY=Math.sin(enter*Math.PI)*height*.34+(1-enter)*height*.22;
-    node.style.left=x+'px';node.style.top=y+'px';
-    node.style.transform=`translate(-50%,-50%) translate(${incomingX}px,${incomingY}px) scale(${.6+.4*enter})`;
-    node.style.opacity=String(enter);
-    node.style.pointerEvents=enter>.95?'auto':'none';
+    const x=width*.5+Math.cos(a)*radius;
+    const y=height*.5+Math.sin(a)*radius;
+    // Each logo traces the same broad S-shaped route, offset in time like a procession.
+    // Its final segment bends naturally toward its own position on the circular orbit.
+    const stagger=tools.findIndex(t=>t.name===tool.name)*.010;
+    const enter=reducedRef.current?1:clamp((p-.14-stagger)/.23,0,1);
+    const t=smooth(enter);
+    const sx=-width*.24,sy=-height*.12;
+    const mx=width*.48,my=height*.82;
+    let px,py;
+    if(t<.56){
+     const u=t/.56;
+     px=bezier(sx,width*.12,width*.12,mx,u);
+     py=bezier(sy,-height*.22,height*.94,my,u);
+    }else{
+     const u=(t-.56)/.44;
+     px=bezier(mx,width*.83,x-width*.24,x,u);
+     py=bezier(my,height*.73,y+height*.13,y,u);
+    }
+    node.style.left=px+'px';node.style.top=py+'px';
+    node.style.transform=`translate(-50%,-50%) scale(${.72+.28*smooth(enter)})`;
+    node.style.opacity=String(smooth(clamp(enter/.23,0,1)));
+    node.style.pointerEvents=enter>.995?'auto':'none';
    });
    frame.current=requestAnimationFrame(animate);
   };
