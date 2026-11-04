@@ -1,0 +1,30 @@
+.brand-gallery{background:#fff;color:#111;min-height:100svh;padding:50px 0 28px;overflow:hidden}
+.brand-gallery-heading{display:flex;justify-content:space-between;align-items:start;padding:0 clamp(24px,4vw,70px)}
+.brand-gallery-heading h2{font-size:clamp(28px,3.8vw,58px);font-weight:500;letter-spacing:-.055em;margin:12px 0}
+.brand-gallery-heading p{font-size:12px;color:#666;margin:8px 0}
+.brand-gallery-track{height:clamp(320px,64vh,740px);position:relative;perspective:1200px;touch-action:pan-y;outline-offset:-6px}
+.brand-gallery-panel{position:absolute;top:50%;left:50%;width:56%;aspect-ratio:16/9;border:0;padding:0;background:#fafafa;cursor:pointer;overflow:hidden;box-shadow:0 15px 50px #0000000c;clip-path:polygon(0 3%,25% 1%,50% 0,75% 1%,100% 3%,100% 97%,75% 99%,50% 100%,25% 99%,0 97%);transition:transform .75s cubic-bezier(.2,.7,.2,1)}
+.brand-gallery-panel img{width:100%;height:100%;object-fit:contain;display:block;animation:brand-cover-in .55s ease both}
+.brand-panel-center{transform:translate(-50%,-50%);z-index:3}
+.brand-panel-center:hover{transform:translate(-50%,-50%) scale(1.025)}
+.brand-panel-left{transform:translate(-155%,-50%) rotateY(24deg) scale(.86);z-index:1}
+.brand-panel-right{transform:translate(55%,-50%) rotateY(-24deg) scale(.86);z-index:1}
+.brand-panel-open{position:absolute;right:24px;bottom:24px;background:#fff;color:#111;padding:10px 16px;border-radius:40px;font-size:11px;opacity:0;transition:opacity .25s}
+.brand-panel-center:hover .brand-panel-open,.brand-panel-center:focus-visible .brand-panel-open{opacity:1}
+.brand-gallery-controls{display:flex;justify-content:space-between;align-items:center;padding:0 clamp(24px,4vw,70px);font-size:11px;color:#777;gap:12px}
+.brand-gallery-controls>div{display:flex;align-items:center;gap:22px}
+.brand-gallery-controls button{border:0;background:transparent;color:#111;padding:12px;cursor:pointer;font-size:20px}
+.brand-gallery-controls .brand-current-name{font-size:17px;min-width:150px}
+.brand-reader{position:fixed;inset:0;background:#fff;z-index:10000;display:flex;flex-direction:column;animation:brand-reader-in .55s cubic-bezier(.2,.7,.2,1) both}
+.brand-reader-header{display:flex;justify-content:space-between;align-items:center;padding:20px clamp(20px,4vw,64px);border-bottom:1px solid #eee;flex-shrink:0}
+.brand-reader-header h3{margin:7px 0 0;font-size:22px;letter-spacing:-.035em}
+.brand-reader button{background:none;border:0;padding:12px;color:#111;cursor:pointer}
+.brand-reader-pages{overflow-y:auto;overscroll-behavior:contain;flex:1;padding:32px clamp(16px,9vw,150px)}
+.brand-reader-pages figure{margin:0 auto 30px;max-width:1400px}
+.brand-reader-pages img{width:100%;height:auto;display:block;box-shadow:0 4px 28px #0000000b}
+.brand-reader-pages figcaption{text-align:right;font-size:10px;color:#888;padding-top:8px}
+.brand-reader-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 24px;border-top:1px solid #eee;font-size:12px;flex-shrink:0}
+@keyframes brand-cover-in{from{opacity:.3;transform:scale(1.02)}to{opacity:1;transform:scale(1)}}
+@keyframes brand-reader-in{from{opacity:0;transform:translateY(35px) scale(.96)}to{opacity:1;transform:none}}
+@media(max-width:720px){.brand-gallery{min-height:85svh;padding-top:40px}.brand-gallery-heading{display:block}.brand-gallery-heading p{margin-top:15px}.brand-gallery-track{height:52vh}.brand-gallery-panel{width:78%}.brand-panel-left{transform:translate(-153%,-50%) rotateY(24deg) scale(.86)}.brand-panel-right{transform:translate(53%,-50%) rotateY(-24deg) scale(.86)}.brand-gallery-count{display:none}.brand-gallery-controls{padding:0 14px}.brand-gallery-controls>div{gap:0}.brand-gallery-controls .brand-current-name{font-size:14px;min-width:130px}.brand-gallery-controls>span{font-size:9px}.brand-reader-footer>span{display:none}.brand-panel-open{opacity:1;font-size:9px;bottom:12px;right:12px}}
+@media(prefers-reduced-motion:reduce){.brand-gallery-panel,.brand-gallery-panel img,.brand-reader{animation:none;transition:none}}
