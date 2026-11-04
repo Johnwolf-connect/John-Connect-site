@@ -28,7 +28,6 @@ function ToolIcon({tool}){
 export default function DesignTools(){
  const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),angle=useRef(0),previous=useRef(0),chosen=useRef(null),reducedRef=useRef(false);
  const [selected,setSelected]=useState(null),[reduced,setReduced]=useState(false);
- const [active,setActive]=useState(false);
  chosen.current=selected;
  useEffect(()=>{
   const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -44,7 +43,6 @@ export default function DesignTools(){
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
    const visible=reducedRef.current||p>.13;
    host.style.setProperty('--tool-panel-opacity',String(reducedRef.current?1:clamp((p-.24)/.10,0,1)));
-   if(visible!==host.dataset.entered){host.dataset.entered=String(visible);setActive(visible)}
    const dt=previous.current?Math.min(50,time-previous.current):16;
    previous.current=time;
    if(!reducedRef.current&&p>.22&&p<.99)angle.current+=dt*.000085;
