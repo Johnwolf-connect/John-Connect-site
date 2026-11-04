@@ -15,18 +15,15 @@ export default function DesignTools(){
   if(reduced)return;
   const run=()=>{
    const root=section.current;if(!root)return;
-   const rect=root.getBoundingClientRect(),vh=innerHeight;
-   // Keep the stage visible for a full scroll beat before beginning the exit.
-   const travel=Math.max(1,rect.height-vh);
-   const progress=clamp(-rect.top/travel,0,1);
-   const entry=clamp(progress/.14,0,1);
-   const exit=clamp((progress-.82)/.18,0,1);
+   // This stage shares the hero's pin and scroll timeline with the curved sheet.
+   const hero=root.closest('.hero');
+   const progress=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
+   const entry=clamp((progress-.20)/.19,0,1);
+   const exit=clamp((progress-.86)/.14,0,1);
    const leave=exit*exit*(3-2*exit);
-   // A visibly curved leading edge rises over the homepage and flattens once in place.
-   const reveal=clamp((vh-rect.top)/(vh*.9),0,1);
-   root.style.setProperty('--curve-height',`${Math.round((1-reveal)*26)}svh`);
-   root.style.setProperty('--heading-opacity',String(clamp((progress-.045)/.075,0,1)));
-   root.style.setProperty('--heading-shift',`${Math.round((1-clamp((progress-.045)/.075,0,1))*22)}px`);
+   const heading=clamp((progress-.32)/.09,0,1);
+   root.style.setProperty('--heading-opacity',String(heading));
+   root.style.setProperty('--heading-shift',`${Math.round((1-heading)*22)}px`);
    const stage=root.querySelector('.design-tools-stage').getBoundingClientRect();
    items.current.forEach((node,i)=>{
     if(!node)return;
