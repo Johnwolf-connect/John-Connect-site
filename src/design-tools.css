@@ -65,19 +65,17 @@
  content:"";position:absolute;pointer-events:none;
 }
 .design-tools-stage::before{
- inset:-25%;z-index:-2;
+ inset:-12%;z-index:-2;
  background:
-  radial-gradient(ellipse at 68% 38%,#9900ff 0%,#9900ffb3 12%,#9900ff38 28%,transparent 43%),
-  radial-gradient(ellipse at 38% 73%,#9900ffcc 0%,#9900ff73 16%,transparent 39%),
-  radial-gradient(ellipse at 84% 76%,#9900ffb3 0%,transparent 33%);
- filter:blur(18px);
- animation:tool-purple-flow 9s ease-in-out infinite;
- will-change:transform;
+  radial-gradient(ellipse 36% 42% at var(--glow-x,50%) var(--glow-y,50%),#9900ff 0%,#9900ff99 28%,transparent 72%),
+  radial-gradient(ellipse 40% 32% at var(--glow-second-x,25%) var(--glow-second-y,65%),#9900ffcc 0%,#9900ff50 35%,transparent 75%);
+ filter:blur(22px);
+ opacity:var(--glow-breath,.8);
 }
 .design-tools-stage::after{
  inset:0;z-index:-1;
  background:
-  linear-gradient(90deg,#fffffff0 0%,#ffffffad 29%,#ffffff18 57%,#ffffff00 100%),
+  linear-gradient(90deg,#ffffff90 0%,#ffffff60 29%,#ffffff18 57%,#ffffff00 100%),
   repeating-linear-gradient(90deg,
    #ffffffa3 0px,#ffffff29 2px,#ffffff0a 5px,
    #5e008014 7px,#ffffff99 9px,#ffffff33 12px);
