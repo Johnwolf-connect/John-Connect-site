@@ -45,6 +45,13 @@ export default function DesignTools(){
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
    // The ride follows scroll; the assembled circle also has a slow idle orbit.
    const motion=reducedRef.current;
+   // Drive the light independently of scrolling, across the whole sheet.
+   const breath=motion?0:time/1000;
+   host.style.setProperty('--glow-x', (50+42*Math.sin(breath*.34))+'%');
+   host.style.setProperty('--glow-y', (50+35*Math.cos(breath*.27))+'%');
+   host.style.setProperty('--glow-second-x', (50-43*Math.sin(breath*.34+.8))+'%');
+   host.style.setProperty('--glow-second-y', (50-38*Math.cos(breath*.27+.5))+'%');
+   host.style.setProperty('--glow-breath', String(.65+.35*(.5+.5*Math.sin(breath*.9))));
    const elapsed=previousTime===null?0:Math.min(50,Math.max(0,time-previousTime))/1000;
    previousTime=time;
    const idleBlend=motion?0:smooth(clamp((p-.54)/.10,0,1));
