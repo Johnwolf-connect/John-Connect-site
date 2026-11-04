@@ -11,3 +11,7 @@
 .design-tools::before{content:"";position:absolute;z-index:0;pointer-events:none;left:0;right:0;top:calc(-1 * var(--curve-height));height:calc(var(--curve-height) + 3px);background:#fff;border-radius:50% 50% 0 0 / 100% 100% 0 0}
 .design-tools-heading{opacity:var(--heading-opacity);transform:translateY(var(--heading-shift));transition:none}
 @media(prefers-reduced-motion:reduce){.design-tools{--curve-height:0svh;--heading-opacity:1;--heading-shift:0px}}
+
+/* Raise Design Tools heading while preserving the flock stage. */
+.design-tools-stage{padding-top:clamp(34px,5svh,64px)}
+@media(max-width:720px){.design-tools-stage{padding-top:36px}}
