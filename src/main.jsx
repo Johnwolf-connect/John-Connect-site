@@ -19,16 +19,15 @@ function CurvedSwipe(){
   const ctx=gsap.context(()=>{
    gsap.set(path.current,{attr:{d:WAVE_START}});
    const timeline=gsap.timeline({
-    scrollTrigger:{trigger:hero,start:'top top',end:()=>'+='+Math.round(window.innerHeight*1.25),pin:hero,pinSpacing:true,pinReparent:true,scrub:0.35,anticipatePin:1,invalidateOnRefresh:true}
+    scrollTrigger:{trigger:hero,start:'top top',end:'+=120%',pin:true,pinSpacing:true,scrub:0.35,anticipatePin:1,invalidateOnRefresh:true}
    });
    timeline.to({}, {duration:.08})
      .to(path.current,{morphSVG:WAVE_MIDDLE,duration:.46,ease:'none'})
-     .to(path.current,{morphSVG:WAVE_END,duration:.46,ease:'none'})
-     .to(path.current,{fill:'#ffffff',duration:.16,ease:'none'});
+     .to(path.current,{morphSVG:WAVE_END,duration:.46,ease:'none'});
   },hero);
   return()=>ctx.revert();
  },[]);
- return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#8045db"/></svg>;
+ return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#fff"/></svg>;
 }
 
 const projects=[
