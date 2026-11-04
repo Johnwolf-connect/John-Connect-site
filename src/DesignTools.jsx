@@ -45,9 +45,9 @@ export default function DesignTools(){
    host.style.setProperty('--tool-panel-opacity',String(reducedRef.current?1:clamp((p-.24)/.10,0,1)));
    const dt=previous.current?Math.min(50,time-previous.current):16;
    previous.current=time;
-   // Begin the orbit only as the entrance settles, preventing a sudden change of direction.
-   const orbitBlend=smooth(clamp((p-.33)/.10,0,1));
-   if(!reducedRef.current&&p>.29&&p<.99)angle.current+=dt*.000085*orbitBlend;
+   // Finish the entire entrance before the orbit begins to revolve.
+   const orbitBlend=smooth(clamp((p-.60)/.08,0,1));
+   if(!reducedRef.current&&p>.60&&p<.99)angle.current+=dt*.000085*orbitBlend;
    const keys=tools.filter(t=>t.name!==chosen.current);
    const width=field.clientWidth,height=field.clientHeight;
    const radius=Math.min(width,height)*.40;
@@ -57,26 +57,22 @@ export default function DesignTools(){
     const a=angle.current-Math.PI/2+i*2*Math.PI/keys.length;
     const x=width*.5+Math.cos(a)*radius;
     const y=height*.5+Math.sin(a)*radius;
-    // Each logo traces the same broad S-shaped route, offset in time like a procession.
-    // Its final segment bends naturally toward its own position on the circular orbit.
-    const stagger=tools.findIndex(t=>t.name===tool.name)*.010;
-    const enter=reducedRef.current?1:clamp((p-.14-stagger)/.23,0,1);
+    const index=tools.findIndex(t=>t.name===tool.name);
+    // Distinct but coordinated flight paths avoid the diagonal queue and pileups.
+    // The path has a sweeping S-shaped approach, then eases into each orbital slot.
+    const stagger=index*.017;
+    const enter=reducedRef.current?1:clamp((p-.17-stagger)/.20,0,1);
     const t=smooth(enter);
-    const sx=-width*.24,sy=-height*.12;
-    const mx=width*.48,my=height*.82;
-    let px,py;
-    if(t<.56){
-     const u=t/.56;
-     px=bezier(sx,width*.12,width*.12,mx,u);
-     py=bezier(sy,-height*.22,height*.94,my,u);
-    }else{
-     const u=(t-.56)/.44;
-     px=bezier(mx,width*.83,x-width*.24,x,u);
-     py=bezier(my,height*.73,y+height*.13,y,u);
-    }
+    const lane=(index%4-1.5);
+    const sx=-width*.17,sy=height*(.66+lane*.085);
+    const c1x=width*.16,c1y=height*(.10+lane*.085);
+    const c2x=width*.82,c2y=height*(.86+lane*.035);
+    // Interpolate a flowing S route into the final orbit position without snapping.
+    const px=bezier(sx,c1x,c2x,x,t);
+    const py=bezier(sy,c1y,c2y,y,t);
     node.style.left=px+'px';node.style.top=py+'px';
-    node.style.transform=`translate(-50%,-50%) scale(${.72+.28*smooth(enter)})`;
-    node.style.opacity=String(smooth(clamp(enter/.23,0,1)));
+    node.style.transform=`translate(-50%,-50%) scale(${.78+.22*t})`;
+    node.style.opacity=String(smooth(clamp(enter/.16,0,1)));
     node.style.pointerEvents=enter>.995?'auto':'none';
    });
    frame.current=requestAnimationFrame(animate);
