@@ -36,7 +36,7 @@ export default function DesignTools(){
   return()=>mq.removeEventListener?.('change',sync);
  },[]);
  useEffect(()=>{
-  let previousTime=null,rotation=0;
+  let previousTime=null,rotation=0,exitAngles=null;
   const positions=new Map();
   const animate=time=>{
    const host=root.current,field=orbit.current;
@@ -79,6 +79,12 @@ export default function DesignTools(){
    };
    const origin=-field.getBoundingClientRect().left-80;
    const cubic=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
+   // Capture the live rotation once, then feed icons through the top exit.
+   // The leading icon is the next one to reach twelve o'clock.
+   if(p<.78)exitAngles=null;
+   if(!motion&&p>=.78&&!exitAngles){
+    exitAngles=new Map(keys.map((tool,i)=>[tool.name,positions.get(tool.name)??(Math.PI+clock(.78)-clock(firstLanding)-i*2*Math.PI/keys.length+idleAngle)]));
+   }
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
     const landing=firstLanding+i*interval;
@@ -99,9 +105,27 @@ export default function DesignTools(){
     const finalX=width*.5+Math.cos(a)*radius;
     const finalY=height*.5+Math.sin(a)*radius;
     const dock=ride;
-    const departure=motion?0:smooth(clamp((p-.78-i*.003)/.18,0,1));
-    const x=(ride<1?xTrack:finalX)+width*.78*departure;
-    const y=(ride<1?yTrack:finalY)-height*.28*Math.sin(departure*Math.PI/2);
+    let departure=0;
+    let x=ride<1?xTrack:finalX,y=ride<1?yTrack:finalY;
+    if(!motion&&p>=.78&&exitAngles?.has(tool.name)){
+     const start=exitAngles.get(tool.name),tau=2*Math.PI;
+     const distance=((-Math.PI/2-start)%tau+tau)%tau;
+     const travelSpeed=tau/.12;
+     const toTop=distance/travelSpeed;
+     const exitProgress=p-.78;
+     if(exitProgress<=toTop){
+      const exitAngle=start+exitProgress*travelSpeed;
+      x=width*.5+Math.cos(exitAngle)*radius;
+      y=height*.5+Math.sin(exitAngle)*radius;
+     }else{
+      departure=clamp((exitProgress-toTop)/.08,0,1);
+      const topX=width*.5,topY=height*.5-radius;
+      const offscreen=window.innerWidth-field.getBoundingClientRect().left+100;
+      // Horizontal tangent at twelve o'clock continues into a shared right sweep.
+      x=cubic(topX,topX+radius*travelSpeed*.08/3,offscreen-width*.22,offscreen,departure);
+      y=cubic(topY,topY,topY+height*.16,topY+height*.12,departure);
+     }
+    }
     const bank=(1-dock)*Math.sin(ride*Math.PI*2)*12-departure*10;
     const reveal=motion?1:smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
     node.style.left=x+'px';node.style.top=y+'px';
