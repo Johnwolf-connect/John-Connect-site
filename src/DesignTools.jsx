@@ -22,6 +22,11 @@ export default function DesignTools(){
    const entry=clamp(progress/.22,0,1);
    const exit=clamp((progress-.82)/.18,0,1);
    const leave=exit*exit*(3-2*exit);
+   // A visibly curved leading edge rises over the homepage and flattens once in place.
+   const reveal=clamp((vh-rect.top)/(vh*.9),0,1);
+   root.style.setProperty('--curve-height',`${Math.round((1-reveal)*26)}svh`);
+   root.style.setProperty('--heading-opacity',String(clamp((progress-.27)/.09,0,1)));
+   root.style.setProperty('--heading-shift',`${Math.round((1-clamp((progress-.27)/.09,0,1))*22)}px`);
    const stage=root.querySelector('.design-tools-stage').getBoundingClientRect();
    items.current.forEach((node,i)=>{
     if(!node)return;
@@ -31,7 +36,7 @@ export default function DesignTools(){
     const force=clamp((155-dist)/155,0,1);const targetX=dx/dist*force*85,targetY=dy/dist*force*65;
     state.vx=(state.vx+(targetX-state.x)*.065)*.79;state.vy=(state.vy+(targetY-state.y)*.065)*.79;
     state.x+=state.vx;state.y+=state.vy;
-    const stagger=((i*7)%13)*.035,individual=clamp((entry-stagger)/(1-stagger),0,1),arrive=1-(1-individual)**3;
+    const stagger=((i*7)%13)*.018,individual=clamp((entry-stagger)/(1-stagger),0,1),arrive=1-(1-individual)**3;
     const incoming=(-stage.width-180)*(1-arrive); const arc=Math.sin(individual*Math.PI)*(i%2?115:-115); const overshoot=individual>.7?Math.sin((individual-.7)/.3*Math.PI*2)*38*(1-individual):0; const float=individual>=1&&leave===0?Math.sin(performance.now()*.0017+i*1.8)*5:0;
     const outgoing=(stage.width+200)*leave;
     node.style.transform=`translate3d(${incoming+outgoing+overshoot+state.x}px,${arc+float+state.y}px,0)`;
