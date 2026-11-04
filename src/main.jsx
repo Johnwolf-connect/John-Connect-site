@@ -12,6 +12,59 @@ const projects=[
 ];
 function Mark({project}){const [missing,setMissing]=useState(false);return missing?<span className="missing-mark">{project[0]}</span>:<img src={'/logos/'+project[2]+'.png'} alt={project[0]+' logo'} loading="lazy" onError={()=>setMissing(true)}/>;}
 
+
+function ScrollGallery({projects,onSelect}){
+ const galleryRef=useRef(null);
+ const [progress,setProgress]=useState(0);
+ const [reduced,setReduced]=useState(false);
+ useEffect(()=>{
+  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const sync=()=>setReduced(mq.matches);sync();mq.addEventListener?.('change',sync);
+  return()=>mq.removeEventListener?.('change',sync);
+ },[]);
+ useEffect(()=>{
+  let frame=0;
+  const update=()=>{
+   frame=0;
+   if(!galleryRef.current)return;
+   const rect=galleryRef.current.getBoundingClientRect();
+   const travel=Math.max(1,rect.height-window.innerHeight);
+   setProgress(Math.max(0,Math.min(projects.length-1,(-rect.top/travel)*(projects.length-1))));
+  };
+  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
+  update();window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
+  return()=>{window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(frame)};
+ },[projects]);
+ const current=Math.max(0,Math.min(projects.length-1,Math.round(progress)));
+ return <section className="scroll-gallery" ref={galleryRef} aria-label="Scroll through selected logo projects">
+  <div className="scroll-gallery-sticky">
+   <aside className="project-info" aria-live="off">
+    <span className="kicker">SELECTED WORK / {String(current+1).padStart(2,'0')} — {String(projects.length).padStart(2,'0')}</span>
+    <div className="project-info-body" key={current}>
+     <h3>{projects[current][0]}</h3>
+     <p className="project-date">PROJECT DATE / TO BE ADDED</p>
+     <p>{projects[current][1]} — original identity design by John Wolf.</p>
+     <button className="project-detail" onClick={()=>onSelect(projects[current])}>View project details ↗</button>
+    </div>
+    <div className="project-progress" aria-hidden="true"><span style={{width:((current+1)/projects.length*100)+'%'}}/></div>
+   </aside>
+   <div className="logo-stage">
+    {projects.map((project,i)=>{
+     const delta=i-progress;
+     const distance=Math.abs(delta);
+     const scale=reduced?(i===current?1:0.2):Math.max(.12,1-.73*Math.min(1,distance));
+     const y=reduced?(i-current)*130:delta*76;
+     const opacity=reduced?(i===current?1:0):Math.max(0,1-distance*.8);
+     return <button key={project[2]} type="button" className="stage-logo" onClick={()=>onSelect(project)} aria-label={'View '+project[0]} tabIndex={i===current?0:-1} style={{transform:`translate3d(-50%,calc(-50% + ${y}vh),0) scale(${scale})`,opacity,zIndex:100-Math.round(distance*10),pointerEvents:distance<.5?'auto':'none'}}>
+      <Mark project={project}/>
+     </button>;
+    })}
+    <div className="stage-index">{String(current+1).padStart(2,'0')} <span>/ {String(projects.length).padStart(2,'0')}</span></div>
+   </div>
+  </div>
+ </section>;
+}
+
 function App(){
  const [active,setActive]=useState(null),[pointer,setPointer]=useState({x:0,y:0});
  const raf=useRef(0);
@@ -38,7 +91,7 @@ function App(){
     <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
    </section>
    <section id="work" className="work-intro"><span className="kicker">01 / SELECTED LOGO DESIGN</span><h2>Twelve identities.<br/><i>Distinct voices.</i></h2><p>A curated collection of original marks. Select any identity to explore.</p></section>
-   <div className="gallery" aria-label="Selected logo gallery">{[0,1,2,3].map((group)=><section key={group} className={'gallery-band '+(group%2?'dark':'light')} aria-label={'Logo collection '+(group+1)}><div className="gallery-grid">{projects.slice(group*3,group*3+3).map((project,j)=>{const i=group*3+j;return <button type="button" className={'logo-card card-'+j} key={project[2]} style={{'--dx':(pointer.x*(j===1?-.65:1))+'px','--dy':(pointer.y*(j===2?-.8:.65))+'px'}} onClick={()=>setActive(project)} aria-label={'View '+project[0]}><div className="mark"><Mark project={project}/></div><div className="card-label"><span>{String(i+1).padStart(2,'0')} / {project[0]}</span><span aria-hidden="true">↗</span></div></button>})}</div></section>)}</div>
+   <ScrollGallery projects={projects} onSelect={setActive}/>
    <section id="riches" className="riches"><div className="riches-text"><span className="kicker">02 / FEATURED BRAND IDENTITY</span><h2>RICHES<br/>COSMETICS<span className="purple">.</span></h2><blockquote>“Confidence is not an attitude.<br/>It is a discipline.”</blockquote><p>A brand built from philosophy into a complete visual system. The identity is grounded in clarity, restraint, and intentional design.</p><button className="explore" onClick={()=>setActive('riches')}>Explore the identity <span>↗</span></button></div><div className="riches-art" aria-hidden="true"><div className="riches-monogram">R</div><span>THE CODE / IDENTITY / VISUAL LANGUAGE</span></div></section>
    <section id="about" className="about"><span className="kicker">03 / CREATIVE PRACTICE</span><h2>Design is how<br/>I make ideas <i>felt.</i></h2><p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p><a href="mailto:" onClick={e=>e.preventDefault()} className="contact-note">Contact details coming soon</a></section>
   </main>
