@@ -2,6 +2,15 @@ import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
+import {gsap} from 'gsap';
+import {ScrollTrigger} from 'gsap/ScrollTrigger';
+import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
+gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
+const WAVE_START='M 0 1050 C 280 1050 720 1050 1000 1050 L 1000 1100 L 0 1100 Z';
+const WAVE_MIDDLE='M 0 660 C 280 280 720 860 1000 460 L 1000 1100 L 0 1100 Z';
+const WAVE_END='M 0 -120 C 280 -120 720 -120 1000 -120 L 1000 1100 L 0 1100 Z';
+function CurvedSwipe(){const path=useRef(null),wrapper=useRef(null);useEffect(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const hero=wrapper.current?.closest('.hero');if(!hero||!path.current)return;const timeline=gsap.timeline({scrollTrigger:{trigger:hero,start:'top top',end:'bottom top',scrub:true,invalidateOnRefresh:true}});timeline.to(path.current,{morphSVG:WAVE_MIDDLE,duration:.48,ease:'none'}).to(path.current,{morphSVG:WAVE_END,duration:.52,ease:'none'});return()=>{timeline.scrollTrigger?.kill();timeline.kill()}},[]);return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#fff"/></svg>}
+
 
 const projects=[
  ['Watson Home','Residential identity','watson-home'],['Snackablez','Food & lifestyle','snackablez'],
@@ -90,6 +99,7 @@ function App(){
      <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
     </div>
     <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
+    <CurvedSwipe/>
    </section>
    <DesignTools/>
    <section id="work" className="work-intro"><span className="kicker">01 / SELECTED LOGO DESIGN</span><h2>Twelve identities.<br/><i>Distinct voices.</i></h2><p>A curated collection of original marks. Select any identity to explore.</p></section>
