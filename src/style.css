@@ -27,3 +27,24 @@
 @media(max-width:1000px){.hero-reference .hero-lockup h1{font-size:clamp(54px,7.5vw,80px)}.hero-services{font-size:11px}.hero-copy{padding-left:28px}.hero-description{margin-top:42px}.hero-portrait{width:125%}}
 @media(max-width:720px){.header{justify-content:flex-end;padding:0 20px}.header .wordmark{left:20px}.header nav{gap:17px}.hero-reference{min-height:850px;grid-template-columns:1fr;grid-template-rows:52% 48%}.hero-copy{padding:120px 22px 20px;justify-content:center}.hero-lockup{gap:15px}.hero-reference .hero-lockup h1{font-size:clamp(55px,12vw,88px)}.hero-services{font-size:clamp(9px,2.2vw,12px);padding-left:12px;gap:6px}.hero-description{margin:32px 0 20px;max-width:360px;font-size:16px}.hero-visual{min-height:0}.hero-purple-shape{width:50%;height:120%;top:15%;right:20%}.hero-portrait{height:110%;width:100%;object-position:bottom center}.portrait-placeholder{height:75%;width:75%;font-size:190px}.hero-scroll{left:auto;right:20px;bottom:18px;transform:none}}
 @media(prefers-reduced-motion:reduce){.hero-purple-shape,.hero-cta{transition:none}}
+
+/* Scroll-controlled logo exhibition */
+.scroll-gallery{height:1200vh;position:relative;background:#fff;color:#111}
+.scroll-gallery-sticky{height:100svh;position:sticky;top:0;display:grid;grid-template-columns:42% 58%;overflow:hidden}
+.project-info{padding:clamp(35px,7vw,110px);display:flex;flex-direction:column;justify-content:center;z-index:2;background:#fff}
+.project-info-body{animation:info-enter .35s ease both}
+.project-info h3{font-size:clamp(42px,5vw,90px);line-height:1;letter-spacing:-.075em;margin:28px 0}
+.project-info p{max-width:390px;color:#666;line-height:1.7}
+.project-info .project-date{font-size:11px;letter-spacing:.13em;color:#8045db;font-weight:700}
+.project-detail{border:0;border-bottom:1px solid currentColor;background:transparent;padding:12px 0;margin-top:24px;font-size:12px;letter-spacing:.08em;text-align:left}
+.project-progress{height:2px;background:#eee;width:min(280px,100%);margin-top:55px}
+.project-progress span{display:block;height:100%;background:#8045db;transition:width .25s}
+.logo-stage{position:relative;background:#f5f4f7;overflow:hidden}
+.stage-logo{position:absolute;top:50%;left:50%;width:min(70%,570px);height:50vh;border:0;background:transparent;display:flex;align-items:center;justify-content:center;will-change:transform,opacity}
+.stage-logo img{max-width:100%;max-height:100%;object-fit:contain}
+.stage-logo .missing-mark{font-size:clamp(24px,4vw,60px)}
+.stage-index{position:absolute;right:35px;bottom:30px;font-size:18px;font-weight:700;letter-spacing:.05em}
+.stage-index span{color:#999;font-size:12px}
+@keyframes info-enter{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:720px){.scroll-gallery-sticky{grid-template-columns:1fr;grid-template-rows:38% 62%}.project-info{padding:28px;justify-content:end}.project-info h3{font-size:38px;margin:12px 0}.project-info p{font-size:12px;line-height:1.35}.project-info .project-date{font-size:9px}.project-progress{margin-top:14px}.project-detail{margin-top:8px}.stage-logo{height:42vh;width:75%}.stage-index{bottom:18px;right:20px}}
+@media(prefers-reduced-motion:reduce){.project-info-body{animation:none}.stage-logo{will-change:auto}}
