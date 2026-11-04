@@ -67,17 +67,17 @@
 .design-tools-stage::before{
  inset:-25%;z-index:-2;
  background:
-  radial-gradient(ellipse at 68% 38%,#9900ff9c 0%,#9900ff45 18%,transparent 44%),
-  radial-gradient(ellipse at 38% 73%,#9900ff6b 0%,#9900ff20 24%,transparent 47%),
-  radial-gradient(ellipse at 84% 76%,#9900ff52 0%,transparent 36%);
- filter:blur(28px);
- animation:tool-purple-flow 18s ease-in-out infinite;
+  radial-gradient(ellipse at 68% 38%,#9900ff 0%,#9900ffb3 12%,#9900ff38 28%,transparent 43%),
+  radial-gradient(ellipse at 38% 73%,#9900ffcc 0%,#9900ff73 16%,transparent 39%),
+  radial-gradient(ellipse at 84% 76%,#9900ffb3 0%,transparent 33%);
+ filter:blur(18px);
+ animation:tool-purple-flow 9s ease-in-out infinite;
  will-change:transform;
 }
 .design-tools-stage::after{
  inset:0;z-index:-1;
  background:
-  linear-gradient(90deg,#fffffff5 0%,#ffffffb8 29%,#ffffff30 57%,#ffffff08 100%),
+  linear-gradient(90deg,#fffffff0 0%,#ffffffad 29%,#ffffff18 57%,#ffffff00 100%),
   repeating-linear-gradient(90deg,
    #ffffffa3 0px,#ffffff29 2px,#ffffff0a 5px,
    #5e008014 7px,#ffffff99 9px,#ffffff33 12px);
@@ -87,9 +87,9 @@
 .design-tools-center{color:#74657e}
 .design-tool-orbit-label{text-shadow:0 1px 8px #fff,0 1px 3px #fff}
 @keyframes tool-purple-flow{
- 0%,100%{transform:translate3d(-4%,2%,0) rotate(-7deg) scale(1)}
- 33%{transform:translate3d(5%,-5%,0) rotate(6deg) scale(1.08)}
- 66%{transform:translate3d(-2%,6%,0) rotate(-2deg) scale(1.03)}
+ 0%,100%{transform:translate3d(-13%,8%,0) rotate(-12deg) scale(.95);opacity:.72}
+ 33%{transform:translate3d(13%,-12%,0) rotate(12deg) scale(1.12);opacity:1}
+ 66%{transform:translate3d(-5%,15%,0) rotate(-4deg) scale(1.04);opacity:.86}
 }
 @media(prefers-reduced-motion:reduce){
  .design-tools-stage::before{animation:none;will-change:auto}
