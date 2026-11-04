@@ -49,14 +49,14 @@ function CurvedSwipe(){
 }
 
 const projects=[
- ['Watson Home','Residential identity','watson-home'],['Snackablez','Food & lifestyle','snackablez'],
+ ['Lander','Home grown nursery','lander'],['MotivX','Brand identity','motivx'],
  ['Hasty Movers','Moving & logistics','hasty-movers'],['Coffeeology','Coffee culture','coffeeology'],
  ['Victor Valor','Emblem design','victor-valor'],['Crane Chow','Artisan Asian cuisine','crane-chow'],
  ['The Union Church','Community identity','union-church'],['NURUSH','Wellness & nutrition','nurush'],
  ['InKzilla','Creative identity','inkzilla'],['HopLock','Locksmith identity','hoplock'],
  ['Elite Dominion','Premium identity','elite-dominion'],['Vyra Studios','Creative studio','vyra-studios']
 ];
-function Mark({project}){const [missing,setMissing]=useState(false);return missing?<span className="missing-mark">{project[0]}</span>:<img src={'/logos/'+project[2]+'.png'} alt={project[0]+' logo'} loading="lazy" onError={()=>setMissing(true)}/>;}
+function Mark({project}){return <img src={'/logos/'+project[2]+'.webp'} alt={project[0]+' logo'} loading="lazy"/>;}
 
 
 function ScrollGallery({projects,onSelect}){
