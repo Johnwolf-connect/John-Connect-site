@@ -6,27 +6,32 @@ import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
 import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
 gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
-// Follow the CodePen's quadratic Q-path geometry: flat -> curved -> flat.
-// Keep every path's commands identical so MorphSVG can interpolate cleanly.
-const WAVE_START='M 0 100 Q 50 100 100 100 L 100 100 L 0 100 Z';
-const WAVE_MIDDLE='M 0 68 Q 50 4 100 68 L 100 100 L 0 100 Z';
-const WAVE_END='M 0 0 Q 50 0 100 0 L 100 100 L 0 100 Z';
+// The Design Tools section is the sheet itself: one pinned scene, no handoff gap.
+const SHEET_START='M 0 1 Q .5 1 1 1 L 1 1 L 0 1 Z';
+const SHEET_MIDDLE='M 0 .68 Q .5 .04 1 .68 L 1 1 L 0 1 Z';
+const SHEET_END='M 0 0 Q .5 0 1 0 L 1 1 L 0 1 Z';
 function CurvedSwipe(){
- const path=useRef(null),wrapper=useRef(null);
+ const path=useRef(null),svg=useRef(null);
  useEffect(()=>{
-  const hero=wrapper.current?.closest('.hero');
+  const hero=svg.current?.closest('.hero');
   if(!hero||!path.current||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const ctx=gsap.context(()=>{
-   gsap.set(path.current,{attr:{d:WAVE_START}});
+   gsap.set(path.current,{attr:{d:SHEET_START}});
+   hero.style.setProperty('--tools-progress','0');
    const timeline=gsap.timeline({
-    scrollTrigger:{trigger:hero,start:'top top',end:'+=100%',pin:true,pinSpacing:true,scrub:true,anticipatePin:1,invalidateOnRefresh:true}
+    scrollTrigger:{
+     trigger:hero,start:'top top',end:'+=260%',pin:true,pinSpacing:true,
+     scrub:true,anticipatePin:1,invalidateOnRefresh:true,
+     onUpdate:self=>hero.style.setProperty('--tools-progress',String(self.progress))
+    }
    });
-   timeline.to(path.current,{morphSVG:WAVE_MIDDLE,duration:.48,ease:'none'})
-     .to(path.current,{morphSVG:WAVE_END,duration:.52,ease:'none'});
+   timeline.to(path.current,{morphSVG:SHEET_MIDDLE,duration:.15,ease:'none'})
+     .to(path.current,{morphSVG:SHEET_END,duration:.19,ease:'none'})
+     .to({}, {duration:.66});
   },hero);
-  return()=>ctx.revert();
+  return()=>{ctx.revert();hero.style.removeProperty('--tools-progress')};
  },[]);
- return <svg ref={wrapper} className="hero-curved-swipe" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path ref={path} d={WAVE_START} fill="#fff"/></svg>;
+ return <svg ref={svg} className="hero-curved-swipe" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><defs><clipPath id="sheet-clip" clipPathUnits="objectBoundingBox"><path ref={path} d={SHEET_START}/></clipPath></defs></svg>;
 }
 
 const projects=[
@@ -117,8 +122,8 @@ function App(){
     </div>
     <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
     <CurvedSwipe/>
+    <DesignTools/>
    </section>
-   <DesignTools/>
    <section id="work" className="work-intro"><span className="kicker">01 / SELECTED LOGO DESIGN</span><h2>Twelve identities.<br/><i>Distinct voices.</i></h2><p>A curated collection of original marks. Select any identity to explore.</p></section>
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <section id="riches" className="riches"><div className="riches-text"><span className="kicker">02 / FEATURED BRAND IDENTITY</span><h2>RICHES<br/>COSMETICS<span className="purple">.</span></h2><blockquote>“Confidence is not an attitude.<br/>It is a discipline.”</blockquote><p>A brand built from philosophy into a complete visual system. The identity is grounded in clarity, restraint, and intentional design.</p><button className="explore" onClick={()=>setActive('riches')}>Explore the identity <span>↗</span></button></div><div className="riches-art" aria-hidden="true"><div className="riches-monogram">R</div><span>THE CODE / IDENTITY / VISUAL LANGUAGE</span></div></section>
