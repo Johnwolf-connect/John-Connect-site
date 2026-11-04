@@ -114,6 +114,58 @@ function ScrollGallery({projects,onSelect}){
 function App(){
  const [active,setActive]=useState(null),[pointer,setPointer]=useState({x:0,y:0});
  const raf=useRef(0);
+ // A deliberate wheel gesture completes one transition, then holds its landing.
+ useEffect(()=>{
+  let tween=null,lastWheel=0,settledAt=0,amount=0,lastGesture=0;
+  const stops=()=>{
+   const hero=document.querySelector('.hero-reference');
+   const gallery=document.querySelector('.scroll-gallery');
+   const pin=ScrollTrigger.getAll().find(t=>t.trigger===hero);
+   const top=el=>el.getBoundingClientRect().top+window.scrollY;
+   const points=[0];
+   if(pin)points.push(pin.start+(pin.end-pin.start)*.66);
+   if(gallery){
+    const start=top(gallery),travel=Math.max(0,gallery.offsetHeight-window.innerHeight);
+    projects.forEach((_,i)=>points.push(start+travel*i/(projects.length-1)));
+   }
+   ['riches','about'].forEach(id=>{const el=document.getElementById(id);if(el)points.push(top(el))});
+   const max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+   return [...new Set(points.map(n=>Math.max(0,Math.min(max,n))))].sort((a,b)=>a-b);
+  };
+  const onWheel=e=>{
+   if(e.ctrlKey||e.metaKey||Math.abs(e.deltaX)>Math.abs(e.deltaY)||!e.deltaY)return;
+   // Preserve scrolling within project dialogs and editable controls.
+   if(e.target instanceof Element&&e.target.closest('.backdrop,input,textarea,select,[contenteditable="true"]'))return;
+   e.preventDefault();
+   const now=performance.now();
+   const gap=now-lastWheel;lastWheel=now;
+   if(tween||now-settledAt<180){amount=0;return}
+   // Momentum from the initiating gesture cannot trigger another section.
+   if(settledAt&&gap<180&&now-settledAt<600)return;
+   if(now-lastGesture>180)amount=0;
+   lastGesture=now;
+   amount+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?window.innerHeight:1);
+   if(Math.abs(amount)<18)return;
+   const direction=Math.sign(amount);amount=0;
+   const points=stops(),y=window.scrollY;
+   const target=direction>0?points.find(n=>n>y+8):points.slice().reverse().find(n=>n<y-8);
+   if(target===undefined)return;
+   const state={y};
+   tween=gsap.to(state,{y:target,duration:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? .01 : 1.15,ease:'power2.inOut',
+    onUpdate:()=>window.scrollTo({top:state.y,behavior:'instant'}),
+    onComplete:()=>{tween=null;settledAt=performance.now()}
+   });
+  };
+  const cancel=e=>{
+   if(e.type==='keydown'&&!['Escape','ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(e.key))return;
+   if(tween){tween.kill();tween=null;settledAt=performance.now()}
+  };
+  window.addEventListener('wheel',onWheel,{passive:false});
+  window.addEventListener('pointerdown',cancel);
+  window.addEventListener('keydown',cancel);
+  return()=>{tween?.kill();window.removeEventListener('wheel',onWheel);window.removeEventListener('pointerdown',cancel);window.removeEventListener('keydown',cancel)};
+ },[]);
+
  useEffect(()=>{const onKey=e=>{if(e.key==='Escape')setActive(null)};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[]);
  useEffect(()=>{document.body.style.overflow=active?'hidden':'';return()=>document.body.style.overflow=''},[active]);
  const move=e=>{if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;cancelAnimationFrame(raf.current);raf.current=requestAnimationFrame(()=>setPointer({x:(e.clientX/window.innerWidth-.5)*16,y:(e.clientY/window.innerHeight-.5)*16}));};
