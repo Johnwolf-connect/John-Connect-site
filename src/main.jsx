@@ -133,7 +133,7 @@ function App(){
     </div>
     <div className="hero-visual" aria-label="Portrait area">
      <div className="hero-purple-shape" aria-hidden="true"/>
-     <img className="hero-portrait" src="/john-wolf-portrait.png" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
+     <img className="hero-portrait" src="/john-wolf-portrait.webp" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
      <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
     </div>
     <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
