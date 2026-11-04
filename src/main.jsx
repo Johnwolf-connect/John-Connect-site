@@ -8,9 +8,9 @@ import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
 gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
 // Follow the CodePen's quadratic Q-path geometry: flat -> curved -> flat.
 // Keep every path's commands identical so MorphSVG can interpolate cleanly.
-const WAVE_START='M 0 110 V 110 Q 50 110 100 110 V 110 Z';
-const WAVE_MIDDLE='M 0 55 V 110 Q 50 -15 100 55 V 110 Z';
-const WAVE_END='M 0 -15 V 110 Q 50 -15 100 -15 V 110 Z';
+const WAVE_START='M 0 110 Q 50 110 100 110 L 100 110 L 0 110 Z';
+const WAVE_MIDDLE='M 0 55 Q 50 -30 100 55 L 100 110 L 0 110 Z';
+const WAVE_END='M 0 -15 Q 50 -15 100 -15 L 100 110 L 0 110 Z';
 function CurvedSwipe(){
  const path=useRef(null),wrapper=useRef(null);
  useEffect(()=>{
