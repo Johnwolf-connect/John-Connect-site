@@ -138,13 +138,13 @@ export default function DesignTools(){
  useEffect(()=>()=>{if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
  const choose=tool=>{
   if(selected===tool.name||travel.current)return;
-  const source=buttons.current[tool.name]?.querySelector('.design-tool-orbit-icon');
+  const source=buttons.current[tool.name]?.querySelector('.design-tool-orbit-icon img');
   const destination=root.current?.querySelector('.design-tool-feature-icon');
   if(!source||!destination||reduced){setSelected(tool.name);return}
   const from=source.getBoundingClientRect();
   const ghost=source.cloneNode(true);
   ghost.setAttribute('aria-hidden','true');
-  Object.assign(ghost.style,{position:'fixed',left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px',margin:'0',transform:'none',opacity:'1',pointerEvents:'none',zIndex:'9999'});
+  Object.assign(ghost.style,{position:'fixed',left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px',maxWidth:'none',maxHeight:'none',objectFit:'contain',margin:'0',transform:'none',transformOrigin:'50% 50%',opacity:'1',pointerEvents:'none',zIndex:'9999'});
   document.body.appendChild(ghost);
   travel.current=ghost;
   destination.style.visibility='hidden';
@@ -156,7 +156,10 @@ export default function DesignTools(){
    const to=target.getBoundingClientRect();
    const x=to.left+to.width/2-(from.left+from.width/2);
    const y=to.top+to.height/2-(from.top+from.height/2);
-   gsap.to(ghost,{x,y,scaleX:to.width/from.width,scaleY:to.height/from.height,duration:.85,ease:'power2.inOut',onComplete:()=>{
+   gsap.to(ghost,{keyframes:[
+    {x:x*.48,y:y*.48-35,scaleX:1+(to.width/from.width-1)*.48,scaleY:1+(to.height/from.height-1)*.48,duration:.48,ease:'power2.in'},
+    {x,y,scaleX:to.width/from.width,scaleY:to.height/from.height,duration:.52,ease:'power2.out'}
+   ],onComplete:()=>{
     destination.style.visibility='';
     ghost.remove();travel.current=null;
    }});
