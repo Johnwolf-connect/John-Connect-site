@@ -8,9 +8,9 @@ import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
 gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
 // Follow the CodePen's quadratic Q-path geometry: flat -> curved -> flat.
 // Keep every path's commands identical so MorphSVG can interpolate cleanly.
-const WAVE_START='M 0 110 Q 50 110 100 110 L 100 110 L 0 110 Z';
-const WAVE_MIDDLE='M 0 55 Q 50 -30 100 55 L 100 110 L 0 110 Z';
-const WAVE_END='M 0 -15 Q 50 -15 100 -15 L 100 110 L 0 110 Z';
+const WAVE_START='M 0 100 Q 50 100 100 100 L 100 100 L 0 100 Z';
+const WAVE_MIDDLE='M 0 68 Q 50 4 100 68 L 100 100 L 0 100 Z';
+const WAVE_END='M 0 0 Q 50 0 100 0 L 100 100 L 0 100 Z';
 function CurvedSwipe(){
  const path=useRef(null),wrapper=useRef(null);
  useEffect(()=>{
@@ -19,11 +19,10 @@ function CurvedSwipe(){
   const ctx=gsap.context(()=>{
    gsap.set(path.current,{attr:{d:WAVE_START}});
    const timeline=gsap.timeline({
-    scrollTrigger:{trigger:hero,start:'top top',end:'+=120%',pin:true,pinSpacing:true,scrub:0.35,anticipatePin:1,invalidateOnRefresh:true}
+    scrollTrigger:{trigger:hero,start:'top top',end:'+=140%',pin:true,pinSpacing:true,scrub:true,anticipatePin:1,invalidateOnRefresh:true}
    });
-   timeline.to({}, {duration:.08})
-     .to(path.current,{morphSVG:WAVE_MIDDLE,duration:.46,ease:'none'})
-     .to(path.current,{morphSVG:WAVE_END,duration:.46,ease:'none'});
+   timeline.to(path.current,{morphSVG:WAVE_MIDDLE,duration:.48,ease:'none'})
+     .to(path.current,{morphSVG:WAVE_END,duration:.52,ease:'none'});
   },hero);
   return()=>ctx.revert();
  },[]);
