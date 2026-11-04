@@ -18,7 +18,7 @@
 /* Section 2 is the curved sheet, not a second scrolling section below it. */
 .hero-reference .design-tools{
  position:absolute;inset:0;height:100%;min-height:0;margin:0;padding:0;
- z-index:31;overflow:hidden;isolation:auto;clip-path:url(#sheet-clip);
+ z-index:31;overflow:hidden;isolation:auto;clip-path:inset(100% 0 0 0);
 }
 .hero-reference .design-tools-stage{
  position:absolute;inset:0;top:0;height:100%;width:100%;overflow:hidden;
