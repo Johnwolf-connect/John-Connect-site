@@ -7,6 +7,7 @@ const tools=[
  {name:'LottieFiles',slug:'lottiefiles',detail:'Lightweight animations for polished websites and digital experiences.'},
  {name:'Adobe Photoshop',slug:'photoshop',detail:'Image editing, compositing, retouching, and visual exploration.'},
  {name:'Adobe Illustrator',slug:'illustrator',detail:'Precision vector artwork, logos, icons, and identity systems.'},
+ {name:'Figma',slug:'figma',detail:'Interface design, interactive prototypes, and shared design systems.'},
  {name:'GitHub',slug:'github',detail:'Version control, collaboration, and reliable project development.'},
  {name:'GSAP',slug:'gsap',detail:'Expressive interactions, scroll choreography, and polished motion.'},
  {name:'Canva',slug:'canva',detail:'Fast visual concepts and flexible social design systems.'},
@@ -21,45 +22,43 @@ function ToolIcon({tool}){
  return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>;
 }
 export default function DesignTools(){
- const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),reducedRef=useRef(false),travel=useRef(null),travelName=useRef(null),busy=useRef(false),feature=useRef(null),flightTween=useRef(null);
+ const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),travel=useRef(null),travelName=useRef(null),busy=useRef(false),feature=useRef(null),flightTween=useRef(null);
  const [selected,setSelected]=useState(null),[reduced,setReduced]=useState(false);
  chosen.current=selected;
  useEffect(()=>{
   const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const sync=()=>{setReduced(mq.matches);reducedRef.current=mq.matches};
+  const sync=()=>setReduced(mq.matches);
   sync();mq.addEventListener?.('change',sync);
   return()=>mq.removeEventListener?.('change',sync);
  },[]);
  useEffect(()=>{
+  const host=root.current,field=orbit.current;
+  if(!host||!field)return;
+  if(reduced){
+   for(const button of Object.values(buttons.current))button.removeAttribute('style');
+   host.style.removeProperty('--tool-panel-opacity');
+   host.querySelector('.design-tools-information').style.removeProperty('transform');
+   host.querySelector('.design-tools-center').style.removeProperty('opacity');
+   return;
+  }
+  const hero=host.closest('.hero');
+  const information=host.querySelector('.design-tools-information');
+  const prompt=host.querySelector('.design-tools-center');
   let previousTime=null,rotation=0,exitAngles=null;
   const positions=new Map();
   const animate=time=>{
-   const host=root.current,field=orbit.current;
-   if(!host||!field)return;
-   const hero=host.closest('.hero');
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
-   // The ride follows scroll; the assembled circle also has a slow idle orbit.
-   const motion=reducedRef.current;
-   // Drive the light independently of scrolling, across the whole sheet.
-   const breath=motion?0:time/1000;
-   host.style.setProperty('--glow-x', (50+42*Math.sin(breath*.34))+'%');
-   host.style.setProperty('--glow-y', (50+35*Math.cos(breath*.27))+'%');
-   host.style.setProperty('--glow-second-x', (50-43*Math.sin(breath*.34+.8))+'%');
-   host.style.setProperty('--glow-second-y', (50-38*Math.cos(breath*.27+.5))+'%');
-   host.style.setProperty('--glow-breath', String(.65+.35*(.5+.5*Math.sin(breath*.9))));
    const elapsed=previousTime===null?0:Math.min(50,Math.max(0,time-previousTime))/1000;
    previousTime=time;
-   const idleBlend=motion?0:smooth(clamp((p-.54)/.10,0,1));
-   if(!motion&&p>=.54&&p<.78&&!document.hidden)rotation+=elapsed*.10*idleBlend;
-   if(p<=.54||motion)rotation=0;
+   const idleBlend=smooth(clamp((p-.54)/.10,0,1));
+   if(p>=.54&&p<.78&&!document.hidden)rotation+=elapsed*.10*idleBlend;
+   if(p<=.54)rotation=0;
    const idleAngle=rotation*idleBlend;
-   const leave=motion?0:smooth(clamp((p-.78)/.20,0,1));
-   const panel=(motion?1:smooth(clamp((p-.53)/.09,0,1)))*(1-leave);
+   const leave=smooth(clamp((p-.78)/.20,0,1));
+   const panel=smooth(clamp((p-.53)/.09,0,1))*(1-leave);
    host.style.setProperty('--tool-panel-opacity',String(panel));
-   const information=host.querySelector('.design-tools-information');
    if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
-   const prompt=host.querySelector('.design-tools-center');
-   if(prompt)prompt.style.opacity=String((motion?1:smooth(clamp((p-.56)/.06,0,1)))*(1-leave));
+   if(prompt)prompt.style.opacity=String(smooth(clamp((p-.56)/.06,0,1))*(1-leave));
    const selectedNode=buttons.current[chosen.current];
    if(selectedNode){selectedNode.style.opacity='0';selectedNode.style.pointerEvents='none';selectedNode.tabIndex=-1}
    const keys=tools.filter(tool=>tool.name!==chosen.current);
@@ -74,21 +73,22 @@ export default function DesignTools(){
     const d=Math.min(q-.54,.10),u=d/.10;
     return speed*(.54-firstLanding)+speed*d+(.8-speed)*.10*(u*u/2)+Math.max(0,q-.64)*.8;
    };
-   const origin=-field.getBoundingClientRect().left-80;
+   const fieldLeft=field.getBoundingClientRect().left;
+   const origin=-fieldLeft-80;
    const cubic=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
    // Capture the live rotation once, then feed icons through the top exit.
    // The leading icon is the next one to reach twelve o'clock.
    if(p<.78)exitAngles=null;
-   if(!motion&&p>=.78&&!exitAngles){
+   if(p>=.78&&!exitAngles){
     exitAngles=new Map(keys.map((tool,i)=>[tool.name,positions.get(tool.name)??(Math.PI+clock(.78)-clock(firstLanding)-i*2*Math.PI/keys.length+idleAngle)]));
    }
    keys.forEach((tool,i)=>{
     const node=buttons.current[tool.name];if(!node)return;
     const landing=firstLanding+i*interval;
-    const ride=motion?1:clamp((p-(landing-flight))/flight,0,1);
+    const ride=clamp((p-(landing-flight))/flight,0,1);
     const entryX=width*.5-radius,entryY=height*.5;
     let a=Math.PI+clock(Math.max(p,landing))-clock(landing)+idleAngle;
-    if(!motion&&p>=.58){
+    if(p>=.58){
      const target=Math.PI+clock(p)-clock(firstLanding)-i*2*Math.PI/keys.length+idleAngle;
      const previous=positions.get(tool.name)??a;
      const delta=Math.atan2(Math.sin(target-previous),Math.cos(target-previous));
@@ -104,7 +104,7 @@ export default function DesignTools(){
     const dock=ride;
     let departure=0;
     let x=ride<1?xTrack:finalX,y=ride<1?yTrack:finalY;
-    if(!motion&&p>=.78&&exitAngles?.has(tool.name)){
+    if(p>=.78&&exitAngles?.has(tool.name)){
      const start=exitAngles.get(tool.name),tau=2*Math.PI;
      const distance=((-Math.PI/2-start)%tau+tau)%tau;
      const travelSpeed=tau/.12;
@@ -117,26 +117,30 @@ export default function DesignTools(){
      }else{
       departure=clamp((exitProgress-toTop)/.08,0,1);
       const topX=width*.5,topY=height*.5-radius;
-      const offscreen=window.innerWidth-field.getBoundingClientRect().left+100;
+      const offscreen=window.innerWidth-fieldLeft+100;
       // Horizontal tangent at twelve o'clock continues into a shared right sweep.
       x=cubic(topX,topX+radius*travelSpeed*.08/3,offscreen-width*.22,offscreen,departure);
       y=cubic(topY,topY,topY+height*.16,topY+height*.12,departure);
      }
     }
     const bank=(1-dock)*Math.sin(ride*Math.PI*2)*12-departure*10;
-    const reveal=motion?1:smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
-    node.style.left=x+'px';node.style.top=y+'px';
-    node.style.transform=`translate(-50%,-50%) rotate(${bank}deg) scale(${.82+.18*dock-.10*departure})`;
+    const reveal=smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
+    node.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) rotate(${bank}deg) scale(${.82+.18*dock-.10*departure})`;
     node.style.opacity=String(travelName.current===tool.name?0:reveal);
-    const interactive=motion||(p>=.58&&p<.78);
+    const interactive=p>=.58&&p<.78;
     node.style.pointerEvents=interactive?'auto':'none';
     node.tabIndex=interactive?0:-1;
    });
    frame.current=requestAnimationFrame(animate);
   };
-  frame.current=requestAnimationFrame(animate);
-  return()=>cancelAnimationFrame(frame.current);
- },[]);
+  const visibility=new IntersectionObserver(([entry])=>{
+   cancelAnimationFrame(frame.current);
+   previousTime=null;
+   if(entry.isIntersecting)frame.current=requestAnimationFrame(animate);
+  });
+  visibility.observe(host);
+  return()=>{visibility.disconnect();cancelAnimationFrame(frame.current)};
+ },[reduced]);
  useEffect(()=>()=>{flightTween.current?.kill();if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
 
  useLayoutEffect(()=>{
@@ -170,7 +174,7 @@ export default function DesignTools(){
   const image=source?.cloneNode(true);
   const rect=source?.getBoundingClientRect();
   setSelected(null);chosen.current=null;
-  if(!image||!rect){travelName.current=null;return}
+  if(reduced||!image||!rect){travelName.current=null;return}
   // The source detaches during React's update, so preserve its measured geometry.
   image.getBoundingClientRect=()=>rect;
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
@@ -181,7 +185,9 @@ export default function DesignTools(){
   busy.current=true;
   const same=chosen.current===tool?.name;
   await returnTool();
-  if(tool&&!same){
+  if(tool&&!same&&reduced){
+   setSelected(tool.name);
+  }else if(tool&&!same){
    const source=buttons.current[tool.name]?.querySelector('img');
    travelName.current=tool.name;
    setSelected(tool.name);chosen.current=tool.name;
@@ -205,7 +211,7 @@ export default function DesignTools(){
     </div>
     <div className="design-tools-orbit" ref={orbit} aria-label="Select a design tool">
      <span className="design-tools-center" aria-hidden="true">{current?'Design Tools':'Select a tool'}</span>
-     {tools.map(tool=><button key={tool.name} ref={el=>{if(el)buttons.current[tool.name]=el;else delete buttons.current[tool.name]}} className="design-tool-orbit-item" type="button" aria-label={'Explore '+tool.name} title={tool.name} aria-pressed={selected===tool.name} onClick={()=>choose(tool)}>
+     {tools.map(tool=><button key={tool.name} ref={el=>{if(el)buttons.current[tool.name]=el;else delete buttons.current[tool.name]}} className="design-tool-orbit-item" type="button" aria-label={'Explore '+tool.name} title={tool.name} tabIndex={reduced?0:-1} aria-pressed={selected===tool.name} onClick={()=>choose(tool)}>
       <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
       <span className="design-tool-orbit-label">{tool.name}</span>
      </button>)}

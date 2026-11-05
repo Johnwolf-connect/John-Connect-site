@@ -240,7 +240,7 @@ export default function BrandGallery(){
   const element=reader.current;
   const cycle=element.querySelector('.brand-reader-cycle');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  let frame=0,lastY=null,lastTime=null,stretch=0;
+  let frame=0,lastY=element.scrollTop,lastTime=null,stretch=0;
   const nearby=new Set();
   const imageHeights=new WeakMap();
   const sizes=new ResizeObserver(entries=>{
@@ -269,10 +269,11 @@ export default function BrandGallery(){
   },{root:element,threshold:.25});
   element.querySelectorAll('video').forEach(video=>filmObserver.observe(video));
   const animate=time=>{
+   frame=0;
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
    const y=element.scrollTop;
    const height=cycle?.offsetHeight||0;
-   let delta=lastY===null?0:y-lastY;
+   let delta=y-lastY;
    if(height)delta-=Math.round(delta/height)*height;
    lastY=y;lastTime=time;
    if(reduced.matches){
@@ -289,10 +290,13 @@ export default function BrandGallery(){
     const transform=shape>.0005?`scaleY(${1+shape})`:'';
     if(image.style.transform!==transform)image.style.transform=transform;
    }
-   frame=requestAnimationFrame(animate);
+   if(stretch>.0005)frame=requestAnimationFrame(animate);
+   else lastTime=null;
   };
-  frame=requestAnimationFrame(animate);
+  const scheduleStretch=()=>{if(!frame)frame=requestAnimationFrame(animate)};
+  element.addEventListener('scroll',scheduleStretch,{passive:true});
   return()=>{
+   element.removeEventListener('scroll',scheduleStretch);
    cancelAnimationFrame(frame);
    observer.disconnect();
    filmObserver.disconnect();
@@ -365,7 +369,7 @@ export default function BrandGallery(){
      style={{transform:`translate(-50%,-50%) translateX(calc(var(--brand-stride) * ${delta})) rotateY(${-Math.max(-1,Math.min(1,delta))*24}deg) scale(${scale})`,zIndex:10-Math.round(Math.abs(delta)*2),opacity:Math.max(0,Math.min(1,2.5-Math.abs(delta)))}}
      aria-label={center?'Open '+project.name:'Show '+project.name} tabIndex={center?0:-1}
      onClick={()=>{if(center)open();else moveTo(slot)}}>
-     <img src={project.pages[0]} alt={project.alt?.[0]||project.name+' brand guidelines cover'} draggable="false"/>
+     <img src={project.pages[0]} alt={project.alt?.[0]||project.name+' brand guidelines cover'} draggable="false" loading="lazy" decoding="async"/>
      {center&&<span className="brand-panel-open">{project.kind==='apparel'?'Explore collection ↗':'Explore guidelines ↗'}</span>}
     </button>
    })}

@@ -1,7 +1,9 @@
 /* A shared white canvas: no layer restarts when a section changes. */
 #root{isolation:isolate;background:#fff}
-.site-light-field{position:fixed;inset:-12%;z-index:0;pointer-events:none;filter:blur(26px);
- background:radial-gradient(ellipse 36% 42% at var(--light-x,50%) var(--light-y,55%),#9900ff 0%,#9900ff99 28%,transparent 72%),radial-gradient(ellipse 40% 32% at var(--light-second-x,25%) var(--light-second-y,65%),#9900ffbb 0%,#9900ff45 35%,transparent 75%)}
+.site-light-field{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:0}
+.site-light-field span{position:absolute;inset:-12%;filter:blur(26px);will-change:transform}
+.site-light-field span:first-child{background:radial-gradient(ellipse 36% 42%,#9900ff 0%,#9900ff99 28%,transparent 72%)}
+.site-light-field span:last-child{background:radial-gradient(ellipse 40% 32%,#9900ffbb 0%,#9900ff45 35%,transparent 75%)}
 #root main{position:relative;z-index:1}
 #root .hero-reference,#root .hero-reference .design-tools,#root .hero-reference .design-tools-stage,#root .scroll-gallery,#root .scroll-gallery-sticky,#root .brand-gallery,#root .brand-gallery-dock,#root .about{background:transparent}
 #root .design-tools-stage::before,#root .scroll-gallery-sticky::before{display:none}
@@ -15,7 +17,7 @@
  72%{opacity:1;transform:translate(0,-1px) skewY(.25deg) scale(.995,1.02)}
  100%{opacity:1;transform:none}
 }
-@media(prefers-reduced-motion:reduce){.site-light-field{filter:blur(26px)}.project-info-body,.design-tools-information h2,.design-tools-information p,.brand-current-name,.brand-reader-projects span{animation:none}}
+@media(prefers-reduced-motion:reduce){.site-light-field span{will-change:auto}.project-info-body,.design-tools-information h2,.design-tools-information p,.brand-current-name,.brand-reader-projects span{animation:none}}
 
 /* Persistent text layers blend continuously with logo scroll progress. */
 .project-info-morph{display:grid;isolation:isolate}

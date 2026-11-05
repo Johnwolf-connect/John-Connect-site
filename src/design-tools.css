@@ -54,7 +54,6 @@
  .design-tool-orbit-label{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){
- .hero-reference .design-tools{display:none}
  .design-tool-orbit-item,.design-tools-information h2,.design-tools-information p{animation:none;transition:none}
 }
 
@@ -106,4 +105,18 @@
  .design-tools-information{align-self:start;padding-top:0}
  .design-tools-information h2{margin-bottom:10px}
  .design-tool-feature-icon,.design-tool-feature-icon.is-visible{height:0}
+}
+.design-tool-orbit-item{left:0;top:0}
+@media(prefers-reduced-motion:reduce){
+ .hero-reference .design-tools{display:block;position:relative;grid-column:1/-1;height:auto;clip-path:none}
+ .hero-reference .design-tools-stage{position:relative}
+ .design-tools-layout{display:block;padding:42px clamp(22px,6vw,72px)}
+ .design-tools-information{opacity:1;padding:0}
+ .design-tools-orbit{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:12px;height:auto;margin-top:24px}
+ .design-tool-orbit-item{position:relative;width:100%;will-change:auto}
+ .design-tools-center{display:none}
+ .hero-reference{grid-template-rows:auto auto}
+}
+@media(prefers-reduced-motion:reduce) and (max-width:720px){
+ .hero-reference{grid-template-rows:auto auto auto}
 }

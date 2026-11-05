@@ -6,8 +6,7 @@ import BrandGallery from './BrandGallery.jsx';
 import VisualContinuity from './VisualContinuity.jsx';
 import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
-import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
-gsap.registerPlugin(ScrollTrigger,MorphSVGPlugin);
+gsap.registerPlugin(ScrollTrigger);
 // A full-width, scroll-driven sheet. Polygon points stay within the viewport,
 // avoiding SVG objectBoundingBox clipping artifacts on Safari and Chromium.
 function sheetClip(progress){
@@ -125,38 +124,12 @@ function ScrollGallery({projects,onSelect}){
 
 function PurpleCursor(){
  useEffect(()=>{
-  const html=document.documentElement,body=document.body;
-  const value="url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAi0lEQVR4nL2VsQ3AIAwEGZERvFYqRvBIjEIosBQRgxzid3ENQn/SAyZdqSUk0HCrgDrcqZ02qGON/gjyFLqijr2fBMUQPFOsgpPwpUSr5TRcyDuBpXPLmagCcggXSBOwo4A1gUc9r5qeAq9wIV4Arwh+yPBrCn9oIaMCPuxCxnXIhzPfLsiX6QJccAOEhs8BHjj2yAAAAABJRU5ErkJggg==\") 12 12, auto";
-  let enabled=false,x=0,y=0;
-  const touched=new Map();
-  const apply=node=>{
-   if(!node?.style)return;
-   if(!touched.has(node))touched.set(node,[node.style.getPropertyValue('cursor'),node.style.getPropertyPriority('cursor')]);
-   if(node.style.getPropertyValue('cursor')!==value)node.style.setProperty('cursor',value,'important');
-  };
-  const refresh=()=>{
-   if(!enabled)return;
-   apply(html);apply(body);
-   apply(document.elementFromPoint(x,y));
-  };
-  const disable=()=>{
-   enabled=false;html.classList.remove('purple-native-cursor');
-   for(const [node,[old,priority]] of touched){
-    if(old)node.style.setProperty('cursor',old,priority);else node.style.removeProperty('cursor');
-   }
-   touched.clear();
-  };
-  const point=event=>{
-   if(event.pointerType==='touch'){disable();return}
-   x=event.clientX;y=event.clientY;enabled=true;
-   html.classList.add('purple-native-cursor');refresh();
-  };
-  document.addEventListener('pointerover',point,{capture:true,passive:true});
-  document.addEventListener('pointermove',point,{capture:true,passive:true});
-  document.addEventListener('scroll',refresh,{capture:true,passive:true});
-  window.addEventListener('wheel',refresh,{capture:true,passive:true});
+  const html=document.documentElement;
+  const point=event=>html.classList.toggle('purple-native-cursor',event.pointerType==='mouse');
+  document.addEventListener('pointerover',point,{passive:true});
   return()=>{
-   disable();document.removeEventListener('pointerover',point,true);document.removeEventListener('pointermove',point,true);document.removeEventListener('scroll',refresh,true);window.removeEventListener('wheel',refresh,true);
+   html.classList.remove('purple-native-cursor');
+   document.removeEventListener('pointerover',point);
   };
  },[]);
  return null;
