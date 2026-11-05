@@ -2,13 +2,10 @@ import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import './brand-gallery.css';
 import {createPortal} from 'react-dom';
 import {gsap} from 'gsap';
-import {ScrollTrigger} from 'gsap/ScrollTrigger';
-gsap.registerPlugin(ScrollTrigger);
 import brands from './brand-guidelines.json';
 
 export default function BrandGallery(){
  const [position,setPosition]=useState(0),[opened,setOpened]=useState(false);
- const section=useRef(null);
  const positionRef=useRef(0),slideTween=useRef(null),track=useRef(null),suppressClick=useRef(0);
  const wrap=n=>((n%brands.length)+brands.length)%brands.length;
  const index=wrap(Math.round(position));
@@ -21,20 +18,6 @@ export default function BrandGallery(){
   const state={value:positionRef.current};
   slideTween.current=gsap.to(state,{value:target,duration:window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:.65,ease:'power3.out',onUpdate:()=>{positionRef.current=state.value;setPosition(state.value)}});
  };
- // Hold this section at its natural arrival without forcing a scroll jump.
- useLayoutEffect(()=>{
-  const element=section.current;if(!element)return;
-  const context=gsap.context(()=>{
-   ScrollTrigger.matchMedia({
-    '(min-height: 540px)':()=>{ScrollTrigger.create({
-     trigger:element,start:'top top',end:()=>'+='+Math.round(window.innerHeight*.85),
-     pin:true,pinSpacing:true,anticipatePin:1,invalidateOnRefresh:true
-    })}
-   });
-  },element);
-  const refresh=requestAnimationFrame(()=>ScrollTrigger.refresh());
-  return()=>{cancelAnimationFrame(refresh);context.revert()};
- },[]);
  const step=direction=>moveTo(Math.round(positionRef.current)+direction);
  useEffect(()=>()=>slideTween.current?.kill(),[]);
  const stride=()=>track.current.clientWidth*(window.innerWidth<=720 ? .80 : .59);
@@ -190,7 +173,7 @@ export default function BrandGallery(){
   return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus()};
  },[opened]);
 
- return <section ref={section} id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
+ return <section id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
   <header className="brand-gallery-heading">
    <div><span className="kicker">02 / BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
    <p>Brand guidelines by John Wolf.</p>
