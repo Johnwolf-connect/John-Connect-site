@@ -85,7 +85,7 @@
 }
 
 /* Navigation stays above every section without joining pinned transforms. */
-.header{position:fixed;top:0;left:0;right:0;z-index:90;background:rgb(255 255 255 / 84%);backdrop-filter:blur(16px);border-bottom:1px solid rgb(153 0 255 / 8%)}
+.header{position:fixed;top:0;left:0;right:0;z-index:90;background:rgb(255 255 255 / 10%);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid rgb(153 0 255 / 8%)}
 .brand-gallery-dock{padding-top:88px}
 .brand-gallery-controls .brand-auto-toggle{position:absolute;right:20px;font-size:10px;color:#ccc;padding:10px}
 @media(max-width:720px){
