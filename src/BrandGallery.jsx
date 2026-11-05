@@ -74,11 +74,25 @@ export default function BrandGallery(){
  };
  useLayoutEffect(()=>{
   if(!opened||!sheet.current)return;
+  const page=sheet.current,veil=page.querySelector('.brand-paper-veil');
+  const content=Array.from(page.children).filter(node=>node!==veil);
   const r=origin.current;
-  if(!r||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  const animation=gsap.fromTo(sheet.current,
-   {x:r.left,y:r.top,scaleX:r.width/window.innerWidth,scaleY:r.height/window.innerHeight,skewY:3,rotationX:8,transformOrigin:'0 0',clipPath:'polygon(0 3%,50% 0,100% 3%,100% 97%,50% 100%,0 97%)'},
-   {x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:'polygon(0 0,50% 0,100% 0,100% 100%,50% 100%,0 100%)',duration:.95,ease:'power3.inOut'});
+  if(!r||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+   gsap.set(veil,{autoAlpha:0});return;
+  }
+  const curved='polygon(1% 3%,25% 1%,50% 0%,75% 1%,97% 3%,100% 48%,98% 96%,74% 100%,48% 99%,1% 94%)';
+  const bowed='polygon(3% 5%,26% 1%,51% 0%,76% 1%,94% 4%,100% 58%,96% 94%,72% 100%,43% 97%,0% 89%)';
+  const flat='polygon(0% 0%,25% 0%,50% 0%,75% 0%,100% 0%,100% 50%,100% 100%,75% 100%,50% 100%,0% 100%)';
+  gsap.set(content,{autoAlpha:0});
+  gsap.set(veil,{autoAlpha:1});
+  gsap.set(page,{x:r.left,y:r.top,scaleX:r.width/window.innerWidth,scaleY:r.height/window.innerHeight,skewY:0,rotationX:0,transformOrigin:'0 0',clipPath:curved});
+  // Blank white paper leads the transition; the document is revealed last.
+  const animation=gsap.timeline();
+  animation.to(page,{duration:.16,clipPath:bowed,ease:'power1.inOut'})
+   .to(page,{x:r.left*.28,y:r.top*.2,scaleX:.91,scaleY:.87,skewY:-2.5,rotationX:5,clipPath:bowed,duration:.62,ease:'power2.inOut'})
+   .to(page,{x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:flat,duration:.38,ease:'power2.out'})
+   .set(content,{autoAlpha:1})
+   .to(veil,{autoAlpha:0,duration:.3,ease:'power1.inOut'});
   return()=>animation.kill();
  },[opened]);
  useLayoutEffect(()=>{
@@ -164,6 +178,7 @@ export default function BrandGallery(){
   </footer>
   {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+' brand guidelines'} onPointerDown={readerDown}>
    <div ref={sheet} className="brand-reader-sheet">
+    <div className="brand-paper-veil" aria-hidden="true"/>
     <aside className="brand-reader-meta">
      <span>Brand identity</span><span>Guidelines &amp; visual system</span><span>Designer: John Wolf</span>
     </aside>
