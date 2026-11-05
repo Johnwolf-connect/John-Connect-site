@@ -16,6 +16,7 @@ export default function BrandGallery(){
  const galleryBrand=brands[index];
  const [readerIndex,setReaderIndex]=useState(0);
  const current=brands[readerIndex];
+ const isApparel=current.kind==='apparel';
  const readerMotion=useRef(null),closing=useRef(false);
  const [autoPlaying,setAutoPlaying]=useState(true);
  const autoDeadline=useRef(0);
@@ -167,7 +168,7 @@ export default function BrandGallery(){
   const element=reader.current;
   const cycle=element.querySelector('.brand-reader-cycle');
   if(!cycle)return;
-  element.scrollTop=cycle.offsetHeight;
+  element.scrollTop=isApparel?0:cycle.offsetHeight;
   progressRing.current?.setAttribute('stroke-dashoffset','87.965');
   loopReady.current=true;
  },[opened,current.id]);
@@ -191,7 +192,7 @@ export default function BrandGallery(){
   const update=()=>{
    frame=0;
    const y=element.scrollTop;
-   const cycleHeight=cycle?.offsetHeight||0;
+   const cycleHeight=isApparel?0:(cycle?.offsetHeight||0);
    let movement=y-lastY;
    if(cycleHeight)movement-=Math.round(movement/cycleHeight)*cycleHeight;
    if(movement)direction=Math.sign(movement);
@@ -260,7 +261,7 @@ export default function BrandGallery(){
   const animate=time=>{
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
    const y=element.scrollTop;
-   const height=cycle?.offsetHeight||0;
+   const height=isApparel?0:(cycle?.offsetHeight||0);
    let delta=lastY===null?0:y-lastY;
    if(height)delta-=Math.round(delta/height)*height;
    lastY=y;lastTime=time;
@@ -290,6 +291,12 @@ export default function BrandGallery(){
  },[opened,current.id]);
  const loopScroll=()=>{
   const element=reader.current;if(!element||!loopReady.current)return;
+  if(isApparel){
+   const distance=element.scrollHeight-element.clientHeight;
+   const progress=distance>0?element.scrollTop/distance:0;
+   progressRing.current?.setAttribute('stroke-dashoffset',String(87.965*(1-progress)));
+   return;
+  }
   const height=element.querySelector('.brand-reader-cycle')?.offsetHeight;
   if(!height)return;
   let y=element.scrollTop;
@@ -300,7 +307,7 @@ export default function BrandGallery(){
  };
  const readerDown=e=>{
   if(e.pointerType==='mouse'&&e.button!==0)return;
-  if(e.target.closest('button,a,input,textarea'))return;
+  if(e.target.closest('button,a,input,textarea,video'))return;
   readerDrag.current={id:e.pointerId,y:e.clientY,moved:false};
  };
  useEffect(()=>{
@@ -335,13 +342,13 @@ export default function BrandGallery(){
   return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus({preventScroll:true})};
  },[opened]);
 
- return <section id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
+ return <section id="riches" className="brand-gallery" aria-label="Brand identity and apparel projects">
   <div className="brand-gallery-dock">
   <header className="brand-gallery-heading">
    <div><span className="kicker">BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
-   <p>Brand guidelines by John Wolf.</p>
+   <p>Selected projects by John Wolf.</p>
   </header>
-  <div ref={track} className={'brand-gallery-track'+(swipe.current?.moved?' is-dragging':'')} aria-label="Browse brand guidelines" tabIndex={0}
+  <div ref={track} className={'brand-gallery-track'+(swipe.current?.moved?' is-dragging':'')} aria-label="Browse projects" tabIndex={0}
    onKeyDown={e=>{if(e.key==='ArrowRight'){e.preventDefault();step(1)}if(e.key==='ArrowLeft'){e.preventDefault();step(-1)}}}
    onPointerDown={dragStart}
    onClickCapture={e=>{if(performance.now()<suppressClick.current){e.preventDefault();e.stopPropagation()}}}>
@@ -351,10 +358,10 @@ export default function BrandGallery(){
     const scale=1-.14*Math.min(2,Math.abs(delta));
     return <button key={slot} className={'brand-gallery-panel'+(center?' is-center':'')}
      style={{transform:`translate(-50%,-50%) translateX(calc(var(--brand-stride) * ${delta})) rotateY(${-Math.max(-1,Math.min(1,delta))*24}deg) scale(${scale})`,zIndex:10-Math.round(Math.abs(delta)*2),opacity:Math.max(0,Math.min(1,2.5-Math.abs(delta)))}}
-     aria-label={center?'Open '+project.name+' guidelines':'Show '+project.name} tabIndex={center?0:-1}
+     aria-label={center?'Open '+project.name:'Show '+project.name} tabIndex={center?0:-1}
      onClick={()=>{if(center)open();else moveTo(slot)}}>
-     <img src={project.pages[0]} alt={project.name+' brand guidelines cover'} draggable="false"/>
-     {center&&<span className="brand-panel-open">Explore guidelines ↗</span>}
+     <img src={project.pages[0]} alt={project.alt?.[0]||project.name+' brand guidelines cover'} draggable="false"/>
+     {center&&<span className="brand-panel-open">{project.kind==='apparel'?'Explore collection ↗':'Explore guidelines ↗'}</span>}
     </button>
    })}
   </div>
@@ -368,23 +375,24 @@ export default function BrandGallery(){
    <button className="brand-auto-toggle" onClick={()=>{resetAuto();setAutoPlaying(value=>!value)}} aria-label={autoPlaying?'Pause automatic brand rotation':'Resume automatic brand rotation'}>{autoPlaying?'Pause rotation':'Resume rotation'}</button>
   </footer>
   </div>
-  {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+' brand guidelines'} onPointerDown={readerDown}>
+  {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+(isApparel?' apparel collection':' brand guidelines')} onPointerDown={readerDown}>
    <div ref={sheet} className="brand-reader-sheet">
     <div className="brand-paper-veil" aria-hidden="true"/>
     <aside className="brand-reader-meta">
-     <span>Brand identity</span><span>Guidelines &amp; visual system</span><span>Designer: John Wolf</span>
+     <span>{isApparel?'Apparel design':'Brand identity'}</span><span>{isApparel?'Collection highlights':'Guidelines & visual system'}</span><span>Designer: John Wolf</span>
     </aside>
     <button className="brand-reader-details-toggle" aria-expanded={details} onClick={()=>setDetails(v=>!v)}>{details?'Close details':'View details'}</button>
-    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></aside>}
-    <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={current.name+' continuously scrolling guideline pages'}>
-     {[0,1,2].map(cycle=><div className="brand-reader-cycle" key={cycle}>
+    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
+    <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={current.name+(isApparel?' collection highlights':' continuously scrolling guideline pages')}>
+     {(isApparel?[0]:[0,1,2]).map(cycle=><div className={isApparel?'brand-reader-cycle brand-reader-apparel':'brand-reader-cycle'} key={cycle}>
       {current.pages.map((page,i)=>{
        const size=current.sizes?.[i]||[1200,675];
-       return <figure key={page}><img data-page-src={page} alt={current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>;
+       return <figure key={page}><img data-page-src={page} alt={current.alt?.[i]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[i]||String(i+1).padStart(2,'0')+' / '+current.pages.length}</figcaption></figure>;
       })}
+      {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
      </div>)}
     </div>
-    <div className="brand-reader-progress" aria-label="Position within guideline">
+    <div className="brand-reader-progress" aria-label="Reading progress">
      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" opacity=".25"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="87.965" ref={progressRing} strokeDashoffset="87.965" transform="rotate(-90 20 20)"/></svg>
     </div>
     <nav className="brand-reader-projects" aria-label="Switch brand guideline">

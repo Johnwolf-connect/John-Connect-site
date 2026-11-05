@@ -143,3 +143,6 @@
  .brand-gallery .brand-gallery-panel{width:min(70vw,calc((100svh - 260px) * 1.7778))}
 }
 
+
+.brand-reader-film video{display:block;width:100%;aspect-ratio:16/9;border-radius:3px;background:#111;touch-action:manipulation}
+.brand-reader-apparel{padding-bottom:110px}
