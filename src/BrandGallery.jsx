@@ -249,10 +249,7 @@ export default function BrandGallery(){
   const observer=new IntersectionObserver(entries=>{
    for(const entry of entries){
     const image=entry.target.querySelector('img[data-page-src]');
-    if(!image){
-     if(!entry.isIntersecting)entry.target.querySelector('video')?.pause();
-     continue;
-    }
+    if(!image)continue;
     if(entry.isIntersecting){
      nearby.add(image);
      sizes.observe(image);
@@ -263,7 +260,14 @@ export default function BrandGallery(){
     }
    }
   },{root:element,rootMargin:'100% 0px'});
-  element.querySelectorAll('figure').forEach(figure=>observer.observe(figure));
+  element.querySelectorAll('figure:has(img[data-page-src])').forEach(figure=>observer.observe(figure));
+  const filmObserver=new IntersectionObserver(entries=>{
+   for(const {target:video,intersectionRatio} of entries){
+    if(intersectionRatio>=.25)video.play().catch(()=>{});
+    else video.pause();
+   }
+  },{root:element,threshold:.25});
+  element.querySelectorAll('video').forEach(video=>filmObserver.observe(video));
   const animate=time=>{
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
    const y=element.scrollTop;
@@ -291,6 +295,7 @@ export default function BrandGallery(){
   return()=>{
    cancelAnimationFrame(frame);
    observer.disconnect();
+   filmObserver.disconnect();
    sizes.disconnect();
    for(const image of nearby)image.style.removeProperty('transform');
   };
@@ -405,7 +410,7 @@ export default function BrandGallery(){
         </figure>}
        </React.Fragment>;
       })}
-      {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
+      {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted loop preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
      </div>)}
     </div>
     <div className="brand-reader-progress" aria-label="Reading progress">
