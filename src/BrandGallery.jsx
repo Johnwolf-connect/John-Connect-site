@@ -174,6 +174,7 @@ export default function BrandGallery(){
  },[opened]);
 
  return <section id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
+  <div className="brand-gallery-dock">
   <header className="brand-gallery-heading">
    <div><span className="kicker">02 / BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
    <p>Brand guidelines by John Wolf.</p>
@@ -196,9 +197,15 @@ export default function BrandGallery(){
    })}
   </div>
   <footer className="brand-gallery-controls">
-   <div><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
+   <div className="brand-gallery-nav"><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
+   <div className="brand-keywords" aria-label="Visual Design, Primary Marks, Typography, Voice">
+    <div className="brand-keywords-reel" aria-hidden="true">
+     {['Visual Design','Primary Marks','Typography','Voice','Visual Design'].map((word,i)=><span key={i}>{word}</span>)}
+    </div>
+   </div>
    <span>{current.pages.length} pages</span>
   </footer>
+  </div>
   {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+' brand guidelines'} onPointerDown={readerDown}>
    <div ref={sheet} className="brand-reader-sheet">
     <div className="brand-paper-veil" aria-hidden="true"/>
