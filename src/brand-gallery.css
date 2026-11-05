@@ -91,3 +91,18 @@
 /* The cover becomes blank white flexible paper before any PDF page appears. */
 .brand-reader-sheet{background:#fff;backface-visibility:hidden}
 .brand-paper-veil{position:absolute;inset:0;z-index:20;background:#fff;pointer-events:none}
+
+/* Velocity-responsive elasticity leaves document geometry and looping stable. */
+.brand-reader-pages img{
+ transform:scale(var(--pdf-squeeze,1),var(--pdf-stretch,1));
+ transform-origin:50% 50%;will-change:transform;
+}
+.brand-reader button,.brand-reader-projects,.brand-reader-progress{
+ background:rgb(153 0 255 / 72%)!important;color:#fff!important;
+ border-radius:5px;backdrop-filter:blur(12px);
+}
+.brand-reader-projects button{background:transparent!important}
+.brand-reader button:hover{background:rgb(153 0 255 / 90%)!important}
+.brand-reader button:focus-visible{outline:2px solid #9900ff;outline-offset:4px}
+.brand-reader-details-toggle{padding:10px 15px;margin-top:4px}
+@media(prefers-reduced-motion:reduce){.brand-reader-pages img{transform:none;will-change:auto}}
