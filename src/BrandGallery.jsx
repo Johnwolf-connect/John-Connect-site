@@ -13,7 +13,10 @@ export default function BrandGallery(){
  const reader=useRef(null),sheet=useRef(null),origin=useRef(null),readerDrag=useRef(null),loopReady=useRef(false);
  const [details,setDetails]=useState(false);
  const progressRing=useRef(null);
- const current=brands[index];
+ const galleryBrand=brands[index];
+ const [readerIndex,setReaderIndex]=useState(0);
+ const current=brands[readerIndex];
+ const readerMotion=useRef(null),closing=useRef(false);
  const [autoPlaying,setAutoPlaying]=useState(true);
  const autoDeadline=useRef(0);
  const resetAuto=()=>{autoDeadline.current=performance.now()+4000};
@@ -98,9 +101,41 @@ export default function BrandGallery(){
   return()=>{clearTimeout(timer);element.removeEventListener('wheel',wheel);window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',end)};
  },[opened]);
  const open=()=>{
+  slideTween.current?.kill();
+  closing.current=false;
+  setReaderIndex(wrap(Math.round(positionRef.current)));
   returnFocus.current=document.activeElement;
   origin.current=track.current?.querySelector('.is-center')?.getBoundingClientRect();
   setDetails(false);setOpened(true);
+ };
+ const close=()=>{
+  if(closing.current)return;
+  closing.current=true;
+  const page=sheet.current;
+  const target=track.current?.querySelector('.is-center')?.getBoundingClientRect();
+  if(!page||!target||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+   setOpened(false);
+   return;
+  }
+  readerMotion.current?.kill();
+  const veil=page.querySelector('.brand-paper-veil');
+  const overlay=dialog.current;
+  gsap.set(page,{pointerEvents:'none'});
+  if(!page.style.clipPath){
+   gsap.set(page,{clipPath:'polygon(0 0,25% 0,50% 0,75% 0,100% 0,100% 100%,75% 100%,50% 100%,25% 100%,0 100%)'});
+  }
+  readerMotion.current=gsap.timeline({onComplete:()=>setOpened(false)})
+   .to(veil,{autoAlpha:1,duration:.16})
+   .set(page,{transformOrigin:'0 0'})
+   .to(overlay,{backgroundColor:'rgba(255,255,255,0)',duration:.4},'<')
+   .to(page,{
+    x:target.left,y:target.top,
+    scaleX:target.width/page.offsetWidth,scaleY:target.height/page.offsetHeight,
+    rotationX:0,skewY:0,
+    clipPath:'polygon(0 3%,25% 1%,50% 0,75% 1%,100% 3%,100% 97%,75% 99%,50% 100%,25% 99%,0 97%)',
+    duration:.55,ease:'power2.inOut'
+   },'<')
+   .to(page,{opacity:0,duration:.12});
  };
  useLayoutEffect(()=>{
   if(!opened||!sheet.current)return;
@@ -123,7 +158,8 @@ export default function BrandGallery(){
    .to(page,{x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:flat,duration:.38,ease:'power2.out'})
    .set(content,{autoAlpha:1})
    .to(veil,{autoAlpha:0,duration:.3,ease:'power1.inOut'});
-  return()=>animation.kill();
+  readerMotion.current=animation;
+  return()=>readerMotion.current?.kill();
  },[opened]);
  useLayoutEffect(()=>{
   if(!opened||!reader.current)return;
@@ -287,7 +323,7 @@ export default function BrandGallery(){
   document.body.style.overflow='hidden';
   dialog.current?.querySelector('button')?.focus();
   const key=e=>{
-   if(e.key==='Escape')setOpened(false);
+   if(e.key==='Escape'){e.preventDefault();close()}
    if(e.key==='Tab'){
     const items=Array.from(dialog.current?.querySelectorAll('button,a[href]')||[]);
     const first=items[0],last=items[items.length-1];
@@ -296,7 +332,7 @@ export default function BrandGallery(){
    }
   };
   window.addEventListener('keydown',key);
-  return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus()};
+  return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus({preventScroll:true})};
  },[opened]);
 
  return <section id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
@@ -323,7 +359,7 @@ export default function BrandGallery(){
    })}
   </div>
   <footer className="brand-gallery-controls">
-   <div className="brand-gallery-nav"><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button key={current.id} className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
+   <div className="brand-gallery-nav"><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button key={galleryBrand.id} className="brand-current-name" onClick={open}>{galleryBrand.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
    <div className="brand-keywords" aria-label="Visual Design, Primary Marks, Typography, Voice">
     <div className="brand-keywords-reel" aria-hidden="true">
      {['Visual Design','Primary Marks','Typography','Voice','Visual Design'].map((word,i)=><span key={i}>{word}</span>)}
@@ -352,9 +388,9 @@ export default function BrandGallery(){
      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" opacity=".25"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="87.965" ref={progressRing} strokeDashoffset="87.965" transform="rotate(-90 20 20)"/></svg>
     </div>
     <nav className="brand-reader-projects" aria-label="Switch brand guideline">
-     <button onClick={()=>step(-1)} aria-label="Previous project">←</button><span key={current.id}>{current.name}</span><button onClick={()=>step(1)} aria-label="Next project">→</button>
+     <button onClick={()=>setReaderIndex(i=>wrap(i-1))} aria-label="Previous project">←</button><span key={current.id}>{current.name}</span><button onClick={()=>setReaderIndex(i=>wrap(i+1))} aria-label="Next project">→</button>
     </nav>
-    <button className="brand-reader-exit" onClick={()=>setOpened(false)} aria-label="Exit guideline reader">×</button>
+    <button className="brand-reader-exit" onClick={close} aria-label="Exit guideline reader">×</button>
    </div>
   </div>,document.body)}
 
