@@ -247,7 +247,7 @@ export default function BrandGallery(){
      {[0,1,2].map(cycle=><div className="brand-reader-cycle" key={cycle}>
       {current.pages.map((page,i)=>{
        const size=current.sizes?.[i]||[1200,675];
-       return <figure key={page}><img src={page} alt={current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} draggable="false" decoding="async"/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>;
+       return <figure key={page}><img src={page} alt={current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} draggable="false" loading="eager" decoding="sync"/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>;
       })}
      </div>)}
     </div>

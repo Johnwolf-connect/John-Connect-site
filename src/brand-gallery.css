@@ -95,7 +95,7 @@
 /* Velocity-responsive elasticity leaves document geometry and looping stable. */
 .brand-reader-pages img{
  transform:scale(var(--pdf-squeeze,1),var(--pdf-stretch,1));
- transform-origin:50% 50%;will-change:transform;
+ transform-origin:50% 50%;
 }
 .brand-reader button,.brand-reader-projects,.brand-reader-progress{
  background:rgb(153 0 255 / 72%)!important;color:#fff!important;
