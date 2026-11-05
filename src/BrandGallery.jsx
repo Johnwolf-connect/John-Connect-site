@@ -104,6 +104,29 @@ export default function BrandGallery(){
   element.scrollTop=cycle.offsetHeight;
   setReadingProgress(0);loopReady.current=true;
  },[opened,current.id]);
+ // Scroll speed drives elastic page distortion; loop offsets are excluded.
+ useEffect(()=>{
+  if(!opened||!reader.current)return;
+  const element=reader.current;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let frame=0,lastY=null,lastTime=null,stretch=0;
+  const reset=()=>{element.style.setProperty('--pdf-stretch','1');element.style.setProperty('--pdf-squeeze','1')};
+  const animate=time=>{
+   const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
+   const y=element.scrollTop;
+   const height=element.querySelector('.brand-reader-cycle')?.offsetHeight||0;
+   let delta=lastY===null?0:y-lastY;
+   if(height)delta-=Math.round(delta/height)*height;
+   lastY=y;lastTime=time;
+   const target=reduced.matches?0:Math.min(.12,Math.abs(delta)/dt*.000035);
+   stretch+=(target-stretch)*(1-Math.exp(-dt/(target>stretch ? .055 : .14)));
+   element.style.setProperty('--pdf-stretch',String(1+stretch));
+   element.style.setProperty('--pdf-squeeze',String(1-stretch*.16));
+   frame=requestAnimationFrame(animate);
+  };
+  reset();frame=requestAnimationFrame(animate);
+  return()=>{cancelAnimationFrame(frame);reset()};
+ },[opened,current.id]);
  const loopScroll=()=>{
   const element=reader.current;if(!element||!loopReady.current)return;
   const height=element.querySelector('.brand-reader-cycle')?.offsetHeight;
