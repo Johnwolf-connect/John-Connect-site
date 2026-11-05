@@ -146,3 +146,9 @@
  .brand-gallery .brand-gallery-dock{padding-top:94px}
  .brand-gallery .brand-gallery-panel{width:min(70vw,calc((100svh - 260px) * 1.7778))}
 }
+
+/* Signature purple bar with black lettering and controls. */
+.brand-gallery .brand-gallery-controls,
+.brand-gallery .brand-gallery-controls button,
+.brand-gallery .brand-gallery-controls .brand-auto-toggle,
+.brand-gallery .brand-gallery-controls .brand-keywords{color:#111}
