@@ -140,7 +140,11 @@ export default function BrandGallery(){
   if(!opened||!reader.current)return;
   const element=reader.current;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  let frame=0,lastY=null,lastTime=null,stretch=0;
+  let frame=0,lastY=null,lastTime=null;
+  let speed=0,stretch=0,stretchVelocity=0;
+  // A damped spring adds a small rebound when scrolling stops.
+  const frequency=23,damping=12;
+  const oscillation=Math.sqrt(frequency**2-damping**2);
   const nearby=new Set();
   const observer=new IntersectionObserver(entries=>{
    for(const entry of entries){
@@ -159,11 +163,23 @@ export default function BrandGallery(){
    let delta=lastY===null?0:y-lastY;
    if(height)delta-=Math.round(delta/height)*height;
    lastY=y;lastTime=time;
-   const target=reduced.matches?0:Math.min(.12,Math.abs(delta)/dt*.000035);
-   stretch+=(target-stretch)*(1-Math.exp(-dt/(target>stretch ? .055 : .14)));
+   if(reduced.matches){
+    speed=stretch=stretchVelocity=0;
+   }else{
+    const measuredSpeed=Math.min(9000,Math.abs(delta)/dt);
+    speed+=(measuredSpeed-speed)*(1-Math.exp(-dt/.035));
+    // Ease into the limit so fast flicks don't hit a hard visual stop.
+    const target=.15*(1-Math.exp(-speed/2300));
+    const displacement=stretch-target;
+    const decay=Math.exp(-damping*dt);
+    const sine=Math.sin(oscillation*dt),cosine=Math.cos(oscillation*dt);
+    stretch=target+decay*(displacement*cosine+(stretchVelocity+damping*displacement)/oscillation*sine);
+    stretchVelocity=decay*(stretchVelocity*cosine-(damping*stretchVelocity+frequency**2*displacement)/oscillation*sine);
+   }
    // Leave distant pages untransformed so scrolling can paint them normally.
-   const transform=stretch>.001&&!reduced.matches
-    ?`scale(${1-stretch*.16},${1+stretch})`:'';
+   const shape=Math.max(-.025,Math.min(.16,stretch));
+   const transform=Math.abs(shape)>.0005
+    ?`scale(${(1-shape*.26).toFixed(4)},${(1+shape).toFixed(4)})`:'';
    for(const image of nearby){
     if(image.style.transform!==transform)image.style.transform=transform;
    }
