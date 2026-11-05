@@ -83,3 +83,13 @@
  .project-detail{font-size:9px;letter-spacing:0}
  .stage-logo{height:27vh;width:85%}
 }
+
+/* Navigation stays above every section without joining pinned transforms. */
+.header{position:fixed;top:0;left:0;right:0;z-index:90;background:rgb(255 255 255 / 84%);backdrop-filter:blur(16px);border-bottom:1px solid rgb(153 0 255 / 8%)}
+.brand-gallery-dock{padding-top:88px}
+.brand-gallery-controls .brand-auto-toggle{position:absolute;right:20px;font-size:10px;color:#ccc;padding:10px}
+@media(max-width:720px){
+ .project-info{padding-top:88px}
+ .brand-gallery-dock{padding-top:84px}
+ .brand-gallery-controls .brand-auto-toggle{right:6px;font-size:9px;padding:8px 4px}
+}
