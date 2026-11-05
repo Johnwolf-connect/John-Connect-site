@@ -135,3 +135,14 @@
 }
 @media(max-height:539px){.brand-gallery{height:auto}.brand-gallery-dock{position:relative;height:auto;min-height:540px}.brand-gallery-track{height:350px}}
 @media(prefers-reduced-motion:reduce){.brand-keywords-reel{animation:none}}
+
+/* Clear the fixed glass navigation and give the covers more breathing room. */
+.brand-gallery .brand-gallery-dock{padding-top:104px}
+.brand-gallery .brand-gallery-panel{width:min(50vw,calc((100svh - 270px) * 1.7778))}
+.brand-gallery .brand-gallery-controls{background:#9900ff;color:rgb(255 255 255 / 85%)}
+.brand-gallery .brand-gallery-controls button,
+.brand-gallery .brand-gallery-controls .brand-auto-toggle{color:#fff}
+@media(max-width:720px){
+ .brand-gallery .brand-gallery-dock{padding-top:94px}
+ .brand-gallery .brand-gallery-panel{width:min(70vw,calc((100svh - 260px) * 1.7778))}
+}
