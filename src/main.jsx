@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
@@ -121,6 +122,65 @@ function ScrollGallery({projects,onSelect}){
  </section>;
 }
 
+
+function PurpleCursor(){
+ const cursor=useRef(null);
+ useEffect(()=>{
+  const media=window.matchMedia('(hover:hover) and (pointer:fine)');
+  let frame=0;
+  const hide=()=>{document.documentElement.classList.remove('purple-cursor-active');if(cursor.current)cursor.current.style.opacity='0'};
+  const move=event=>{
+   if(!media.matches||event.pointerType==='touch'){hide();return}
+   cancelAnimationFrame(frame);
+   frame=requestAnimationFrame(()=>{
+    if(!cursor.current)return;
+    cursor.current.style.transform=`translate3d(${event.clientX}px,${event.clientY}px,0) translate(-50%,-50%)`;
+    cursor.current.style.opacity='1';
+    document.documentElement.classList.add('purple-cursor-active');
+   });
+  };
+  window.addEventListener('pointermove',move,{passive:true});
+  document.addEventListener('pointerleave',hide);
+  window.addEventListener('blur',hide);
+  media.addEventListener('change',hide);
+  return()=>{cancelAnimationFrame(frame);hide();window.removeEventListener('pointermove',move);document.removeEventListener('pointerleave',hide);window.removeEventListener('blur',hide);media.removeEventListener('change',hide)};
+ },[]);
+ return createPortal(<div ref={cursor} className="purple-cursor" aria-hidden="true"/>,document.body);
+}
+function Contact(){
+ const [status,setStatus]=useState(''),[sending,setSending]=useState(false);
+ const endpoint=import.meta.env.VITE_CONTACT_ENDPOINT;
+ const submit=async event=>{
+  event.preventDefault();
+  const form=event.currentTarget;
+  if(!endpoint){setStatus('Message delivery is not connected yet. Your message has not been sent.');return}
+  setSending(true);setStatus('');
+  try{
+   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(form)))});
+   if(!response.ok)throw new Error('Delivery failed');
+   setStatus('Thank you. Your inquiry has been submitted.');form.reset();
+  }catch{setStatus('Your inquiry could not be sent. Your details are still here so you can try again.')}
+  finally{setSending(false)}
+ };
+ return <section id="contact" className="contact-section" aria-labelledby="contact-heading">
+  <div className="contact-copy"><span className="kicker">LET’S WORK TOGETHER</span><h2 id="contact-heading">An idea worth<br/><i>bringing to life.</i></h2><p>Tell me what you’re building. Let’s give it a clear identity and a lasting impression.</p>
+   <div className="contact-explore" aria-label="Explore ways to work together">
+    {['Logo design','Brand identity','Websites'].map(label=><details key={label} className="contact-explore-option"><summary>{label}<span aria-hidden="true">+</span></summary><div className="contact-explore-reveal"><p>More about this service and the approach behind it will be added here.</p></div></details>)}
+   </div>
+  </div>
+  <form className="contact-form" onSubmit={submit} aria-busy={sending}>
+   <div className="contact-field-pair">
+    <label>Name<input name="name" autoComplete="name" required maxLength={120} placeholder="Your name"/></label>
+    <label>Email<input name="email" type="email" autoComplete="email" required maxLength={254} placeholder="you@example.com"/></label>
+   </div>
+   <label>What do you have in mind?<select name="projectType" defaultValue="" required><option value="" disabled>Select a project type</option><option>Logo design</option><option>Brand identity</option><option>Website design</option><option>Something else</option></select></label>
+   <label>Project details<textarea name="message" rows={5} required maxLength={6000} placeholder="A little about your project, goals, and timing."/></label>
+   <button className="contact-submit" type="submit" disabled={sending}>{sending?'Sending…':'Send inquiry'} <span aria-hidden="true">↗</span></button>
+   <p className="contact-status" role="status">{status}</p>
+  </form>
+ </section>;
+}
+
 function App(){
  const [active,setActive]=useState(null),[pointer,setPointer]=useState({x:0,y:0});
  const raf=useRef(0);
@@ -131,7 +191,8 @@ function App(){
  const move=e=>{if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;cancelAnimationFrame(raf.current);raf.current=requestAnimationFrame(()=>setPointer({x:(e.clientX/window.innerWidth-.5)*16,y:(e.clientY/window.innerHeight-.5)*16}));};
  return <div onMouseMove={move}>
   <VisualContinuity/>
-  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Brand identity</a><a href="#about">About</a></nav></header>
+  <PurpleCursor/>
+  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
     <div className="hero-copy">
@@ -154,6 +215,7 @@ function App(){
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <BrandGallery/>
    <section id="about" className="about"><span className="kicker">CREATIVE PRACTICE</span><h2>Design is how<br/>I make ideas <i>felt.</i></h2><p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p><a href="mailto:" onClick={e=>e.preventDefault()} className="contact-note">Contact details coming soon</a></section>
+   <Contact/>
   </main>
   <footer><span>JOHN WOLF © {new Date().getFullYear()}</span><a href="#top">Back to top ↑</a></footer>
   {active&&<div className="backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setActive(null)}}><section className="dialog" role="dialog" aria-modal="true" aria-label={active==='riches'?'Riches Cosmetics':active[0]}><button className="close" onClick={()=>setActive(null)} aria-label="Close details">×</button>{active==='riches'?<><span className="kicker">FEATURED CASE STUDY</span><h2>RICHES COSMETICS</h2><blockquote>“Confidence is not an attitude. It is a discipline.”</blockquote><p>From logo and brand personality to a 27-page identity guideline: a visual doctrine built on clarity, restraint, and consistency.</p><p className="muted">Original guideline pages and editorial artwork will be added to this detailed view.</p></>:<><span className="kicker">LOGO DESIGN / SELECTED WORK</span><h2>{active[0]}</h2><div className="dialog-mark"><Mark project={active}/></div><p>{active[1]} — original identity design by John Wolf.</p></>}</section></div>}
