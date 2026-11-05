@@ -1,5 +1,4 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
@@ -125,50 +124,43 @@ function ScrollGallery({projects,onSelect}){
 
 
 function PurpleCursor(){
- const dot=useRef(null);
  useEffect(()=>{
-  const html=document.documentElement;
-  const previous=html.style.getPropertyValue('cursor'),priority=html.style.getPropertyPriority('cursor');
-  let x=0,y=0,visible=false;
-  const paint=()=>{
-   if(!visible||!dot.current)return;
-   dot.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
-   dot.current.style.opacity='1';
-   html.classList.add('purple-cursor-active');
-   html.style.setProperty('cursor','none','important');
+  const html=document.documentElement,body=document.body;
+  const value="url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAi0lEQVR4nL2VsQ3AIAwEGZERvFYqRvBIjEIosBQRgxzid3ENQn/SAyZdqSUk0HCrgDrcqZ02qGON/gjyFLqijr2fBMUQPFOsgpPwpUSr5TRcyDuBpXPLmagCcggXSBOwo4A1gUc9r5qeAq9wIV4Arwh+yPBrCn9oIaMCPuxCxnXIhzPfLsiX6QJccAOEhs8BHjj2yAAAAABJRU5ErkJggg==\") 12 12, auto";
+  let enabled=false,x=0,y=0;
+  const touched=new Map();
+  const apply=node=>{
+   if(!node?.style)return;
+   if(!touched.has(node))touched.set(node,[node.style.getPropertyValue('cursor'),node.style.getPropertyPriority('cursor')]);
+   if(node.style.getPropertyValue('cursor')!==value)node.style.setProperty('cursor',value,'important');
   };
-  const hide=()=>{
-   visible=false;html.classList.remove('purple-cursor-active');
-   if(previous)html.style.setProperty('cursor',previous,priority);else html.style.removeProperty('cursor');
-   if(dot.current)dot.current.style.opacity='0';
+  const refresh=()=>{
+   if(!enabled)return;
+   apply(html);apply(body);
+   apply(document.elementFromPoint(x,y));
   };
-  const move=event=>{
-   if(event.pointerType==='touch'){hide();return}
-   // Direct pointer coordinates: no interpolation, React update, or frame queue.
-   x=event.clientX;y=event.clientY;visible=true;paint();
+  const disable=()=>{
+   enabled=false;html.classList.remove('purple-native-cursor');
+   for(const [node,[old,priority]] of touched){
+    if(old)node.style.setProperty('cursor',old,priority);else node.style.removeProperty('cursor');
+   }
+   touched.clear();
   };
-  const leave=event=>{if(event.relatedTarget===null)hide()};
-  document.addEventListener('pointermove',move,{capture:true,passive:true});
-  document.addEventListener('pointerrawupdate',move,{capture:true,passive:true});
-  document.addEventListener('pointerover',move,{capture:true,passive:true});
-  document.addEventListener('pointerout',leave,{passive:true});
-  document.addEventListener('scroll',paint,{capture:true,passive:true});
-  window.addEventListener('wheel',paint,{capture:true,passive:true});
-  window.addEventListener('blur',hide);
+  const point=event=>{
+   if(event.pointerType==='touch'){disable();return}
+   x=event.clientX;y=event.clientY;enabled=true;
+   html.classList.add('purple-native-cursor');refresh();
+  };
+  document.addEventListener('pointerover',point,{capture:true,passive:true});
+  document.addEventListener('pointermove',point,{capture:true,passive:true});
+  document.addEventListener('scroll',refresh,{capture:true,passive:true});
+  window.addEventListener('wheel',refresh,{capture:true,passive:true});
   return()=>{
-   hide();
-   document.removeEventListener('pointermove',move,true);
-   document.removeEventListener('pointerrawupdate',move,true);
-   document.removeEventListener('pointerover',move,true);
-   document.removeEventListener('pointerout',leave);
-   document.removeEventListener('scroll',paint,true);
-   window.removeEventListener('wheel',paint,true);
-   window.removeEventListener('blur',hide);
+   disable();document.removeEventListener('pointerover',point,true);document.removeEventListener('pointermove',point,true);document.removeEventListener('scroll',refresh,true);window.removeEventListener('wheel',refresh,true);
   };
  },[]);
- return createPortal(<div className="purple-cursor" ref={dot} aria-hidden="true"/>,document.body);
+ return null;
 }
-
 function Contact(){
  const [status,setStatus]=useState(''),[sending,setSending]=useState(false);
  const endpoint=import.meta.env.VITE_CONTACT_ENDPOINT;
