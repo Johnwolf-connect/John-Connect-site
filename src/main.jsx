@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
@@ -122,6 +123,52 @@ function ScrollGallery({projects,onSelect}){
 }
 
 
+
+function PurpleCursor(){
+ const dot=useRef(null);
+ useEffect(()=>{
+  const html=document.documentElement;
+  const previous=html.style.getPropertyValue('cursor'),priority=html.style.getPropertyPriority('cursor');
+  let x=0,y=0,visible=false;
+  const paint=()=>{
+   if(!visible||!dot.current)return;
+   dot.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
+   dot.current.style.opacity='1';
+   html.classList.add('purple-cursor-active');
+   html.style.setProperty('cursor','none','important');
+  };
+  const hide=()=>{
+   visible=false;html.classList.remove('purple-cursor-active');
+   if(previous)html.style.setProperty('cursor',previous,priority);else html.style.removeProperty('cursor');
+   if(dot.current)dot.current.style.opacity='0';
+  };
+  const move=event=>{
+   if(event.pointerType==='touch'){hide();return}
+   // Direct pointer coordinates: no interpolation, React update, or frame queue.
+   x=event.clientX;y=event.clientY;visible=true;paint();
+  };
+  const leave=event=>{if(event.relatedTarget===null)hide()};
+  document.addEventListener('pointermove',move,{capture:true,passive:true});
+  document.addEventListener('pointerrawupdate',move,{capture:true,passive:true});
+  document.addEventListener('pointerover',move,{capture:true,passive:true});
+  document.addEventListener('pointerout',leave,{passive:true});
+  document.addEventListener('scroll',paint,{capture:true,passive:true});
+  window.addEventListener('wheel',paint,{capture:true,passive:true});
+  window.addEventListener('blur',hide);
+  return()=>{
+   hide();
+   document.removeEventListener('pointermove',move,true);
+   document.removeEventListener('pointerrawupdate',move,true);
+   document.removeEventListener('pointerover',move,true);
+   document.removeEventListener('pointerout',leave);
+   document.removeEventListener('scroll',paint,true);
+   window.removeEventListener('wheel',paint,true);
+   window.removeEventListener('blur',hide);
+  };
+ },[]);
+ return createPortal(<div className="purple-cursor" ref={dot} aria-hidden="true"/>,document.body);
+}
+
 function Contact(){
  const [status,setStatus]=useState(''),[sending,setSending]=useState(false);
  const endpoint=import.meta.env.VITE_CONTACT_ENDPOINT;
@@ -164,6 +211,7 @@ function App(){
  useEffect(()=>{document.body.style.overflow=active?'hidden':'';return()=>document.body.style.overflow=''},[active]);
  return <div>
   <VisualContinuity/>
+  <PurpleCursor/>
   <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
