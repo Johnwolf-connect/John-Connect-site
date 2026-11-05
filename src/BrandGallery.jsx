@@ -32,8 +32,8 @@ export default function BrandGallery(){
     resetAuto();return;
    }
    if(performance.now()>=autoDeadline.current){
-    // Decreasing position moves the covers visually to the right.
-    step(-1);
+    // Increasing position moves the covers left, bringing in the next brand.
+    step(1);
    }
   },100);
   return()=>{observer.disconnect();window.clearInterval(timer)};
@@ -205,7 +205,7 @@ export default function BrandGallery(){
  return <section id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
   <div className="brand-gallery-dock">
   <header className="brand-gallery-heading">
-   <div><span className="kicker">02 / BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
+   <div><span className="kicker">BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
    <p>Brand guidelines by John Wolf.</p>
   </header>
   <div ref={track} className={'brand-gallery-track'+(swipe.current?.moved?' is-dragging':'')} aria-label="Browse brand guidelines" tabIndex={0}
