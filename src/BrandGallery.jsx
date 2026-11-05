@@ -16,6 +16,7 @@ export default function BrandGallery(){
  const galleryBrand=brands[index];
  const [readerIndex,setReaderIndex]=useState(0);
  const current=brands[readerIndex];
+ const [comparisonPosition,setComparisonPosition]=useState(50);
  const isApparel=current.kind==='apparel';
  const readerMotion=useRef(null),closing=useRef(false);
  const [autoPlaying,setAutoPlaying]=useState(true);
@@ -168,7 +169,8 @@ export default function BrandGallery(){
   const element=reader.current;
   const cycle=element.querySelector('.brand-reader-cycle');
   if(!cycle)return;
-  element.scrollTop=isApparel?0:cycle.offsetHeight;
+  element.scrollTop=cycle.offsetHeight;
+  setComparisonPosition(50);
   progressRing.current?.setAttribute('stroke-dashoffset','87.965');
   loopReady.current=true;
  },[opened,current.id]);
@@ -176,7 +178,7 @@ export default function BrandGallery(){
  useLayoutEffect(()=>{
   if(!opened||!reader.current)return;
   const element=reader.current;
-  const images=Array.from(element.querySelectorAll('figure img'));
+  const images=Array.from(element.querySelectorAll('img[data-page-src]'));
   const cycle=element.querySelector('.brand-reader-cycle');
   const prefetching=new Set();
   let frame=0,direction=1,lastY=element.scrollTop;
@@ -192,7 +194,7 @@ export default function BrandGallery(){
   const update=()=>{
    frame=0;
    const y=element.scrollTop;
-   const cycleHeight=isApparel?0:(cycle?.offsetHeight||0);
+   const cycleHeight=cycle?.offsetHeight||0;
    let movement=y-lastY;
    if(cycleHeight)movement-=Math.round(movement/cycleHeight)*cycleHeight;
    if(movement)direction=Math.sign(movement);
@@ -246,7 +248,11 @@ export default function BrandGallery(){
   });
   const observer=new IntersectionObserver(entries=>{
    for(const entry of entries){
-    const image=entry.target.querySelector('img');
+    const image=entry.target.querySelector('img[data-page-src]');
+    if(!image){
+     if(!entry.isIntersecting)entry.target.querySelector('video')?.pause();
+     continue;
+    }
     if(entry.isIntersecting){
      nearby.add(image);
      sizes.observe(image);
@@ -261,7 +267,7 @@ export default function BrandGallery(){
   const animate=time=>{
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
    const y=element.scrollTop;
-   const height=isApparel?0:(cycle?.offsetHeight||0);
+   const height=cycle?.offsetHeight||0;
    let delta=lastY===null?0:y-lastY;
    if(height)delta-=Math.round(delta/height)*height;
    lastY=y;lastTime=time;
@@ -291,12 +297,6 @@ export default function BrandGallery(){
  },[opened,current.id]);
  const loopScroll=()=>{
   const element=reader.current;if(!element||!loopReady.current)return;
-  if(isApparel){
-   const distance=element.scrollHeight-element.clientHeight;
-   const progress=distance>0?element.scrollTop/distance:0;
-   progressRing.current?.setAttribute('stroke-dashoffset',String(87.965*(1-progress)));
-   return;
-  }
   const height=element.querySelector('.brand-reader-cycle')?.offsetHeight;
   if(!height)return;
   let y=element.scrollTop;
@@ -332,7 +332,7 @@ export default function BrandGallery(){
   const key=e=>{
    if(e.key==='Escape'){e.preventDefault();close()}
    if(e.key==='Tab'){
-    const items=Array.from(dialog.current?.querySelectorAll('button,a[href]')||[]);
+    const items=Array.from(dialog.current?.querySelectorAll('button,a[href],input,[tabindex="0"]')||[]);
     const first=items[0],last=items[items.length-1];
     if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}
@@ -384,10 +384,26 @@ export default function BrandGallery(){
     <button className="brand-reader-details-toggle" aria-expanded={details} onClick={()=>setDetails(v=>!v)}>{details?'Close details':'View details'}</button>
     {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
     <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={current.name+(isApparel?' collection highlights':' continuously scrolling guideline pages')}>
-     {(isApparel?[0]:[0,1,2]).map(cycle=><div className={isApparel?'brand-reader-cycle brand-reader-apparel':'brand-reader-cycle'} key={cycle}>
+     {[0,1,2].map(cycle=><div className={isApparel?'brand-reader-cycle brand-reader-apparel':'brand-reader-cycle'} key={cycle}>
       {current.pages.map((page,i)=>{
        const size=current.sizes?.[i]||[1200,675];
-       return <figure key={page}><img data-page-src={page} alt={current.alt?.[i]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[i]||String(i+1).padStart(2,'0')+' / '+current.pages.length}</figcaption></figure>;
+       const still=<figure><img data-page-src={page} alt={current.alt?.[i]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[i]||String(i+1).padStart(2,'0')+' / '+current.pages.length}</figcaption></figure>;
+       return <React.Fragment key={page}>
+        {still}
+        {i===1&&current.comparison&&<figure className="brand-comparison">
+         <h3>{current.comparison.title}</h3>
+         <div className="brand-comparison-stage" style={{'--split':comparisonPosition+'%'}}>
+          <img src={current.comparison.linework} alt="Better Half in black-and-white linework" width="1920" height="1080" loading="lazy" decoding="async"/>
+          <img className="brand-comparison-color" src={current.comparison.color} alt="Better Half in full color" width="1920" height="1080" loading="lazy" decoding="async"/>
+          <span className="brand-comparison-divider" aria-hidden="true"><span>↔</span></span>
+          <input type="range" min="0" max="100" value={comparisonPosition}
+           onChange={event=>setComparisonPosition(Number(event.target.value))}
+           aria-label="Compare Better Half in color and linework"
+           aria-valuetext={comparisonPosition+'% color'} />
+         </div>
+         <figcaption>Drag to compare color and linework</figcaption>
+        </figure>}
+       </React.Fragment>;
       })}
       {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
      </div>)}

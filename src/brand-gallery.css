@@ -146,3 +146,13 @@
 
 .brand-reader-film video{display:block;width:100%;aspect-ratio:16/9;border-radius:3px;background:#111;touch-action:manipulation}
 .brand-reader-apparel{padding-bottom:110px}
+.brand-comparison h3{margin:0 0 12px;color:#191919;font-size:clamp(1.25rem,3vw,2rem)}
+.brand-comparison-stage{position:relative;overflow:hidden;isolation:isolate;aspect-ratio:16/9;border-radius:3px;background:#fff}
+.brand-comparison-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;box-shadow:none}
+.brand-comparison-color{clip-path:inset(0 calc(100% - var(--split)) 0 0)}
+.brand-comparison-divider{position:absolute;inset-block:0;left:var(--split);width:2px;transform:translateX(-50%);background:#fff;box-shadow:0 0 5px #0008;pointer-events:none}
+.brand-comparison-divider span{position:absolute;top:50%;left:50%;display:grid;place-items:center;width:44px;height:44px;transform:translate(-50%,-50%);border:2px solid #fff;border-radius:50%;background:#191919;color:#fff;font-size:22px}
+.brand-comparison-stage input{position:absolute;inset:50% 0 auto;width:100%;height:44px;transform:translateY(-50%);margin:0;opacity:0;cursor:ew-resize;touch-action:none;appearance:none}
+.brand-comparison-stage input::-webkit-slider-thumb{appearance:none;width:1px;height:100%}
+.brand-comparison-stage input::-moz-range-thumb{width:1px;height:100%;border:0}
+.brand-comparison-stage:focus-within{outline:2px solid #191919;outline-offset:4px}
