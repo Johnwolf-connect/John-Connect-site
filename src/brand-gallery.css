@@ -40,3 +40,17 @@
 .brand-gallery-controls{justify-content:center;position:relative}
 .brand-gallery-controls>span{position:absolute;right:4vw}
 @media(max-width:720px){.brand-gallery{padding-top:18px}.brand-gallery-track{--brand-stride:80vw}}
+
+/* Fit heading, covers and navigation within the viewport. */
+.brand-gallery{height:100svh;min-height:540px;padding:20px 0 14px;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.brand-gallery-heading{align-self:start}
+.brand-gallery-heading h2{margin:7px 0 0;line-height:1.05}
+.brand-gallery-track{height:100%;min-height:0}
+.brand-gallery-panel{width:min(56vw,calc((100svh - 190px) * 1.7778))}
+.brand-gallery-controls{min-height:48px}
+.brand-gallery-track,.brand-gallery-panel{touch-action:pan-y;-webkit-user-drag:none}
+@media(max-width:720px){
+ .brand-gallery{height:90svh;min-height:460px;padding-top:18px}
+ .brand-gallery-heading p{margin:7px 0 0}
+ .brand-gallery-panel{width:78vw}
+}
