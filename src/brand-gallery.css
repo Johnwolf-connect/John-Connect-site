@@ -54,3 +54,36 @@
  .brand-gallery-heading p{margin:7px 0 0}
  .brand-gallery-panel{width:78vw}
 }
+
+/* A flexible sheet opens into the reference's quiet, full-screen reader. */
+.brand-reader{display:block;animation:none;background:#ffffffbc;perspective:1600px}
+.brand-reader-sheet{position:absolute;inset:0;background:#fafafa;overflow:hidden;color:#111;will-change:transform,clip-path}
+.brand-reader-meta{position:absolute;left:3.3vw;top:40px;z-index:4;display:flex;flex-direction:column;font-size:12px;line-height:1.55;max-width:15vw;pointer-events:none}
+.brand-reader-details-toggle{position:absolute;right:3.3vw;top:32px;z-index:6;font-size:12px}
+.brand-reader-details{position:absolute;z-index:5;right:3.3vw;top:78px;width:min(340px,85vw);padding:24px;background:#fff;box-shadow:0 8px 45px #00000014;border:1px solid #eee}
+.brand-reader-details h3{margin-top:0}.brand-reader-details p{font-size:13px;line-height:1.7}
+.brand-reader-pages{position:absolute;inset:0;overflow-y:auto;padding:0 16.6vw;cursor:grab;touch-action:none;scroll-behavior:auto;scrollbar-width:none;user-select:none;-webkit-user-select:none}
+.brand-reader-pages::-webkit-scrollbar{display:none}
+.brand-reader-pages:active{cursor:grabbing}
+.brand-reader-cycle{padding-bottom:48px;display:flow-root}
+.brand-reader-pages figure{margin:0 auto 48px;max-width:none}
+.brand-reader-pages figure:last-child{margin-bottom:0}
+.brand-reader-pages img{height:auto;width:100%;pointer-events:none;-webkit-user-drag:none;border-radius:3px}
+.brand-reader-pages figcaption{font-size:9px;padding:6px 0;color:#777}
+.brand-reader-progress,.brand-reader-exit{position:absolute;bottom:34px;z-index:5;width:46px;height:46px;border-radius:4px;background:#676767b8!important;color:#fff!important;backdrop-filter:blur(12px)}
+.brand-reader-progress{left:3.3vw;padding:4px;pointer-events:none}
+.brand-reader-progress svg{width:100%;height:100%}
+.brand-reader-exit{right:3.3vw;font-size:28px;line-height:1;padding:0!important}
+.brand-reader-projects{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:18px;min-width:270px;background:#676767b8;color:#fff;border-radius:4px;backdrop-filter:blur(12px)}
+.brand-reader-projects button{color:#fff;font-size:24px;padding:7px 16px}
+.brand-reader-projects span{font-size:15px;white-space:nowrap}
+@media(max-width:720px){
+ .brand-reader-meta{left:18px;top:16px;font-size:9px;max-width:65vw}
+ .brand-reader-details-toggle{right:8px;top:9px;font-size:10px}
+ .brand-reader-pages{padding:90px 5vw 0}
+ .brand-reader-progress{left:14px;bottom:18px;width:34px;height:34px}
+ .brand-reader-exit{right:14px;bottom:18px;width:34px;height:34px}
+ .brand-reader-projects{bottom:18px;min-width:0;width:calc(100% - 130px);gap:0}
+ .brand-reader-projects span{font-size:11px;white-space:normal;text-align:center}
+ .brand-reader-projects button{font-size:19px;padding:7px 9px}
+}

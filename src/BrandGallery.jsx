@@ -1,5 +1,6 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import './brand-gallery.css';
+import {createPortal} from 'react-dom';
 import {gsap} from 'gsap';
 import brands from './brand-guidelines.json';
 
@@ -9,6 +10,8 @@ export default function BrandGallery(){
  const wrap=n=>((n%brands.length)+brands.length)%brands.length;
  const index=wrap(Math.round(position));
  const dialog=useRef(null),returnFocus=useRef(null),swipe=useRef(null);
+ const reader=useRef(null),sheet=useRef(null),origin=useRef(null),readerDrag=useRef(null),loopReady=useRef(false);
+ const [details,setDetails]=useState(false),[readingProgress,setReadingProgress]=useState(0);
  const current=brands[index];
  const moveTo=target=>{
   slideTween.current?.kill();
@@ -64,7 +67,57 @@ export default function BrandGallery(){
   window.addEventListener('pointercancel',end);
   return()=>{clearTimeout(timer);element.removeEventListener('wheel',wheel);window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',end)};
  },[opened]);
- const open=()=>{returnFocus.current=document.activeElement;setOpened(true)};
+ const open=()=>{
+  returnFocus.current=document.activeElement;
+  origin.current=track.current?.querySelector('.is-center')?.getBoundingClientRect();
+  setDetails(false);setOpened(true);
+ };
+ useLayoutEffect(()=>{
+  if(!opened||!sheet.current)return;
+  const r=origin.current;
+  if(!r||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const animation=gsap.fromTo(sheet.current,
+   {x:r.left,y:r.top,scaleX:r.width/window.innerWidth,scaleY:r.height/window.innerHeight,skewY:3,rotationX:8,transformOrigin:'0 0',clipPath:'polygon(0 3%,50% 0,100% 3%,100% 97%,50% 100%,0 97%)'},
+   {x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:'polygon(0 0,50% 0,100% 0,100% 100%,50% 100%,0 100%)',duration:.95,ease:'power3.inOut'});
+  return()=>animation.kill();
+ },[opened]);
+ useLayoutEffect(()=>{
+  if(!opened||!reader.current)return;
+  loopReady.current=false;
+  const element=reader.current;
+  const cycle=element.querySelector('.brand-reader-cycle');
+  if(!cycle)return;
+  element.scrollTop=cycle.offsetHeight;
+  setReadingProgress(0);loopReady.current=true;
+ },[opened,current.id]);
+ const loopScroll=()=>{
+  const element=reader.current;if(!element||!loopReady.current)return;
+  const height=element.querySelector('.brand-reader-cycle')?.offsetHeight;
+  if(!height)return;
+  let y=element.scrollTop;
+  if(y<height*.5){y+=height;element.scrollTop=y}
+  else if(y>height*1.5){y-=height;element.scrollTop=y}
+  setReadingProgress(((y%height)+height)%height/height);
+ };
+ const readerDown=e=>{
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  if(e.target.closest('button,a,input,textarea'))return;
+  readerDrag.current={id:e.pointerId,y:e.clientY,moved:false};
+ };
+ useEffect(()=>{
+  if(!opened)return;
+  const move=e=>{
+   const drag=readerDrag.current;if(!drag||drag.id!==e.pointerId||!reader.current)return;
+   const dy=e.clientY-drag.y;
+   if(!drag.moved&&Math.abs(dy)<5)return;
+   drag.moved=true;drag.y=e.clientY;
+   reader.current.scrollTop-=dy;
+   loopScroll();
+  };
+  const end=()=>{readerDrag.current=null};
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+  return()=>{end();window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',end)};
+ },[opened,current.id]);
  useEffect(()=>{
   if(!opened)return;
   const previous=document.body.style.overflow;
@@ -82,7 +135,7 @@ export default function BrandGallery(){
   window.addEventListener('keydown',key);
   return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus()};
  },[opened]);
- useEffect(()=>{if(opened)dialog.current?.querySelector('.brand-reader-pages')?.scrollTo({top:0})},[index,opened]);
+
  return <section id="riches" className="brand-gallery" aria-label="Brand identity guidelines">
   <header className="brand-gallery-heading">
    <div><span className="kicker">02 / BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
@@ -109,12 +162,30 @@ export default function BrandGallery(){
    <div><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
    <span>{current.pages.length} pages</span>
   </footer>
-  {opened&&<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+' brand guidelines'}>
-   <header className="brand-reader-header"><div><span className="kicker">BRAND IDENTITY / JOHN WOLF</span><h3>{current.name}</h3></div><button onClick={()=>setOpened(false)} aria-label="Close brand guidelines">Close ×</button></header>
-   <div className="brand-reader-pages" key={current.id}>
-    {current.pages.map((page,i)=><figure key={page}><img src={page} alt={current.name+' guideline page '+(i+1)} loading={i===0?'eager':'lazy'}/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>)}
+  {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+' brand guidelines'} onPointerDown={readerDown}>
+   <div ref={sheet} className="brand-reader-sheet">
+    <aside className="brand-reader-meta">
+     <span>Brand identity</span><span>Guidelines &amp; visual system</span><span>Designer: John Wolf</span>
+    </aside>
+    <button className="brand-reader-details-toggle" aria-expanded={details} onClick={()=>setDetails(v=>!v)}>{details?'Close details':'View details'}</button>
+    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></aside>}
+    <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={current.name+' continuously scrolling guideline pages'}>
+     {[0,1,2].map(cycle=><div className="brand-reader-cycle" key={cycle}>
+      {current.pages.map((page,i)=>{
+       const size=current.sizes?.[i]||[1200,675];
+       return <figure key={page}><img src={page} alt={current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} draggable="false" decoding="async"/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>;
+      })}
+     </div>)}
+    </div>
+    <div className="brand-reader-progress" aria-label="Position within guideline">
+     <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" opacity=".25"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="87.965" strokeDashoffset={87.965*(1-readingProgress)} transform="rotate(-90 20 20)"/></svg>
+    </div>
+    <nav className="brand-reader-projects" aria-label="Switch brand guideline">
+     <button onClick={()=>step(-1)} aria-label="Previous project">←</button><span>{current.name}</span><button onClick={()=>step(1)} aria-label="Next project">→</button>
+    </nav>
+    <button className="brand-reader-exit" onClick={()=>setOpened(false)} aria-label="Exit guideline reader">×</button>
    </div>
-   <footer className="brand-reader-footer"><button onClick={()=>step(-1)}>← Previous brand</button><span>{current.name}</span><button onClick={()=>step(1)}>Next brand →</button></footer>
-  </div>}
+  </div>,document.body)}
+
  </section>;
 }
