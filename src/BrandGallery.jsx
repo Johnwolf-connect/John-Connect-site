@@ -197,7 +197,7 @@ export default function BrandGallery(){
    })}
   </div>
   <footer className="brand-gallery-controls">
-   <div className="brand-gallery-nav"><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
+   <div className="brand-gallery-nav"><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button key={current.id} className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
    <div className="brand-keywords" aria-label="Visual Design, Primary Marks, Typography, Voice">
     <div className="brand-keywords-reel" aria-hidden="true">
      {['Visual Design','Primary Marks','Typography','Voice','Visual Design'].map((word,i)=><span key={i}>{word}</span>)}
@@ -226,7 +226,7 @@ export default function BrandGallery(){
      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" opacity=".25"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="87.965" strokeDashoffset={87.965*(1-readingProgress)} transform="rotate(-90 20 20)"/></svg>
     </div>
     <nav className="brand-reader-projects" aria-label="Switch brand guideline">
-     <button onClick={()=>step(-1)} aria-label="Previous project">←</button><span>{current.name}</span><button onClick={()=>step(1)} aria-label="Next project">→</button>
+     <button onClick={()=>step(-1)} aria-label="Previous project">←</button><span key={current.id}>{current.name}</span><button onClick={()=>step(1)} aria-label="Next project">→</button>
     </nav>
     <button className="brand-reader-exit" onClick={()=>setOpened(false)} aria-label="Exit guideline reader">×</button>
    </div>
@@ -234,3 +234,4 @@ export default function BrandGallery(){
 
  </section>;
 }
+

@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
 import BrandGallery from './BrandGallery.jsx';
+import VisualContinuity from './VisualContinuity.jsx';
 import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
 import {MorphSVGPlugin} from 'gsap/MorphSVGPlugin';
@@ -120,6 +121,7 @@ function App(){
  useEffect(()=>{document.body.style.overflow=active?'hidden':'';return()=>document.body.style.overflow=''},[active]);
  const move=e=>{if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;cancelAnimationFrame(raf.current);raf.current=requestAnimationFrame(()=>setPointer({x:(e.clientX/window.innerWidth-.5)*16,y:(e.clientY/window.innerHeight-.5)*16}));};
  return <div onMouseMove={move}>
+  <VisualContinuity/>
   <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Brand identity</a><a href="#about">About</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
@@ -149,3 +151,4 @@ function App(){
  </div>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
+
