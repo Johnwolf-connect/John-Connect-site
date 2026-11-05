@@ -1,12 +1,45 @@
 import React,{useEffect,useRef,useState} from 'react';
 import './brand-gallery.css';
+import {gsap} from 'gsap';
 import brands from './brand-guidelines.json';
 
 export default function BrandGallery(){
- const [index,setIndex]=useState(0),[opened,setOpened]=useState(false);
+ const [position,setPosition]=useState(0),[opened,setOpened]=useState(false);
+ const positionRef=useRef(0),slideTween=useRef(null),track=useRef(null),suppressClick=useRef(0);
+ const wrap=n=>((n%brands.length)+brands.length)%brands.length;
+ const index=wrap(Math.round(position));
  const dialog=useRef(null),returnFocus=useRef(null),swipe=useRef(null);
  const current=brands[index];
- const step=direction=>setIndex(i=>(i+direction+brands.length)%brands.length);
+ const moveTo=target=>{
+  slideTween.current?.kill();
+  const state={value:positionRef.current};
+  slideTween.current=gsap.to(state,{value:target,duration:window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:.65,ease:'power3.out',onUpdate:()=>{positionRef.current=state.value;setPosition(state.value)}});
+ };
+ const step=direction=>moveTo(Math.round(positionRef.current)+direction);
+ useEffect(()=>()=>slideTween.current?.kill(),[]);
+ const stride=()=>track.current.clientWidth*(window.innerWidth<=720 ? .80 : .59);
+ const dragStart=e=>{
+  if(e.button!==0)return;
+  slideTween.current?.kill();
+  swipe.current={x:e.clientX,y:e.clientY,start:positionRef.current,moved:false};
+ };
+ const dragMove=e=>{
+  const gesture=swipe.current;if(!gesture)return;
+  const dx=e.clientX-gesture.x,dy=e.clientY-gesture.y;
+  if(!gesture.moved&&Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>10){swipe.current=null;return}
+  if(!gesture.moved&&Math.abs(dx)>7){gesture.moved=true;track.current.setPointerCapture(e.pointerId)}
+  if(!gesture.moved)return;
+  positionRef.current=gesture.start-dx/stride();setPosition(positionRef.current);
+ };
+ const dragEnd=e=>{
+  const gesture=swipe.current;swipe.current=null;
+  if(track.current?.hasPointerCapture(e.pointerId))track.current.releasePointerCapture(e.pointerId);
+  if(!gesture?.moved)return;
+  suppressClick.current=performance.now()+400;
+  const delta=positionRef.current-gesture.start;
+  const target=Math.abs(delta)>.12?Math.round(gesture.start)+Math.sign(delta)*Math.max(1,Math.round(Math.abs(delta))):Math.round(gesture.start);
+  moveTo(target);
+ };
  const open=()=>{returnFocus.current=document.activeElement;setOpened(true)};
  useEffect(()=>{
   if(!opened)return;
@@ -31,22 +64,24 @@ export default function BrandGallery(){
    <div><span className="kicker">02 / BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
    <p>Brand guidelines by John Wolf.</p>
   </header>
-  <div className="brand-gallery-track" aria-label="Browse brand guidelines" tabIndex={0}
+  <div ref={track} className={'brand-gallery-track'+(swipe.current?.moved?' is-dragging':'')} aria-label="Browse brand guidelines" tabIndex={0}
    onKeyDown={e=>{if(e.key==='ArrowRight'){e.preventDefault();step(1)}if(e.key==='ArrowLeft'){e.preventDefault();step(-1)}}}
-   onPointerDown={e=>{swipe.current={x:e.clientX,y:e.clientY}}}
-   onPointerUp={e=>{if(!swipe.current)return;const dx=e.clientX-swipe.current.x,dy=e.clientY-swipe.current.y;swipe.current=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)step(dx<0?1:-1)}}>
-   {[-1,0,1].map(offset=>{
-    const project=brands[(index+offset+brands.length)%brands.length];
-    return <button key={offset} className={'brand-gallery-panel brand-panel-'+(offset===0?'center':offset<0?'left':'right')}
-     aria-label={offset===0?'Open '+project.name+' guidelines':'Show '+project.name}
-     onClick={()=>{if(offset===0)open();else step(offset)}}>
-     <img key={project.id} src={project.pages[0]} alt={project.name+' brand guidelines cover'} draggable="false"/>
-     {offset===0&&<span className="brand-panel-open">Explore guidelines ↗</span>}
+   onPointerDown={dragStart} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd}
+   onClickCapture={e=>{if(performance.now()<suppressClick.current){e.preventDefault();e.stopPropagation()}}}>
+   {[-2,-1,0,1,2].map(offset=>{
+    const slot=Math.round(position)+offset,delta=slot-position;
+    const project=brands[wrap(slot)],center=slot===Math.round(position);
+    const scale=1-.14*Math.min(2,Math.abs(delta));
+    return <button key={slot} className={'brand-gallery-panel'+(center?' is-center':'')}
+     style={{transform:`translate(-50%,-50%) translateX(calc(var(--brand-stride) * ${delta})) rotateY(${-Math.max(-1,Math.min(1,delta))*24}deg) scale(${scale})`,zIndex:10-Math.round(Math.abs(delta)*2),opacity:Math.max(0,Math.min(1,2.5-Math.abs(delta)))}}
+     aria-label={center?'Open '+project.name+' guidelines':'Show '+project.name} tabIndex={center?0:-1}
+     onClick={()=>{if(center)open();else moveTo(slot)}}>
+     <img src={project.pages[0]} alt={project.name+' brand guidelines cover'} draggable="false"/>
+     {center&&<span className="brand-panel-open">Explore guidelines ↗</span>}
     </button>
    })}
   </div>
   <footer className="brand-gallery-controls">
-   <span className="brand-gallery-count">{String(index+1).padStart(2,'0')} / {String(brands.length).padStart(2,'0')}</span>
    <div><button onClick={()=>step(-1)} aria-label="Previous brand">←</button><button className="brand-current-name" onClick={open}>{current.name}</button><button onClick={()=>step(1)} aria-label="Next brand">→</button></div>
    <span>{current.pages.length} pages</span>
   </footer>

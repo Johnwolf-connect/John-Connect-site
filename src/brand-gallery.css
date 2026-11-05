@@ -28,3 +28,15 @@
 @keyframes brand-reader-in{from{opacity:0;transform:translateY(35px) scale(.96)}to{opacity:1;transform:none}}
 @media(max-width:720px){.brand-gallery{min-height:85svh;padding-top:40px}.brand-gallery-heading{display:block}.brand-gallery-heading p{margin-top:15px}.brand-gallery-track{height:52vh}.brand-gallery-panel{width:78%}.brand-panel-left{transform:translate(-153%,-50%) rotateY(24deg) scale(.86)}.brand-panel-right{transform:translate(53%,-50%) rotateY(-24deg) scale(.86)}.brand-gallery-count{display:none}.brand-gallery-controls{padding:0 14px}.brand-gallery-controls>div{gap:0}.brand-gallery-controls .brand-current-name{font-size:14px;min-width:130px}.brand-gallery-controls>span{font-size:9px}.brand-reader-footer>span{display:none}.brand-panel-open{opacity:1;font-size:9px;bottom:12px;right:12px}}
 @media(prefers-reduced-motion:reduce){.brand-gallery-panel,.brand-gallery-panel img,.brand-reader{animation:none;transition:none}}
+
+/* Continuous track: cards retain their identity while crossing loop boundaries. */
+.brand-gallery{padding-top:18px}
+.brand-gallery-heading h2{margin-top:8px}
+.brand-gallery-track{--brand-stride:59vw;cursor:grab;user-select:none;-webkit-user-select:none}
+.brand-gallery-track.is-dragging,.brand-gallery-track.is-dragging .brand-gallery-panel{cursor:grabbing}
+.brand-gallery-panel{transition:none;will-change:transform;cursor:grab}
+.brand-gallery-panel img{animation:none;pointer-events:none}
+.brand-gallery-panel.is-center:hover .brand-panel-open,.brand-gallery-panel.is-center:focus-visible .brand-panel-open{opacity:1}
+.brand-gallery-controls{justify-content:center;position:relative}
+.brand-gallery-controls>span{position:absolute;right:4vw}
+@media(max-width:720px){.brand-gallery{padding-top:18px}.brand-gallery-track{--brand-stride:80vw}}

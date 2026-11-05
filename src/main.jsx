@@ -106,7 +106,6 @@ function ScrollGallery({projects,onSelect}){
       <Mark project={project}/>
      </button>;
     })}
-    <div className="stage-index">{String(current+1).padStart(2,'0')} <span>/ {String(projects.length).padStart(2,'0')}</span></div>
    </div>
   </div>
  </section>;
