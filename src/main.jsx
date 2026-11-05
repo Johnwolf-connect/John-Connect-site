@@ -1,5 +1,4 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {createPortal} from 'react-dom';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
@@ -123,30 +122,6 @@ function ScrollGallery({projects,onSelect}){
 }
 
 
-function PurpleCursor(){
- const cursor=useRef(null);
- useEffect(()=>{
-  const media=window.matchMedia('(hover:hover) and (pointer:fine)');
-  let frame=0;
-  const hide=()=>{document.documentElement.classList.remove('purple-cursor-active');if(cursor.current)cursor.current.style.opacity='0'};
-  const move=event=>{
-   if(!media.matches||event.pointerType==='touch'){hide();return}
-   cancelAnimationFrame(frame);
-   frame=requestAnimationFrame(()=>{
-    if(!cursor.current)return;
-    cursor.current.style.transform=`translate3d(${event.clientX}px,${event.clientY}px,0) translate(-50%,-50%)`;
-    cursor.current.style.opacity='1';
-    document.documentElement.classList.add('purple-cursor-active');
-   });
-  };
-  window.addEventListener('pointermove',move,{passive:true});
-  document.addEventListener('pointerleave',hide);
-  window.addEventListener('blur',hide);
-  media.addEventListener('change',hide);
-  return()=>{cancelAnimationFrame(frame);hide();window.removeEventListener('pointermove',move);document.removeEventListener('pointerleave',hide);window.removeEventListener('blur',hide);media.removeEventListener('change',hide)};
- },[]);
- return createPortal(<div ref={cursor} className="purple-cursor" aria-hidden="true"/>,document.body);
-}
 function Contact(){
  const [status,setStatus]=useState(''),[sending,setSending]=useState(false);
  const endpoint=import.meta.env.VITE_CONTACT_ENDPOINT;
@@ -182,16 +157,13 @@ function Contact(){
 }
 
 function App(){
- const [active,setActive]=useState(null),[pointer,setPointer]=useState({x:0,y:0});
- const raf=useRef(0);
+ const [active,setActive]=useState(null);
 
 
  useEffect(()=>{const onKey=e=>{if(e.key==='Escape')setActive(null)};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[]);
  useEffect(()=>{document.body.style.overflow=active?'hidden':'';return()=>document.body.style.overflow=''},[active]);
- const move=e=>{if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;cancelAnimationFrame(raf.current);raf.current=requestAnimationFrame(()=>setPointer({x:(e.clientX/window.innerWidth-.5)*16,y:(e.clientY/window.innerHeight-.5)*16}));};
- return <div onMouseMove={move}>
+ return <div>
   <VisualContinuity/>
-  <PurpleCursor/>
   <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
