@@ -170,7 +170,7 @@ const contactServices = [
 function Contact(){
  const [status,setStatus]=useState(''),[sending,setSending]=useState(false);
  const endpoint=import.meta.env.VITE_CONTACT_ENDPOINT?.trim();
- const email=import.meta.env.VITE_CONTACT_EMAIL?.trim();
+ const email=import.meta.env.VITE_CONTACT_EMAIL?.trim() || 'johnwolf.connect@gmail.com';
  const canContact=Boolean(endpoint||email);
  const submit=async event=>{
   event.preventDefault();
