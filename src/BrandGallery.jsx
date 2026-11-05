@@ -11,7 +11,8 @@ export default function BrandGallery(){
  const index=wrap(Math.round(position));
  const dialog=useRef(null),returnFocus=useRef(null),swipe=useRef(null);
  const reader=useRef(null),sheet=useRef(null),origin=useRef(null),readerDrag=useRef(null),loopReady=useRef(false);
- const [details,setDetails]=useState(false),[readingProgress,setReadingProgress]=useState(0);
+ const [details,setDetails]=useState(false);
+ const progressRing=useRef(null);
  const current=brands[index];
  const [autoPlaying,setAutoPlaying]=useState(true);
  const autoDeadline=useRef(0);
@@ -116,7 +117,7 @@ export default function BrandGallery(){
   gsap.set(veil,{autoAlpha:1});
   gsap.set(page,{x:r.left,y:r.top,scaleX:r.width/window.innerWidth,scaleY:r.height/window.innerHeight,skewY:0,rotationX:0,transformOrigin:'0 0',clipPath:curved});
   // Blank white paper leads the transition; the document is revealed last.
-  const animation=gsap.timeline();
+  const animation=gsap.timeline({onComplete:()=>gsap.set(page,{clearProps:'transform,transformOrigin,clipPath'})});
   animation.to(page,{duration:.16,clipPath:bowed,ease:'power1.inOut'})
    .to(page,{x:r.left*.28,y:r.top*.2,scaleX:.91,scaleY:.87,skewY:-2.5,rotationX:5,clipPath:bowed,duration:.62,ease:'power2.inOut'})
    .to(page,{x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:flat,duration:.38,ease:'power2.out'})
@@ -131,7 +132,8 @@ export default function BrandGallery(){
   const cycle=element.querySelector('.brand-reader-cycle');
   if(!cycle)return;
   element.scrollTop=cycle.offsetHeight;
-  setReadingProgress(0);loopReady.current=true;
+  progressRing.current?.setAttribute('stroke-dashoffset','87.965');
+  loopReady.current=true;
  },[opened,current.id]);
  // Scroll speed drives elastic page distortion; loop offsets are excluded.
  useEffect(()=>{
@@ -139,7 +141,17 @@ export default function BrandGallery(){
   const element=reader.current;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   let frame=0,lastY=null,lastTime=null,stretch=0;
-  const reset=()=>{element.style.setProperty('--pdf-stretch','1');element.style.setProperty('--pdf-squeeze','1')};
+  const nearby=new Set();
+  const observer=new IntersectionObserver(entries=>{
+   for(const entry of entries){
+    if(entry.isIntersecting)nearby.add(entry.target);
+    else{
+     nearby.delete(entry.target);
+     entry.target.style.removeProperty('transform');
+    }
+   }
+  },{root:element,rootMargin:'100% 0px'});
+  element.querySelectorAll('figure img').forEach(img=>observer.observe(img));
   const animate=time=>{
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
    const y=element.scrollTop;
@@ -149,12 +161,20 @@ export default function BrandGallery(){
    lastY=y;lastTime=time;
    const target=reduced.matches?0:Math.min(.12,Math.abs(delta)/dt*.000035);
    stretch+=(target-stretch)*(1-Math.exp(-dt/(target>stretch ? .055 : .14)));
-   element.style.setProperty('--pdf-stretch',String(1+stretch));
-   element.style.setProperty('--pdf-squeeze',String(1-stretch*.16));
+   // Leave distant pages untransformed so scrolling can paint them normally.
+   const transform=stretch>.001&&!reduced.matches
+    ?`scale(${1-stretch*.16},${1+stretch})`:'';
+   for(const image of nearby){
+    if(image.style.transform!==transform)image.style.transform=transform;
+   }
    frame=requestAnimationFrame(animate);
   };
-  reset();frame=requestAnimationFrame(animate);
-  return()=>{cancelAnimationFrame(frame);reset()};
+  frame=requestAnimationFrame(animate);
+  return()=>{
+   cancelAnimationFrame(frame);
+   observer.disconnect();
+   for(const image of nearby)image.style.removeProperty('transform');
+  };
  },[opened,current.id]);
  const loopScroll=()=>{
   const element=reader.current;if(!element||!loopReady.current)return;
@@ -163,7 +183,8 @@ export default function BrandGallery(){
   let y=element.scrollTop;
   if(y<height*.5){y+=height;element.scrollTop=y}
   else if(y>height*1.5){y-=height;element.scrollTop=y}
-  setReadingProgress(((y%height)+height)%height/height);
+  const progress=((y%height)+height)%height/height;
+  progressRing.current?.setAttribute('stroke-dashoffset',String(87.965*(1-progress)));
  };
  const readerDown=e=>{
   if(e.pointerType==='mouse'&&e.button!==0)return;
@@ -252,7 +273,7 @@ export default function BrandGallery(){
      </div>)}
     </div>
     <div className="brand-reader-progress" aria-label="Position within guideline">
-     <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" opacity=".25"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="87.965" strokeDashoffset={87.965*(1-readingProgress)} transform="rotate(-90 20 20)"/></svg>
+     <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" opacity=".25"/><circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="87.965" ref={progressRing} strokeDashoffset="87.965" transform="rotate(-90 20 20)"/></svg>
     </div>
     <nav className="brand-reader-projects" aria-label="Switch brand guideline">
      <button onClick={()=>step(-1)} aria-label="Previous project">←</button><span key={current.id}>{current.name}</span><button onClick={()=>step(1)} aria-label="Next project">→</button>
