@@ -87,3 +87,7 @@
  .brand-reader-projects span{font-size:11px;white-space:normal;text-align:center}
  .brand-reader-projects button{font-size:19px;padding:7px 9px}
 }
+
+/* The cover becomes blank white flexible paper before any PDF page appears. */
+.brand-reader-sheet{background:#fff;backface-visibility:hidden}
+.brand-paper-veil{position:absolute;inset:0;z-index:20;background:#fff;pointer-events:none}
