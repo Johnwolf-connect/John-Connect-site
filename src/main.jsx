@@ -89,12 +89,21 @@ function ScrollGallery({projects,onSelect}){
    <aside className="project-info" aria-live="off">
     <h2 className="logo-creations-title"><strong>Logo</strong> Creations.</h2>
     <span className="kicker">LOGO SPOTLIGHT / {String(current+1).padStart(2,'0')} — {String(projects.length).padStart(2,'0')}</span>
-    <div className="project-info-body" key={current}>
-     <h3>{projects[current][0]}</h3>
-     <p>{projects[current][1]} — original identity design by John Wolf.</p>
-     <button className="project-detail" onClick={()=>onSelect(projects[current])}>View project details ↗</button>
+    <div className="project-info-morph">
+     {projects.map((project,i)=>{
+      const delta=i-progress,distance=Math.abs(delta);
+      const t=Math.max(0,Math.min(1,(distance-.2)/.6));
+      const blend=1-t*t*(3-2*t);
+      const opacity=reduced?(i===current?1:0):blend;
+      return <div key={project[2]} className="project-info-body project-info-layer" aria-hidden={i!==current}
+       style={{opacity,visibility:opacity>0?'visible':'hidden',transform:reduced?'none':`translateY(${delta*14}px) scale(${1+(1-blend)*.055},${1-(1-blend)*.075}) skewY(${delta*.7}deg)`,filter:reduced?'none':`blur(${(1-blend)*3}px)`}}>
+       <h3>{project[0]}</h3>
+       <p>{project[1]} — original identity design by John Wolf.</p>
+      </div>;
+     })}
     </div>
-    <div className="project-progress" aria-hidden="true"><span style={{width:((current+1)/projects.length*100)+'%'}}/></div>
+    <button className="project-detail" onClick={()=>onSelect(projects[current])}>View project details ↗</button>
+    <div className="project-progress" aria-hidden="true"><span style={{width:((progress+1)/projects.length*100)+'%'}}/></div>
    </aside>
    <div className="logo-stage">
     {projects.map((project,i)=>{
