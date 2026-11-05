@@ -134,16 +134,12 @@
 /* Clear the fixed glass navigation and give the covers more breathing room. */
 .brand-gallery .brand-gallery-dock{padding-top:104px}
 .brand-gallery .brand-gallery-panel{width:min(50vw,calc((100svh - 270px) * 1.7778))}
-.brand-gallery .brand-gallery-controls{background:#9900ff;color:rgb(255 255 255 / 85%)}
+.brand-gallery .brand-gallery-controls{background:#9900ff;color:#fff}
 .brand-gallery .brand-gallery-controls button,
-.brand-gallery .brand-gallery-controls .brand-auto-toggle{color:#fff}
+.brand-gallery .brand-gallery-controls .brand-auto-toggle,
+.brand-gallery .brand-gallery-controls .brand-keywords{color:#fff}
 @media(max-width:720px){
  .brand-gallery .brand-gallery-dock{padding-top:94px}
  .brand-gallery .brand-gallery-panel{width:min(70vw,calc((100svh - 260px) * 1.7778))}
 }
 
-/* Signature purple bar with black lettering and controls. */
-.brand-gallery .brand-gallery-controls,
-.brand-gallery .brand-gallery-controls button,
-.brand-gallery .brand-gallery-controls .brand-auto-toggle,
-.brand-gallery .brand-gallery-controls .brand-keywords{color:#111}
