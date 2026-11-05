@@ -13,7 +13,34 @@ export default function BrandGallery(){
  const reader=useRef(null),sheet=useRef(null),origin=useRef(null),readerDrag=useRef(null),loopReady=useRef(false);
  const [details,setDetails]=useState(false),[readingProgress,setReadingProgress]=useState(0);
  const current=brands[index];
+ const [autoPlaying,setAutoPlaying]=useState(true);
+ const autoDeadline=useRef(0);
+ const resetAuto=()=>{autoDeadline.current=performance.now()+4000};
+ useEffect(()=>{
+  const element=track.current;if(!element||opened||!autoPlaying)return;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let visible=false;
+  resetAuto();
+  const observer=new IntersectionObserver(entries=>{
+   visible=entries.some(entry=>entry.isIntersecting&&entry.intersectionRatio>=.35);
+   resetAuto();
+  },{threshold:[0,.35]});
+  observer.observe(element);
+  const timer=window.setInterval(()=>{
+   if(document.hidden||!visible||reduced.matches||swipe.current||
+      element.closest('.brand-gallery')?.querySelector(':focus-visible')){
+    resetAuto();return;
+   }
+   if(performance.now()>=autoDeadline.current){
+    // Decreasing position moves the covers visually to the right.
+    step(-1);
+   }
+  },100);
+  return()=>{observer.disconnect();window.clearInterval(timer)};
+ },[opened,autoPlaying]);
+
  const moveTo=target=>{
+  resetAuto();
   slideTween.current?.kill();
   const state={value:positionRef.current};
   slideTween.current=gsap.to(state,{value:target,duration:window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:.65,ease:'power3.out',onUpdate:()=>{positionRef.current=state.value;setPosition(state.value)}});
@@ -24,6 +51,7 @@ export default function BrandGallery(){
  const dragStart=e=>{
   if(e.pointerType==='mouse'&&e.button!==0)return;
   slideTween.current?.kill();
+  resetAuto();
   swipe.current={x:e.clientX,y:e.clientY,start:positionRef.current,moved:false};
  };
  const dragMove=e=>{
@@ -35,6 +63,7 @@ export default function BrandGallery(){
   positionRef.current=gesture.start-dx/stride();setPosition(positionRef.current);
  };
  const dragEnd=e=>{
+  resetAuto();
   const gesture=swipe.current;swipe.current=null;
   if(track.current?.hasPointerCapture(e.pointerId))track.current.releasePointerCapture(e.pointerId);
   if(!gesture?.moved)return;
@@ -50,7 +79,7 @@ export default function BrandGallery(){
    if(opened||e.ctrlKey)return;
    const dx=e.shiftKey&&Math.abs(e.deltaX)<1?e.deltaY:e.deltaX;
    if(Math.abs(dx)<1||(!e.shiftKey&&Math.abs(dx)<Math.abs(e.deltaY)*1.15))return;
-   e.preventDefault();slideTween.current?.kill();
+   e.preventDefault();resetAuto();slideTween.current?.kill();
    if(wheelStart===null)wheelStart=positionRef.current;
    positionRef.current+=dx*(e.deltaMode===1?16:1)/stride();setPosition(positionRef.current);
    clearTimeout(timer);
@@ -203,7 +232,7 @@ export default function BrandGallery(){
      {['Visual Design','Primary Marks','Typography','Voice','Visual Design'].map((word,i)=><span key={i}>{word}</span>)}
     </div>
    </div>
-   <span>{current.pages.length} pages</span>
+   <button className="brand-auto-toggle" onClick={()=>{resetAuto();setAutoPlaying(value=>!value)}} aria-label={autoPlaying?'Pause automatic brand rotation':'Resume automatic brand rotation'}>{autoPlaying?'Pause rotation':'Resume rotation'}</button>
   </footer>
   </div>
   {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+' brand guidelines'} onPointerDown={readerDown}>
