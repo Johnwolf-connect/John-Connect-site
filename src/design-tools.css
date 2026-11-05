@@ -94,3 +94,16 @@
  .design-tool-feature-icon{height:68px}
  .design-tool-feature-icon img{width:65px;height:65px}
 }
+
+/* Keep copy close to the heading; expand only when an icon is selected. */
+.design-tools-information{align-self:start;padding-top:clamp(20px,8vh,70px)}
+.design-tools-information h2{margin-bottom:14px}
+.design-tool-feature-icon,.design-tool-feature-icon.is-visible{height:0;opacity:1;transition:none;flex-shrink:0}
+.design-tool-feature-icon img{flex-shrink:0}
+.design-tools-information p{margin-top:12px;animation:none}
+@media(max-width:720px){
+ .design-tools-layout{padding-top:88px}
+ .design-tools-information{align-self:start;padding-top:0}
+ .design-tools-information h2{margin-bottom:10px}
+ .design-tool-feature-icon,.design-tool-feature-icon.is-visible{height:0}
+}
