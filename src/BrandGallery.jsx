@@ -135,52 +135,51 @@ export default function BrandGallery(){
   progressRing.current?.setAttribute('stroke-dashoffset','87.965');
   loopReady.current=true;
  },[opened,current.id]);
- // Scroll speed drives elastic page distortion; loop offsets are excluded.
+ // Ease with scroll speed while keeping space between the page images.
  useEffect(()=>{
   if(!opened||!reader.current)return;
   const element=reader.current;
+  const cycle=element.querySelector('.brand-reader-cycle');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  let frame=0,lastY=null,lastTime=null;
-  let speed=0,stretch=0,stretchVelocity=0;
-  // A damped spring adds a small rebound when scrolling stops.
-  const frequency=23,damping=12;
-  const oscillation=Math.sqrt(frequency**2-damping**2);
+  let frame=0,lastY=null,lastTime=null,stretch=0;
   const nearby=new Set();
+  const imageHeights=new WeakMap();
+  const sizes=new ResizeObserver(entries=>{
+   for(const entry of entries)imageHeights.set(entry.target,entry.contentRect.height);
+  });
   const observer=new IntersectionObserver(entries=>{
    for(const entry of entries){
-    if(entry.isIntersecting)nearby.add(entry.target);
-    else{
-     nearby.delete(entry.target);
-     entry.target.style.removeProperty('transform');
+    const image=entry.target.querySelector('img');
+    if(entry.isIntersecting){
+     nearby.add(image);
+     sizes.observe(image);
+    }else{
+     nearby.delete(image);
+     sizes.unobserve(image);
+     image.style.removeProperty('transform');
     }
    }
   },{root:element,rootMargin:'100% 0px'});
-  element.querySelectorAll('figure img').forEach(img=>observer.observe(img));
+  element.querySelectorAll('figure').forEach(figure=>observer.observe(figure));
   const animate=time=>{
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
    const y=element.scrollTop;
-   const height=element.querySelector('.brand-reader-cycle')?.offsetHeight||0;
+   const height=cycle?.offsetHeight||0;
    let delta=lastY===null?0:y-lastY;
    if(height)delta-=Math.round(delta/height)*height;
    lastY=y;lastTime=time;
    if(reduced.matches){
-    speed=stretch=stretchVelocity=0;
+    stretch=0;
    }else{
-    const measuredSpeed=Math.min(9000,Math.abs(delta)/dt);
-    speed+=(measuredSpeed-speed)*(1-Math.exp(-dt/.035));
-    // Ease into the limit so fast flicks don't hit a hard visual stop.
-    const target=.15*(1-Math.exp(-speed/2300));
-    const displacement=stretch-target;
-    const decay=Math.exp(-damping*dt);
-    const sine=Math.sin(oscillation*dt),cosine=Math.cos(oscillation*dt);
-    stretch=target+decay*(displacement*cosine+(stretchVelocity+damping*displacement)/oscillation*sine);
-    stretchVelocity=decay*(stretchVelocity*cosine-(damping*stretchVelocity+frequency**2*displacement)/oscillation*sine);
+    const target=.06*(1-Math.exp(-Math.abs(delta)/dt/2300));
+    const easing=target>stretch?.065:.14;
+    stretch+=(target-stretch)*(1-Math.exp(-dt/easing));
    }
-   // Leave distant pages untransformed so scrolling can paint them normally.
-   const shape=Math.max(-.025,Math.min(.16,stretch));
-   const transform=Math.abs(shape)>.0005
-    ?`scale(${(1-shape*.26).toFixed(4)},${(1+shape).toFixed(4)})`:'';
    for(const image of nearby){
+    const imageHeight=imageHeights.get(image);
+    // Each image can grow by at most 12px per edge into the 48px gap.
+    const shape=imageHeight?Math.min(stretch,24/imageHeight):0;
+    const transform=shape>.0005?`scaleY(${1+shape})`:'';
     if(image.style.transform!==transform)image.style.transform=transform;
    }
    frame=requestAnimationFrame(animate);
@@ -189,6 +188,7 @@ export default function BrandGallery(){
   return()=>{
    cancelAnimationFrame(frame);
    observer.disconnect();
+   sizes.disconnect();
    for(const image of nearby)image.style.removeProperty('transform');
   };
  },[opened,current.id]);
