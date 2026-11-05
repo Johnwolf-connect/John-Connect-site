@@ -16,3 +16,11 @@
  100%{opacity:1;transform:none}
 }
 @media(prefers-reduced-motion:reduce){.site-light-field{filter:blur(26px)}.project-info-body,.design-tools-information h2,.design-tools-information p,.brand-current-name,.brand-reader-projects span{animation:none}}
+
+/* Persistent text layers blend continuously with logo scroll progress. */
+.project-info-morph{display:grid;isolation:isolate}
+.project-info-morph .project-info-layer{grid-area:1 / 1;min-width:0;animation:none;transform-origin:0 45%;pointer-events:none;will-change:transform,opacity,filter}
+.project-info-morph + .project-detail{align-self:flex-start}
+@media(prefers-reduced-motion:reduce){
+ .project-info-morph .project-info-layer{will-change:auto;filter:none!important;transform:none!important}
+}
