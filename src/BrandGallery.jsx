@@ -135,6 +135,66 @@ export default function BrandGallery(){
   progressRing.current?.setAttribute('stroke-dashoffset','87.965');
   loopReady.current=true;
  },[opened,current.id]);
+ // Load the visible pages first and warm a short buffer in the scroll direction.
+ useLayoutEffect(()=>{
+  if(!opened||!reader.current)return;
+  const element=reader.current;
+  const images=Array.from(element.querySelectorAll('figure img'));
+  const cycle=element.querySelector('.brand-reader-cycle');
+  const prefetching=new Set();
+  let frame=0,direction=1,lastY=element.scrollTop;
+  const requestPage=(image,priority)=>{
+   if(image.hasAttribute('src')){
+    if(priority==='high')image.fetchPriority='high';
+    return;
+   }
+   image.fetchPriority=priority;
+   image.src=image.dataset.pageSrc;
+   if(priority==='low'&&!image.complete)prefetching.add(image);
+  };
+  const update=()=>{
+   frame=0;
+   const y=element.scrollTop;
+   const cycleHeight=cycle?.offsetHeight||0;
+   let movement=y-lastY;
+   if(cycleHeight)movement-=Math.round(movement/cycleHeight)*cycleHeight;
+   if(movement)direction=Math.sign(movement);
+   lastY=y;
+
+   const viewport=element.getBoundingClientRect();
+   const before=[],after=[];
+   for(const image of images){
+    const page=image.parentElement.getBoundingClientRect();
+    if(page.bottom<=viewport.top)before.push(image);
+    else if(page.top>=viewport.bottom)after.push(image);
+    else requestPage(image,'high');
+   }
+   before.reverse();
+   const ahead=direction>0?after:before;
+   const behind=direction>0?before:after;
+   const buffer=[...ahead.slice(0,3),...behind.slice(0,1)];
+   for(const image of buffer){
+    if(prefetching.size>=2)break;
+    requestPage(image,'low');
+   }
+  };
+  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
+  const onImageSettled=event=>{
+   if(prefetching.delete(event.target))schedule();
+  };
+  element.addEventListener('scroll',schedule,{passive:true});
+  element.addEventListener('load',onImageSettled,true);
+  element.addEventListener('error',onImageSettled,true);
+  window.addEventListener('resize',schedule);
+  update();
+  return()=>{
+   cancelAnimationFrame(frame);
+   element.removeEventListener('scroll',schedule);
+   element.removeEventListener('load',onImageSettled,true);
+   element.removeEventListener('error',onImageSettled,true);
+   window.removeEventListener('resize',schedule);
+  };
+ },[opened,current.id]);
  // Ease with scroll speed while keeping space between the page images.
  useEffect(()=>{
   if(!opened||!reader.current)return;
@@ -284,7 +344,7 @@ export default function BrandGallery(){
      {[0,1,2].map(cycle=><div className="brand-reader-cycle" key={cycle}>
       {current.pages.map((page,i)=>{
        const size=current.sizes?.[i]||[1200,675];
-       return <figure key={page}><img src={page} alt={current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} draggable="false" loading="eager" decoding="sync"/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>;
+       return <figure key={page}><img data-page-src={page} alt={current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{String(i+1).padStart(2,'0')} / {current.pages.length}</figcaption></figure>;
       })}
      </div>)}
     </div>
