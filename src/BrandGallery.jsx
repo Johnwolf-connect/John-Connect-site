@@ -19,7 +19,7 @@ export default function BrandGallery(){
  useEffect(()=>()=>slideTween.current?.kill(),[]);
  const stride=()=>track.current.clientWidth*(window.innerWidth<=720 ? .80 : .59);
  const dragStart=e=>{
-  if(e.button!==0)return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
   slideTween.current?.kill();
   swipe.current={x:e.clientX,y:e.clientY,start:positionRef.current,moved:false};
  };
@@ -40,6 +40,30 @@ export default function BrandGallery(){
   const target=Math.abs(delta)>.12?Math.round(gesture.start)+Math.sign(delta)*Math.max(1,Math.round(Math.abs(delta))):Math.round(gesture.start);
   moveTo(target);
  };
+ useEffect(()=>{
+  const element=track.current;if(!element)return;
+  let timer=0,wheelStart=null;
+  const wheel=e=>{
+   if(opened||e.ctrlKey)return;
+   const dx=e.shiftKey&&Math.abs(e.deltaX)<1?e.deltaY:e.deltaX;
+   if(Math.abs(dx)<1||(!e.shiftKey&&Math.abs(dx)<Math.abs(e.deltaY)*1.15))return;
+   e.preventDefault();slideTween.current?.kill();
+   if(wheelStart===null)wheelStart=positionRef.current;
+   positionRef.current+=dx*(e.deltaMode===1?16:1)/stride();setPosition(positionRef.current);
+   clearTimeout(timer);
+   timer=setTimeout(()=>{
+    const delta=positionRef.current-wheelStart;
+    const target=Math.abs(delta)>.08?Math.round(wheelStart)+Math.sign(delta)*Math.max(1,Math.round(Math.abs(delta))):Math.round(wheelStart);
+    wheelStart=null;moveTo(target);
+   },140);
+  };
+  const move=e=>dragMove(e),end=e=>dragEnd(e);
+  element.addEventListener('wheel',wheel,{passive:false});
+  window.addEventListener('pointermove',move);
+  window.addEventListener('pointerup',end);
+  window.addEventListener('pointercancel',end);
+  return()=>{clearTimeout(timer);element.removeEventListener('wheel',wheel);window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',end)};
+ },[opened]);
  const open=()=>{returnFocus.current=document.activeElement;setOpened(true)};
  useEffect(()=>{
   if(!opened)return;
@@ -66,7 +90,7 @@ export default function BrandGallery(){
   </header>
   <div ref={track} className={'brand-gallery-track'+(swipe.current?.moved?' is-dragging':'')} aria-label="Browse brand guidelines" tabIndex={0}
    onKeyDown={e=>{if(e.key==='ArrowRight'){e.preventDefault();step(1)}if(e.key==='ArrowLeft'){e.preventDefault();step(-1)}}}
-   onPointerDown={dragStart} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd}
+   onPointerDown={dragStart}
    onClickCapture={e=>{if(performance.now()<suppressClick.current){e.preventDefault();e.stopPropagation()}}}>
    {[-2,-1,0,1,2].map(offset=>{
     const slot=Math.round(position)+offset,delta=slot-position;
