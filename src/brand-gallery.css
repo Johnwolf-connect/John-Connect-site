@@ -106,3 +106,32 @@
 .brand-reader button:focus-visible{outline:2px solid #9900ff;outline-offset:4px}
 .brand-reader-details-toggle{padding:10px 15px;margin-top:4px}
 @media(prefers-reduced-motion:reduce){.brand-reader-pages img{transform:none;will-change:auto}}
+
+/* CSS-only hold: document flow stays stable beside the preceding logo section. */
+.brand-gallery{height:175svh;min-height:0;padding:0;display:block;overflow:visible}
+.brand-gallery-dock{position:sticky;top:0;height:100svh;min-height:540px;padding:20px 0 0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:#fff;overflow:hidden}
+.brand-gallery-track{overflow:hidden}
+.brand-gallery-controls{background:#111;color:#aaa;min-height:52px;justify-content:center;padding:0 24px}
+.brand-gallery-controls .brand-gallery-nav{position:absolute;left:20px;gap:8px}
+.brand-gallery-controls .brand-gallery-nav button{color:#fff;font-size:16px;padding:10px}
+.brand-gallery-controls .brand-gallery-nav .brand-current-name{font-size:12px;min-width:0}
+.brand-gallery-controls .brand-keywords{display:block;height:24px;overflow:hidden;position:relative;width:260px;text-align:center;letter-spacing:.12em;text-transform:uppercase;color:#fff;font-size:12px}
+.brand-keywords-reel{display:flex;flex-direction:column;animation:brand-keyword-cycle 12s cubic-bezier(.65,0,.35,1) infinite}
+.brand-keywords-reel span{display:block;flex:0 0 24px;height:24px;line-height:24px}
+@keyframes brand-keyword-cycle{
+ 0%,19%{transform:translateY(0)}
+ 25%,44%{transform:translateY(-24px)}
+ 50%,69%{transform:translateY(-48px)}
+ 75%,94%{transform:translateY(-72px)}
+ 100%{transform:translateY(-96px)}
+}
+@media(max-width:720px){
+ .brand-gallery{height:165svh;min-height:0;padding:0}
+ .brand-gallery-dock{height:100svh;min-height:460px;padding-top:18px}
+ .brand-gallery-controls .brand-gallery-nav{left:4px;gap:0}
+ .brand-gallery-controls .brand-gallery-nav .brand-current-name{display:none}
+ .brand-gallery-controls .brand-keywords{width:150px;font-size:10px}
+ .brand-gallery-controls>span{right:12px}
+}
+@media(max-height:539px){.brand-gallery{height:auto}.brand-gallery-dock{position:relative;height:auto;min-height:540px}.brand-gallery-track{height:350px}}
+@media(prefers-reduced-motion:reduce){.brand-keywords-reel{animation:none}}
