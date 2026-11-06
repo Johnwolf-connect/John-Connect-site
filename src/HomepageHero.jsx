@@ -2,12 +2,12 @@ import React,{useEffect,useRef,useState} from 'react';
 import './HomepageHero.css';
 const topics=[
  ['PORTFOLIO','WELCOME TO THE','Creative work built around meaningful visual connections.','Explore branding, design, and digital experiences shaped with intention.'],
- ['BRANDING','IDENTITY WITH PURPOSE','A brand should be recognizable before its name is read.','I build cohesive visual systems that connect people to ideas.'],
- ['VISUAL DESIGNER','DESIGN IS COMMUNICATION','Every detail contributes to the story.','I turn complex ideas into memorable visual experiences.'],
- ['CONTENT CREATION','IDEAS INTO EXPRESSION','Strong content begins with a clear creative direction.','From concept to execution, every frame has a purpose.'],
- ['CONTENT GUIDELINES','CONSISTENCY BUILDS TRUST','Good systems keep a visual language unmistakable.','Clear guidelines help brands stay recognizable everywhere.'],
- ['AI MACHINE LEARNING','CREATIVITY MEETS TECHNOLOGY','New tools expand the possibilities of visual thinking.','I explore ways to combine human direction with emerging technology.'],
- ['PROBLEM SOLVING','THINK BEYOND THE OBVIOUS','Design is not only how things look.','It is how thoughtful solutions make experiences work better.']
+ ['BRANDING','CREATIVE','A brand should be recognizable before its name is read.','I build cohesive visual systems that connect people to ideas.'],
+ ['DESIGNER','VISUAL','Every detail contributes to the story.','I turn complex ideas into memorable visual experiences.'],
+ ['CREATION','CONTENT','Strong content begins with a clear creative direction.','From concept to execution, every frame has a purpose.'],
+ ['GUIDELINES','CONTENT','Good systems keep a visual language unmistakable.','Clear guidelines help brands stay recognizable everywhere.'],
+ ['LEARNING','AI MACHINE','New tools expand the possibilities of visual thinking.','I explore ways to combine human direction with emerging technology.'],
+ ['SOLVING','PROBLEM','Design is not only how things look.','It is how thoughtful solutions make experiences work better.']
 ];
 export default function HomepageHero(){
  const [index,setIndex]=useState(0),[phase,setPhase]=useState('rest'),[direction,setDirection]=useState(1);
@@ -37,7 +37,7 @@ export default function HomepageHero(){
   <div className="jw-hero-dot" aria-hidden="true"/>
   <div className="jw-hero-photo"><img src="/john-wolf-portrait.webp" alt="Portrait of John Wolf"/></div>
   <div className="jw-hero-content">
-   <div className="jw-eyebrow"><span key={'s'+index}>{t[1]}</span></div>
+   <div className="jw-eyebrow"><i className="jw-subtitle-dot" aria-hidden="true"/><span key={'s'+index}>{t[1]}</span></div>
    <div className="jw-title-layer"><h1 key={'t'+index} className="jw-title">{t[0]}</h1><h1 aria-hidden="true" key={'o'+index} className="jw-title jw-outline">{t[0]}</h1></div>
    <div className="jw-body" key={'b'+index}><p>{t[2]}</p><p>{t[3]}</p></div>
   </div>
