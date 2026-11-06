@@ -358,6 +358,11 @@ export default function BrandGallery(){
   return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus({preventScroll:true})};
  },[opened]);
 
+ const films=current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
+       <video src={film.src} poster={film.poster} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label={film.title}/>
+       <figcaption>{film.title}</figcaption>
+      </figure>);
+
  return <section id="riches" className="brand-gallery" aria-label="Brand identity and creative projects">
   <div className="brand-gallery-dock">
   <header className="brand-gallery-heading">
@@ -406,6 +411,8 @@ export default function BrandGallery(){
        const size=current.sizes?.[sourceIndex]||[1200,675];
        const still=<figure><img data-page-src={page} alt={current.alt?.[sourceIndex]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[sourceIndex]||String(i+1).padStart(2,'0')+' / '+(current.pages.length-1)}</figcaption></figure>;
        return <React.Fragment key={page}>
+        {isDatingApp&&i===0&&films?.[0]}
+        {isDatingApp&&i===2&&films?.[1]}
         {still}
         {sourceIndex===1&&current.comparison&&<figure className="brand-comparison">
          <h3>{current.comparison.title}</h3>
@@ -423,10 +430,7 @@ export default function BrandGallery(){
        </React.Fragment>;
       })}
       {isApparel&&<figure className="brand-reader-film"><video src={current.video} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
-      {current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
-       <video src={film.src} poster={film.poster} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label={film.title}/>
-       <figcaption>{film.title}</figcaption>
-      </figure>)}
+      {isDatingApp?films?.slice(2):films}
      </div>)}
     </div>
     <div className="brand-reader-progress" aria-label="Reading progress">
