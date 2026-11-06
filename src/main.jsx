@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
+import HomepageHero from './HomepageHero.jsx';
 import BrandGallery from './BrandGallery.jsx';
 import VisualContinuity from './VisualContinuity.jsx';
 import {gsap} from 'gsap';
@@ -209,20 +210,7 @@ function App(){
   <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
-    <div className="hero-copy">
-     <div className="hero-lockup">
-      <h1><span>JOHN</span><span>WOLF</span></h1>
-      <div className="hero-services" aria-label="Creative disciplines"><span>VISUAL DESIGN</span><span>BRAND DEVELOPMENT</span><span>WEB DESIGN</span></div>
-     </div>
-     <p className="hero-description">I build visual identities and digital experiences that make ideas impossible to overlook.</p>
-     <a className="hero-cta" href="#work">VIEW PORTFOLIO <span aria-hidden="true">↗</span></a>
-    </div>
-    <div className="hero-visual" aria-label="Portrait area">
-     <div className="hero-purple-shape" aria-hidden="true"/>
-     <img className="hero-portrait" src="/john-wolf-portrait.webp" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
-     <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
-    </div>
-    <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
+    <HomepageHero/>
     <CurvedSwipe/>
     <DesignTools/>
    </section>
