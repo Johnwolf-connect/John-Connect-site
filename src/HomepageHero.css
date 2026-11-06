@@ -81,3 +81,16 @@
  .hero.hero-reference .jw-more{bottom:18%!important;font-size:15px!important}
  .hero.hero-reference .jw-swipe{bottom:9%!important}
 }
+
+/* Approved typography specifications, 1920px reference artboard */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@700;800;900&family=Roboto:wght@700&display=swap');
+.hero.hero-reference .jw-eyebrow,.hero.hero-reference .jw-eyebrow span{font-family:'Roboto',Arial,sans-serif!important;font-size:clamp(15px,1.583333vw,30.4px)!important;font-weight:700!important;text-transform:uppercase!important;line-height:1.12!important}
+.hero.hero-reference .jw-title-layer .jw-title{font-family:'League Spartan',Arial,sans-serif!important;font-size:clamp(60px,11.302083vw,217px)!important;font-weight:800!important;letter-spacing:-.045em!important;line-height:.88!important;text-transform:uppercase!important}
+.hero.hero-reference .jw-body p{font-family:'Inter',Arial,sans-serif!important;font-size:clamp(15px,1.354167vw,26px)!important;font-weight:400!important;line-height:1.4!important}
+.hero.hero-reference .jw-more{font-family:'Inter',Arial,sans-serif!important;font-size:clamp(15px,1.354167vw,26px)!important;font-weight:600!important;text-transform:uppercase!important}
+@media(max-width:760px){
+ .hero.hero-reference .jw-eyebrow,.hero.hero-reference .jw-eyebrow span{font-size:clamp(13px,3.8vw,19px)!important}
+ .hero.hero-reference .jw-title-layer .jw-title{font-size:clamp(46px,11.302083vw,87px)!important}
+ .hero.hero-reference .jw-body p{font-size:clamp(14px,3.7vw,18px)!important}
+ .hero.hero-reference .jw-more{font-size:clamp(14px,3.7vw,18px)!important}
+}
