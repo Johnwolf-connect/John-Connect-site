@@ -167,3 +167,28 @@
  .hero.hero-reference .jw-title-layer .jw-title:not(.jw-outline){z-index:1!important}
  .hero.hero-reference .jw-eyebrow,.hero.hero-reference .jw-body{position:relative;z-index:7!important}
 }
+
+/* Reference artboard 1649x928: headline approximately x=73..1555, y=267..475.
+   At 1286px viewport, target rendered headline height ~162px and width ~1156px.
+   Keep portrait image dimensions and offset unchanged. */
+@media(min-width:761px){
+ .hero.hero-reference .jw-hero-content{top:27.8%!important;left:4.45%!important;width:91.1%!important}
+ .hero.hero-reference .jw-title-layer{width:100%!important;margin-top:12px!important}
+ .hero.hero-reference .jw-title-layer .jw-title{
+  font-family:'League Spartan',Arial,sans-serif!important;
+  font-size:clamp(115px,13.16vw,217px)!important;
+  font-weight:800!important;
+  line-height:1!important;
+  letter-spacing:-.035em!important;
+  white-space:nowrap!important;
+  width:max-content!important;
+  max-width:none!important;
+ }
+ .hero.hero-reference .jw-title-layer .jw-title:not(.jw-outline){color:#8747f5!important}
+ .hero.hero-reference .jw-title-layer .jw-title.jw-outline{
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  -webkit-text-stroke:1.8px white!important;
+  clip-path:polygon(57% 0,86% 0,86% 100%,57% 100%)!important;
+ }
+}
