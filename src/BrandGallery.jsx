@@ -270,7 +270,11 @@ export default function BrandGallery(){
     else if(video.loop)video.play().catch(()=>{});
    }
   },{root:element,threshold:.25});
-  element.querySelectorAll('video').forEach(video=>filmObserver.observe(video));
+  element.querySelectorAll('video').forEach(video=>{
+   video.defaultMuted=true;
+   video.muted=true;
+   filmObserver.observe(video);
+  });
   const animate=time=>{
    frame=0;
    const dt=lastTime===null?1/60:Math.max(.001,Math.min(.05,(time-lastTime)/1000));
@@ -417,9 +421,9 @@ export default function BrandGallery(){
         </figure>}
        </React.Fragment>;
       })}
-      {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted loop preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
+      {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
       {current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
-       <video src={film.src} poster={film.poster} controls playsInline muted loop preload="none" aria-label={film.title}/>
+       <video src={film.src} poster={film.poster} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label={film.title}/>
        <figcaption>{film.title}</figcaption>
       </figure>)}
      </div>)}
