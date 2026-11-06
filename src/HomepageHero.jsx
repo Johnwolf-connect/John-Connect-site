@@ -11,10 +11,10 @@ const topics=[
 ];
 export default function HomepageHero(){
  const [index,setIndex]=useState(0),[phase,setPhase]=useState('rest'),[direction,setDirection]=useState(1);
- const [reduce,setReduce]=useState(false);
+ const [reduce,setReduce]=useState(true);
  const timer=useRef(null),lastInput=useRef(0),locked=useRef(false),touch=useRef(null);
  const active=useRef(0);
- useEffect(()=>{const m=window.matchMedia('(prefers-reduced-motion: reduce)');const f=()=>setReduce(m.matches);f();m.addEventListener?.('change',f);return()=>m.removeEventListener?.('change',f)},[]);
+ // Layout review mode: keep the hero static until composition is approved.
  const advance=(next,manual=false)=>{
   if(locked.current)return;
   if(manual)lastInput.current=Date.now();
@@ -28,12 +28,12 @@ export default function HomepageHero(){
    timer.current=setTimeout(()=>{setPhase('rest');locked.current=false},650);
   },330)},450);
  };
- useEffect(()=>{const id=setInterval(()=>{if(!locked.current&&Date.now()-lastInput.current>=10000)advance((active.current+1)%topics.length)},4000);return()=>{clearInterval(id);clearTimeout(timer.current)}},[reduce]);
+ // Autoplay intentionally disabled for layout review.
  const swipeStart=e=>{touch.current={x:e.touches[0].clientX,y:e.touches[0].clientY}};
  const swipeEnd=e=>{if(!touch.current)return;const dx=e.changedTouches[0].clientX-touch.current.x,dy=e.changedTouches[0].clientY-touch.current.y;touch.current=null;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))advance(active.current+(dx<0?1:-1),true)};
- const wheel=e=>{if(Math.abs(e.deltaX)>25&&Math.abs(e.deltaX)>Math.abs(e.deltaY))advance(active.current+(e.deltaX>0?1:-1),true)};
+ const wheel=e=>{};
  const t=topics[index];
- return <div className={'jw-homepage jw-phase-'+phase+' jw-direction-'+(direction>0?'forward':'backward')} onTouchStart={swipeStart} onTouchEnd={swipeEnd} onWheel={wheel} onKeyDown={e=>{if(e.key==='ArrowRight')advance(active.current+1,true);if(e.key==='ArrowLeft')advance(active.current-1,true)}} tabIndex={0} aria-label="John Wolf creative disciplines carousel">
+ return <div className={'jw-homepage jw-phase-'+phase+' jw-direction-'+(direction>0?'forward':'backward')}  tabIndex={0} aria-label="John Wolf creative disciplines carousel">
   <div className="jw-hero-dot" aria-hidden="true"/>
   <div className="jw-hero-photo"><img src="/john-wolf-portrait.webp" alt="Portrait of John Wolf"/></div>
   <div className="jw-hero-content">
