@@ -38,9 +38,10 @@ export default function HomepageHero(){
   <div className="jw-hero-photo"><img src="/man.png" alt="Portrait of John Wolf"/></div>
   <div className="jw-hero-content">
    <div className="jw-eyebrow"><i className="jw-subtitle-dot" aria-hidden="true"/><span key={'s'+index}>{t[1]}</span></div>
-   <div className="jw-title-layer"><h1 key={'t'+index} className="jw-title">{t[0]}</h1><h1 aria-hidden="true" key={'o'+index} className="jw-title jw-outline">{t[0]}</h1></div>
+   <div className="jw-title-layer"><h1 key={'t'+index} className="jw-title">{t[0]}</h1></div>
    <div className="jw-body" key={'b'+index}><p>{t[2]}</p><p>{t[3]}</p></div>
   </div>
+  <div className="jw-portrait-outline-mask" aria-hidden="true"><div className="jw-outline-title-position"><span className="jw-title jw-outline">{t[0]}</span></div></div>
   <a className="jw-more" href="#about">MORE ABOUT ME <span aria-hidden="true">↗</span></a>
   <a className="jw-swipe" href="#work">SWIPE UP <span aria-hidden="true">↑</span></a>
   <div className="jw-indicators" role="group" aria-label="Choose a creative discipline">{topics.map((topic,i)=><button type="button" key={topic[0]} className={i===index?'active':''} onClick={()=>advance(i,true)} aria-label={'Show '+topic[0].toLowerCase()} aria-current={i===index?'true':undefined}/>)}</div>
