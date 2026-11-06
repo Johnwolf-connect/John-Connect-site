@@ -100,3 +100,19 @@
 .hero.hero-reference .jw-homepage *,
 .hero.hero-reference .jw-homepage *::before,
 .hero.hero-reference .jw-homepage *::after{animation:none!important;transition:none!important}
+
+/* Portrait scale correction: source man.png has a wide canvas with subject on right.
+   Size the image itself against the viewport instead of containing the entire canvas in half the hero. */
+@media(min-width:761px){
+ .hero.hero-reference .jw-hero-photo{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  display:block!important;overflow:hidden!important;z-index:5!important;pointer-events:none
+ }
+ .hero.hero-reference .jw-hero-photo img{
+  position:absolute!important;display:block!important;
+  width:125%!important;height:auto!important;max-width:none!important;
+  right:-18%!important;bottom:-2%!important;
+  object-fit:initial!important;object-position:initial!important;
+  filter:grayscale(1)!important
+ }
+}
