@@ -36,6 +36,7 @@ export default function DesignTools(){
   if(!host||!field)return;
   if(reduced){
    for(const button of Object.values(buttons.current))button.removeAttribute('style');
+   host.inert=false;
    host.style.removeProperty('--tool-panel-opacity');
    host.querySelector('.design-tools-information').style.removeProperty('transform');
    host.querySelector('.design-tools-center').style.removeProperty('opacity');
@@ -59,6 +60,8 @@ export default function DesignTools(){
    host.style.setProperty('--tool-panel-opacity',String(panel));
    if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
    if(prompt)prompt.style.opacity=String(smooth(clamp((p-.56)/.06,0,1))*(1-leave));
+   const interactive=p>=.62&&p<.78;
+   host.inert=!interactive;
    const selectedNode=buttons.current[chosen.current];
    if(selectedNode){selectedNode.style.opacity='0';selectedNode.style.pointerEvents='none';selectedNode.tabIndex=-1}
    const keys=tools.filter(tool=>tool.name!==chosen.current);
@@ -74,7 +77,6 @@ export default function DesignTools(){
     return speed*(.54-firstLanding)+speed*d+(.8-speed)*.10*(u*u/2)+Math.max(0,q-.64)*.8;
    };
    const fieldLeft=field.getBoundingClientRect().left;
-   const origin=-fieldLeft-80;
    const cubic=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
    // Capture the live rotation once, then feed icons through the top exit.
    // The leading icon is the next one to reach twelve o'clock.
@@ -95,10 +97,10 @@ export default function DesignTools(){
      a=previous+delta*(1-Math.exp(-elapsed/ .24));
     }
     positions.set(tool.name,a);
-    // The last control point matches the circle's tangent and speed exactly.
-    // All icons follow the same broad cross-page swoop, separated in time.
-    const xTrack=cubic(origin,origin+(entryX-origin)*.42,entryX,entryX,ride);
-    const yTrack=cubic(height*.82,-height*.55,entryY+radius*speed*flight/3,entryY,ride);
+    // The last control point aligns with the circle's tangent.
+    // Keep the entrance inside the selector so icons never sweep through the copy.
+    const xTrack=cubic(width*.5,entryX,entryX,entryX,ride);
+    const yTrack=cubic(height*.94,height*.84,entryY+Math.min(radius*.65,radius*speed*flight/3),entryY,ride);
     const finalX=width*.5+Math.cos(a)*radius;
     const finalY=height*.5+Math.sin(a)*radius;
     const dock=ride;
@@ -127,7 +129,6 @@ export default function DesignTools(){
     const reveal=smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
     node.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) rotate(${bank}deg) scale(${.82+.18*dock-.10*departure})`;
     node.style.opacity=String(travelName.current===tool.name?0:reveal);
-    const interactive=p>=.58&&p<.78;
     node.style.pointerEvents=interactive?'auto':'none';
     node.tabIndex=interactive?0:-1;
    });
@@ -138,8 +139,8 @@ export default function DesignTools(){
    previousTime=null;
    if(entry.isIntersecting)frame.current=requestAnimationFrame(animate);
   });
-  visibility.observe(host);
-  return()=>{visibility.disconnect();cancelAnimationFrame(frame.current)};
+  visibility.observe(hero||host);
+  return()=>{visibility.disconnect();cancelAnimationFrame(frame.current);host.inert=false};
  },[reduced]);
  useEffect(()=>()=>{flightTween.current?.kill();if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
 
