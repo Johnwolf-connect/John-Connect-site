@@ -95,3 +95,8 @@
  .hero.hero-reference .jw-body p{font-size:clamp(14px,3.7vw,18px)!important}
  .hero.hero-reference .jw-more{font-size:clamp(14px,3.7vw,18px)!important}
 }
+
+/* STATIC LAYOUT REVIEW: disable hero animations and transitions until approved */
+.hero.hero-reference .jw-homepage *,
+.hero.hero-reference .jw-homepage *::before,
+.hero.hero-reference .jw-homepage *::after{animation:none!important;transition:none!important}
