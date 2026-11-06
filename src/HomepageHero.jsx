@@ -35,7 +35,7 @@ export default function HomepageHero(){
  const t=topics[index];
  return <div className={'jw-homepage jw-phase-'+phase+' jw-direction-'+(direction>0?'forward':'backward')}  tabIndex={0} aria-label="John Wolf creative disciplines carousel">
   <div className="jw-hero-dot" aria-hidden="true"/>
-  <div className="jw-hero-photo"><img src="/john-wolf-portrait.webp" alt="Portrait of John Wolf"/></div>
+  <div className="jw-hero-photo"><img src="/man.png" alt="Portrait of John Wolf"/></div>
   <div className="jw-hero-content">
    <div className="jw-eyebrow"><i className="jw-subtitle-dot" aria-hidden="true"/><span key={'s'+index}>{t[1]}</span></div>
    <div className="jw-title-layer"><h1 key={'t'+index} className="jw-title">{t[0]}</h1><h1 aria-hidden="true" key={'o'+index} className="jw-title jw-outline">{t[0]}</h1></div>
