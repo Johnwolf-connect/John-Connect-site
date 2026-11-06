@@ -419,7 +419,7 @@ export default function BrandGallery(){
       })}
       {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted loop preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
       {current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
-       <video src={film.src} poster={film.poster} controls playsInline preload="none" aria-label={film.title}/>
+       <video src={film.src} poster={film.poster} controls playsInline muted loop preload="none" aria-label={film.title}/>
        <figcaption>{film.title}</figcaption>
       </figure>)}
      </div>)}
