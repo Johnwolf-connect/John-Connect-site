@@ -25,6 +25,14 @@ function sheetClip(progress){
  points.push('100% 100%','0% 100%');
  return `polygon(${points.join(',')})`;
 }
+function openDesignTools(event){
+ if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+ const transition=ScrollTrigger.getById('design-tools-reveal');
+ if(!transition)return;
+ event.preventDefault();
+ window.scrollTo({top:transition.start+(transition.end-transition.start)*.65,behavior:'smooth'});
+}
+
 function CurvedSwipe(){
  const marker=useRef(null);
  useEffect(()=>{
@@ -32,13 +40,18 @@ function CurvedSwipe(){
   const sheet=hero?.querySelector('.design-tools');
   if(!hero||!sheet||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const ctx=gsap.context(()=>{
-   const render=progress=>{
+   const render=scrollProgress=>{
+    const progress=scrollProgress<.45
+     ? scrollProgress/.45*.62
+     : scrollProgress<.85
+      ? .62+(scrollProgress-.45)/.40*.16
+      : .78+(scrollProgress-.85)/.15*.22;
     hero.style.setProperty('--tools-progress',String(progress));
     sheet.style.clipPath=sheetClip(progress);
    };
    render(0);
    ScrollTrigger.create({
-    trigger:hero,start:'top top',end:'+=260%',pin:true,pinSpacing:true,
+    id:'design-tools-reveal',trigger:hero,start:'top top',end:'+=260%',pin:true,pinSpacing:true,
     scrub:true,anticipatePin:1,invalidateOnRefresh:true,
     onUpdate:self=>render(self.progress),
     onRefresh:self=>render(self.progress)
@@ -193,7 +206,7 @@ function App(){
  return <div>
   <VisualContinuity/>
   <PurpleCursor/>
-  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
+  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
     <div className="hero-copy">
