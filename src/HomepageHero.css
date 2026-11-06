@@ -116,3 +116,12 @@
   filter:grayscale(1)!important
  }
 }
+
+/* Portrait fine adjustment: between the previous undersized and oversized passes */
+@media(min-width:761px){
+ .hero.hero-reference .jw-hero-photo img{
+  width:104%!important;
+  right:-12%!important;
+  bottom:-2%!important;
+ }
+}
