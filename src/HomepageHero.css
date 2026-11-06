@@ -38,3 +38,38 @@
  .jw-swipe{bottom:9%}
  .jw-indicators{top:20%;left:68%}
 }
+
+/* Precise portrait alpha masking — no rectangular clip, no solid letters over face. */
+.hero.hero-reference .jw-hero-content{z-index:auto!important}
+.hero.hero-reference .jw-title-layer{position:relative;z-index:auto!important}
+.hero.hero-reference .jw-title-layer .jw-title:not(.jw-outline){z-index:2!important;position:relative!important}
+.hero.hero-reference .jw-hero-photo{z-index:3!important}
+.hero.hero-reference .jw-portrait-outline-mask{
+ position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;
+ -webkit-mask-image:url('/man.png');mask-image:url('/man.png');
+ -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-size:104% auto;mask-size:104% auto;
+ -webkit-mask-position:right -2% bottom -2%;mask-position:right -2% bottom -2%;
+}
+.hero.hero-reference .jw-outline-title-position{
+ position:absolute;left:4.45%;top:calc(27.8% + clamp(15px,1.78vw,34px) + 12px);
+ width:91.1%;white-space:nowrap
+}
+.hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{
+ display:block;position:relative!important;inset:auto!important;
+ width:max-content!important;max-width:none!important;
+ font-family:'JW League Spartan','League Spartan',Arial,sans-serif!important;
+ font-size:clamp(115px,13.16vw,217px)!important;
+ font-weight:700!important;line-height:1!important;letter-spacing:-.035em!important;
+ color:transparent!important;-webkit-text-fill-color:transparent!important;
+ -webkit-text-stroke:2px #fff!important;clip-path:none!important;
+}
+.hero.hero-reference .jw-eyebrow,.hero.hero-reference .jw-body{z-index:6!important}
+@media(max-width:760px){
+ .hero.hero-reference .jw-portrait-outline-mask{
+  -webkit-mask-size:110% auto;mask-size:110% auto;
+  -webkit-mask-position:right -20% bottom -2%;mask-position:right -20% bottom -2%;
+ }
+ .hero.hero-reference .jw-outline-title-position{left:4%;top:calc(25% + clamp(13px,4.25vw,21px) + 12px);width:92%}
+ .hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{font-size:clamp(46px,11.3vw,87px)!important;letter-spacing:-.04em!important}
+}
