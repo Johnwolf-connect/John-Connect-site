@@ -125,3 +125,21 @@
   bottom:-2%!important;
  }
 }
+
+/* Approved portrait height remains fixed: 104% width, bottom -2%.
+   Move portrait toward the center so headline intersects face. */
+@media(min-width:761px){
+ .hero.hero-reference .jw-hero-photo img{
+  width:104%!important;
+  right:-2%!important;
+  bottom:-2%!important;
+ }
+ .hero.hero-reference .jw-title-layer .jw-title{
+  font-size:clamp(90px,13.2vw,217px)!important;
+  letter-spacing:-.055em!important;
+  white-space:nowrap!important;
+ }
+ .hero.hero-reference .jw-title-layer .jw-title.jw-outline{
+  clip-path:polygon(53% 0,100% 0,100% 100%,53% 100%)!important;
+ }
+}
