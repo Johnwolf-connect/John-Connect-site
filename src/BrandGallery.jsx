@@ -398,15 +398,16 @@ export default function BrandGallery(){
      <span>{projectLabel}</span><span>{isApparel?'Collection highlights':isDatingApp?'Brand identity, app design & campaign':'Guidelines & visual system'}</span><span>Designer: John Wolf</span>
     </aside>
     <button className="brand-reader-details-toggle" aria-expanded={details} onClick={()=>setDetails(v=>!v)}>{details?'Close details':'View details'}</button>
-    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:isDatingApp?<p>A dating app concept by John Wolf, presented through a visual identity, three app screens, and two campaign films.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
+    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:isDatingApp?<p>A dating app concept by John Wolf, presented through a visual identity, three app screens, and two campaign films.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length-1} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
     <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={readerLabel+' gallery'}>
      {[0,1,2].map(cycle=><div className={isApparel?'brand-reader-cycle brand-reader-apparel':'brand-reader-cycle'} key={cycle}>
-      {current.pages.map((page,i)=>{
-       const size=current.sizes?.[i]||[1200,675];
-       const still=<figure><img data-page-src={page} alt={current.alt?.[i]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[i]||String(i+1).padStart(2,'0')+' / '+current.pages.length}</figcaption></figure>;
+      {current.pages.slice(1).map((page,i)=>{
+       const sourceIndex=i+1;
+       const size=current.sizes?.[sourceIndex]||[1200,675];
+       const still=<figure><img data-page-src={page} alt={current.alt?.[sourceIndex]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[sourceIndex]||String(i+1).padStart(2,'0')+' / '+(current.pages.length-1)}</figcaption></figure>;
        return <React.Fragment key={page}>
         {still}
-        {i===1&&current.comparison&&<figure className="brand-comparison">
+        {sourceIndex===1&&current.comparison&&<figure className="brand-comparison">
          <h3>{current.comparison.title}</h3>
          <div className="brand-comparison-stage" style={{'--split':comparisonPosition+'%'}}>
           <img src={current.comparison.linework} alt="Better Half in black-and-white linework" width="1920" height="1080" loading="lazy" decoding="async"/>
@@ -421,7 +422,7 @@ export default function BrandGallery(){
         </figure>}
        </React.Fragment>;
       })}
-      {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
+      {isApparel&&<figure className="brand-reader-film"><video src={current.video} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
       {current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
        <video src={film.src} poster={film.poster} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label={film.title}/>
        <figcaption>{film.title}</figcaption>
