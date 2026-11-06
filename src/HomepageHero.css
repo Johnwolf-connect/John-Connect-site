@@ -50,3 +50,34 @@
  .hero.hero-reference .jw-body p{font-size:14px!important}
  .hero.hero-reference .jw-more,.hero.hero-reference .jw-swipe{bottom:5%!important}
 }
+
+/* Reference-calibrated hero: portrait at 10% viewport, title across nearly full width */
+.hero.hero-reference>.jw-homepage{height:100svh!important;min-height:620px!important;overflow:hidden!important}
+.hero.hero-reference .jw-hero-photo{position:absolute!important;right:0!important;bottom:0!important;width:58%!important;height:110%!important;z-index:5!important;overflow:visible!important}
+.hero.hero-reference .jw-hero-photo img{height:100%!important;width:100%!important;object-fit:contain!important;object-position:center bottom!important}
+.hero.hero-reference .jw-hero-content{top:25%!important;left:4.4%!important;right:4%!important;width:91.6%!important;z-index:6!important}
+.hero.hero-reference .jw-title-layer{margin-top:12px!important;overflow:visible!important}
+.hero.hero-reference .jw-title-layer .jw-title{font-family:Impact,'Arial Narrow',Arial,sans-serif!important;font-size:clamp(105px,14vw,270px)!important;line-height:.95!important;letter-spacing:-.032em!important;font-weight:900!important;margin:0!important;white-space:nowrap!important;transform-origin:left center}
+.hero.hero-reference .jw-title-layer .jw-title.jw-outline{clip-path:polygon(60% 0,90% 0,90% 100%,60% 100%)!important;-webkit-text-stroke:2px white!important}
+.hero.hero-reference .jw-eyebrow{font-size:clamp(15px,1.6vw,26px)!important;letter-spacing:.025em!important;font-weight:800!important}
+.hero.hero-reference .jw-subtitle-dot{width:14px!important;height:14px!important;flex-basis:14px!important}
+.hero.hero-reference .jw-indicators{top:24%!important;left:40%!important;bottom:auto!important}
+.hero.hero-reference .jw-indicators button{width:11px;height:11px}
+.hero.hero-reference .jw-indicators button.active{width:11px;border-radius:50%}
+.hero.hero-reference .jw-body{max-width:65%!important;margin-top:35px!important}
+.hero.hero-reference .jw-body p{font-size:clamp(18px,1.8vw,30px)!important;line-height:1.4!important}
+.hero.hero-reference .jw-more{left:4.5%!important;bottom:18%!important;font-size:clamp(15px,1.5vw,25px)!important;border-bottom:2px solid #111;padding-bottom:8px}
+.hero.hero-reference .jw-swipe{left:4.5%!important;right:auto!important;bottom:9%!important;border:1px solid #bbb!important;background:#fff!important;color:#888!important;font-size:14px!important}
+.hero.hero-reference .jw-hero-dot{opacity:0!important}
+@media(max-width:760px){
+ .hero.hero-reference .jw-hero-photo{width:110%!important;height:85%!important;right:-20%!important}
+ .hero.hero-reference .jw-hero-content{top:25%!important;left:4%!important;width:92%!important}
+ .hero.hero-reference .jw-title-layer .jw-title{font-size:clamp(55px,14vw,108px)!important;letter-spacing:-.04em!important;white-space:nowrap!important}
+ .hero.hero-reference .jw-title-layer .jw-title.jw-outline{clip-path:polygon(45% 0,100% 0,100% 100%,45% 100%)!important}
+ .hero.hero-reference .jw-eyebrow{font-size:13px!important}
+ .hero.hero-reference .jw-indicators{left:68%!important;top:20%!important}
+ .hero.hero-reference .jw-body{max-width:80%!important;margin-top:24px!important}
+ .hero.hero-reference .jw-body p{font-size:15px!important}
+ .hero.hero-reference .jw-more{bottom:18%!important;font-size:15px!important}
+ .hero.hero-reference .jw-swipe{bottom:9%!important}
+}
