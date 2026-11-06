@@ -18,6 +18,9 @@ export default function BrandGallery(){
  const current=brands[readerIndex];
  const [comparisonPosition,setComparisonPosition]=useState(50);
  const isApparel=current.kind==='apparel';
+ const isDatingApp=current.kind==='dating-app';
+ const projectLabel=isApparel?'Apparel design':isDatingApp?'Dating app concept':'Brand identity';
+ const readerLabel=current.name+(isApparel?' apparel collection':isDatingApp?' dating app project':' brand guidelines');
  const readerMotion=useRef(null),closing=useRef(false);
  const [autoPlaying,setAutoPlaying]=useState(true);
  const autoDeadline=useRef(0);
@@ -263,8 +266,8 @@ export default function BrandGallery(){
   element.querySelectorAll('figure:has(img[data-page-src])').forEach(figure=>observer.observe(figure));
   const filmObserver=new IntersectionObserver(entries=>{
    for(const {target:video,intersectionRatio} of entries){
-    if(intersectionRatio>=.25)video.play().catch(()=>{});
-    else video.pause();
+    if(intersectionRatio<.25)video.pause();
+    else if(video.loop)video.play().catch(()=>{});
    }
   },{root:element,threshold:.25});
   element.querySelectorAll('video').forEach(video=>filmObserver.observe(video));
@@ -351,7 +354,7 @@ export default function BrandGallery(){
   return()=>{document.body.style.overflow=previous;window.removeEventListener('keydown',key);returnFocus.current?.focus({preventScroll:true})};
  },[opened]);
 
- return <section id="riches" className="brand-gallery" aria-label="Brand identity and apparel projects">
+ return <section id="riches" className="brand-gallery" aria-label="Brand identity and creative projects">
   <div className="brand-gallery-dock">
   <header className="brand-gallery-heading">
    <div><span className="kicker">BRAND IDENTITY</span><h2>Identity, defined.</h2></div>
@@ -370,7 +373,7 @@ export default function BrandGallery(){
      aria-label={center?'Open '+project.name:'Show '+project.name} tabIndex={center?0:-1}
      onClick={()=>{if(center)open();else moveTo(slot)}}>
      <img src={project.pages[0]} alt={project.alt?.[0]||project.name+' brand guidelines cover'} draggable="false" loading="lazy" decoding="async"/>
-     {center&&<span className="brand-panel-open">{project.kind==='apparel'?'Explore collection ↗':'Explore guidelines ↗'}</span>}
+     {center&&<span className="brand-panel-open">{project.kind==='apparel'?'Explore collection ↗':project.kind==='dating-app'?'Explore project ↗':'Explore guidelines ↗'}</span>}
     </button>
    })}
   </div>
@@ -384,15 +387,15 @@ export default function BrandGallery(){
    <button className="brand-auto-toggle" onClick={()=>{resetAuto();setAutoPlaying(value=>!value)}} aria-label={autoPlaying?'Pause automatic brand rotation':'Resume automatic brand rotation'}>{autoPlaying?'Pause rotation':'Resume rotation'}</button>
   </footer>
   </div>
-  {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={current.name+(isApparel?' apparel collection':' brand guidelines')} onPointerDown={readerDown}>
+  {opened&&createPortal(<div ref={dialog} className="brand-reader" role="dialog" aria-modal="true" aria-label={readerLabel} onPointerDown={readerDown}>
    <div ref={sheet} className="brand-reader-sheet">
     <div className="brand-paper-veil" aria-hidden="true"/>
     <aside className="brand-reader-meta">
-     <span>{isApparel?'Apparel design':'Brand identity'}</span><span>{isApparel?'Collection highlights':'Guidelines & visual system'}</span><span>Designer: John Wolf</span>
+     <span>{projectLabel}</span><span>{isApparel?'Collection highlights':isDatingApp?'Brand identity, app design & campaign':'Guidelines & visual system'}</span><span>Designer: John Wolf</span>
     </aside>
     <button className="brand-reader-details-toggle" aria-expanded={details} onClick={()=>setDetails(v=>!v)}>{details?'Close details':'View details'}</button>
-    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
-    <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={current.name+(isApparel?' collection highlights':' continuously scrolling guideline pages')}>
+    {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:isDatingApp?<p>A dating app concept by John Wolf, presented through a visual identity, three app screens, and two campaign films.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
+    <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={readerLabel+' gallery'}>
      {[0,1,2].map(cycle=><div className={isApparel?'brand-reader-cycle brand-reader-apparel':'brand-reader-cycle'} key={cycle}>
       {current.pages.map((page,i)=>{
        const size=current.sizes?.[i]||[1200,675];
@@ -415,6 +418,10 @@ export default function BrandGallery(){
        </React.Fragment>;
       })}
       {isApparel&&<figure className="brand-reader-film"><video src={current.video} poster={current.pages[0]} controls playsInline muted loop preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
+      {current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
+       <video src={film.src} poster={film.poster} controls playsInline preload="none" aria-label={film.title}/>
+       <figcaption>{film.title}</figcaption>
+      </figure>)}
      </div>)}
     </div>
     <div className="brand-reader-progress" aria-label="Reading progress">
