@@ -74,15 +74,13 @@
  .hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{font-size:clamp(46px,11.3vw,87px)!important;letter-spacing:-.04em!important}
 }
 
-/* Master SVG layout proportions: broaden wordmark without changing its 217px reference height.
-   Use the same transform on both layers so the white stroke tracks the purple glyphs. */
-@media(min-width:761px){
- .hero.hero-reference .jw-title-layer .jw-title,
- .hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{
-   transform:scaleX(1.22)!important;
-   transform-origin:left center!important;
- }
- .hero.hero-reference .jw-body p{font-size:clamp(18px,1.577vw,26px)!important}
- .hero.hero-reference .jw-more{font-size:clamp(18px,1.577vw,26px)!important}
- .hero.hero-reference .jw-indicators{left:41%!important;top:24%!important}
+
+/* Preserve League Spartan's original glyph proportions. Never scaleX typography. */
+.hero.hero-reference .jw-title-layer .jw-title,
+.hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{
+ transform:none!important;
+ letter-spacing:normal!important;
+ font-stretch:normal!important;
 }
+.hero.hero-reference .jw-body p{font-size:clamp(18px,1.577vw,26px)!important}
+.hero.hero-reference .jw-more{font-size:clamp(18px,1.577vw,26px)!important}
