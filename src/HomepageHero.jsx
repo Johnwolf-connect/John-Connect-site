@@ -12,6 +12,9 @@ const states=[
  ['Large Title Solving.svg','Large Title Solving  overlay mask to man.svg']
 ];
 const labels=['Portfolio','Branding','Designer','Creation','Guidelines','Learning','Solving'];
+// Exact circle centers from the original Canva Indicators.svg (1440 x 810 viewBox).
+const indicatorXs=[483.425781,517.5,551.574219,585.644531,619.71875,653.789062,687.863281];
+const indicatorY=195.027344;
 const layer=(name,cls)=> <img className={'jw-art '+cls} src={root+encodeURIComponent(name)} alt="" aria-hidden="true" draggable="false"/>;
 export default function HomepageHero(){
  const [index,setIndex]=useState(0);
@@ -113,6 +116,7 @@ export default function HomepageHero(){
   portrait.addEventListener('load',align);
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
+ const activeIndicator=pending===null?index:pending;
  const liveTitle=(phase,which)=><React.Fragment>
   <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">
    <div className="jw-title-whole">{layer(states[which][0],'jw-art-title')}</div>
@@ -130,7 +134,6 @@ export default function HomepageHero(){
    
    {layer('Subtitle dot.svg','jw-art-subtitle-dot')}
    {layer(index===0?'Subtitle.svg':'subtitle for all other Large Titles.svg','jw-art-subtitle')}
-   {layer('Indicators.svg','jw-art-indicator-visual')}
    {index===0&&layer('Portfolio sub-body.svg','jw-art-subbody')}
    {index===0&&layer('Portfolio body.svg','jw-art-body')}
    {layer('More about me.svg','jw-art-more')}
@@ -138,7 +141,15 @@ export default function HomepageHero(){
    {layer('More about me (arrow).svg','jw-art-more-arrow')}
    {layer('Swipe up icon.svg','jw-art-swipe')}
    <nav className="jw-hit-indicators" aria-label="Select homepage title">
-    {states.map((_,i)=><button key={i} type="button" className={index===i?'selected':''} onClick={()=>changeTitle(i)} aria-label={labels[i]} aria-current={index===i?'true':undefined}/>)}
+    <svg viewBox="0 0 1440 810" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Homepage title indicators">
+     {indicatorXs.map((x,i)=><g key={labels[i]} className="jw-indicator" role="button" tabIndex={0}
+       aria-label={'Show '+labels[i]} aria-current={activeIndicator===i?'true':undefined}
+       onClick={()=>changeTitle(i)}
+       onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();changeTitle(i)}}}>
+       <circle className="jw-indicator-hit" cx={x} cy={indicatorY} r={16.9} fill="transparent"/>
+       <circle className="jw-indicator-dot" cx={x} cy={indicatorY} r={8.977} fill={activeIndicator===i?'#8a4cf3':'#c9acfa'}/>
+      </g>)}
+    </svg>
    </nav>
    <a className="jw-hit-more" href="#about" aria-label="More about me"/>
    <a className="jw-hit-swipe" href="#work" aria-label="Swipe up to work"/>
