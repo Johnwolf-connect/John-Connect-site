@@ -303,6 +303,7 @@ export default function HomepageHero(){
   if(!stage||!flight||!splash||!content||!close)return;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const savedOverflow=document.body.style.overflow;
+  stage.scrollTop=0;
   document.body.style.overflow='hidden';
   let cancelled=false,flightTimeline=null;
   const activeTitle=indexRef.current;
