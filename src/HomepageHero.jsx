@@ -1,5 +1,6 @@
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {gsap} from 'gsap';
+import {createPortal} from 'react-dom';
 import './HomepageHero.css';
 const root='/homepage-canva/';
 const states=[
@@ -33,10 +34,35 @@ const bodyLines=[
 const indicatorXs=[483.425781,517.5,551.574219,585.644531,619.71875,653.789062,687.863281];
 const indicatorY=195.027344;
 const layer=(name,cls)=> <img className={'jw-art '+cls} src={root+encodeURIComponent(name)} alt="" aria-hidden="true" draggable="false"/>;
+
+// Each Canva title contains one vector path per glyph. Wrapping those paths
+// preserves the exact approved lettering during the 3D-style camera rush.
+function buildFlyThroughArtwork(xml){
+ const doc=new DOMParser().parseFromString(xml,'image/svg+xml');
+ if(doc.querySelector('parsererror')||doc.documentElement.localName!=='svg')return null;
+ const svg=document.importNode(doc.documentElement,true);
+ svg.classList.add('jw-about-fly-svg');
+ svg.removeAttribute('width');
+ svg.removeAttribute('height');
+ svg.querySelectorAll('[clip-path]').forEach(el=>el.removeAttribute('clip-path'));
+ const ns='http://www.w3.org/2000/svg';
+ const glyphs=[...svg.querySelectorAll('path')].filter(el=>!el.closest('defs')).map(path=>{
+  const group=document.createElementNS(ns,'g');
+  group.setAttribute('class','jw-about-fly-glyph');
+  path.parentNode.insertBefore(group,path);
+  group.appendChild(path);
+  return group;
+ });
+ return glyphs.length?{svg,glyphs}:null;
+}
 export default function HomepageHero(){
  const [index,setIndex]=useState(0);
  const homepageRef=useRef(null);
  const [pending,setPending]=useState(null);
+ const [aboutOpen,setAboutOpen]=useState(false);
+ const aboutStageRef=useRef(null),aboutSplashRef=useRef(null),aboutFlightRef=useRef(null);
+ const aboutContentRef=useRef(null),aboutCloseRef=useRef(null);
+ const aboutLaunchQueuedRef=useRef(false),aboutClosingRef=useRef(false);
  const titleRunRef=useRef(null);
  const pendingRef=useRef(null),indexRef=useRef(0),touchRef=useRef(null),directionRef=useRef(1);
  indexRef.current=index;
@@ -91,6 +117,10 @@ export default function HomepageHero(){
    if(cancelled)return;
    timeline=gsap.timeline({onComplete:()=>{
     indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
+    if(aboutLaunchQueuedRef.current){
+     aboutLaunchQueuedRef.current=false;
+     setAboutOpen(true);
+    }
    }});
    titleRunRef.current=timeline;
    // Exit order: body retracts, title begins moving, then the short subtitle shift.
@@ -173,6 +203,117 @@ export default function HomepageHero(){
   portrait.addEventListener('load',align);
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
+ const openAbout=event=>{
+  event.preventDefault();
+  if(aboutOpen||aboutClosingRef.current)return;
+  // If the visitor clicks during a swipe, finish the current word first.
+  if(pendingRef.current!==null){aboutLaunchQueuedRef.current=true;return;}
+  setAboutOpen(true);
+ };
+ const closeAbout=()=>{
+  if(aboutClosingRef.current)return;
+  aboutClosingRef.current=true;
+  const stage=aboutStageRef.current;
+  if(!stage){setAboutOpen(false);return;}
+  gsap.to(stage,{autoAlpha:0,duration:.3,ease:'power2.inOut',
+   onComplete:()=>{setAboutOpen(false);}});
+ };
+ useLayoutEffect(()=>{
+  if(!aboutOpen)return;
+  const stage=aboutStageRef.current;
+  const flight=aboutFlightRef.current;
+  const splash=aboutSplashRef.current;
+  const content=aboutContentRef.current;
+  const close=aboutCloseRef.current;
+  if(!stage||!flight||!splash||!content||!close)return;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const savedOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  let cancelled=false,flightTimeline=null;
+  const activeTitle=indexRef.current;
+  const hero=homepageRef.current;
+  const originalTitle=hero?.querySelector('.jw-live-title-base[data-title-index="'+activeTitle+'"] img');
+  const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
+  const restoreOriginal=()=>originalLayers.forEach(node=>node.style.removeProperty('opacity'));
+  gsap.set(splash,{clipPath:'circle(0% at 50% 48%)'});
+  gsap.set(content,{autoAlpha:0,y:34});
+  gsap.set(close,{autoAlpha:0,y:-10});
+  if(reduced){
+   gsap.set(splash,{clipPath:'circle(155% at 50% 48%)'});
+   gsap.set([content,close],{autoAlpha:1,y:0});
+   close.focus({preventScroll:true});
+   return()=>{document.body.style.overflow=savedOverflow;aboutClosingRef.current=false;};
+  }
+  async function launch(){
+   let glyphs=[],fallback=null;
+   const url=root+encodeURIComponent(states[activeTitle][0]);
+   try{
+    const res=await fetch(url,{cache:'force-cache'});
+    if(!res.ok)throw new Error('Title SVG was not available');
+    const vector=buildFlyThroughArtwork(await res.text());
+    if(!vector)throw new Error('Title SVG did not contain glyph paths');
+    if(cancelled)return;
+    const originalBounds=originalTitle?.getBoundingClientRect();
+    const stageBounds=stage.getBoundingClientRect();
+    const placement=vector.svg.style;
+    placement.left=((originalBounds?.left??stageBounds.left)-stageBounds.left)+'px';
+    placement.top=((originalBounds?.top??stageBounds.top)-stageBounds.top)+'px';
+    placement.width=(originalBounds?.width??stageBounds.width)+'px';
+    placement.height=(originalBounds?.height??stageBounds.height)+'px';
+    flight.appendChild(vector.svg);
+    glyphs=vector.glyphs;
+   }catch(error){
+    // Fallback keeps navigation functional if an SVG can't be fetched.
+    if(cancelled)return;
+    if(originalTitle){
+     fallback=originalTitle.cloneNode(true);
+     fallback.className='jw-about-fly-fallback';
+     const box=originalTitle.getBoundingClientRect(),stageBox=stage.getBoundingClientRect();
+     Object.assign(fallback.style,{left:(box.left-stageBox.left)+'px',top:(box.top-stageBox.top)+'px',width:box.width+'px',height:box.height+'px'});
+     flight.appendChild(fallback);
+    }
+   }
+   if(cancelled)return;
+   // The copy is now in the same position as the live title: no blink at launch.
+   originalLayers.forEach(node=>node.style.opacity='0');
+   if(glyphs.length)gsap.set(glyphs,{transformOrigin:'50% 50%',transformBox:'fill-box',force3D:true});
+   flightTimeline=gsap.timeline({onComplete:()=>{
+    if(!cancelled)close.focus({preventScroll:true});
+   }});
+   if(glyphs.length){
+    const middle=(glyphs.length-1)/2;
+    flightTimeline.to(glyphs,{
+     scale:i=>13+(i%3)*3,
+     x:i=>(i-middle)*window.innerWidth*.14,
+     y:i=>((i%3)-1)*window.innerHeight*.18,
+     rotation:i=>(i-middle)*3.2,
+     opacity:0,filter:'blur(7px)',duration:1.12,ease:'power4.in',
+     stagger:{each:.045,from:'center'}
+    },0);
+   }else if(fallback){
+    flightTimeline.to(fallback,{scale:13,opacity:0,filter:'blur(8px)',duration:1.12,ease:'power4.in'},0);
+   }
+   flightTimeline.to(splash,{clipPath:'circle(155% at 50% 48%)',duration:.87,ease:'power3.out'},.63)
+    .to(content,{autoAlpha:1,y:0,duration:.66,ease:'power3.out'},1.38)
+    .to(close,{autoAlpha:1,y:0,duration:.43,ease:'power2.out'},1.48);
+  }
+  launch();
+  return()=>{
+   cancelled=true;
+   flightTimeline?.kill();
+   restoreOriginal();
+   document.body.style.overflow=savedOverflow;
+   aboutClosingRef.current=false;
+   const hit=homepageRef.current?.querySelector('.jw-hit-more');
+   if(hit&&document.contains(hit))hit.focus({preventScroll:true});
+  };
+ },[aboutOpen]);
+ useEffect(()=>{
+  if(!aboutOpen)return;
+  const onEscape=e=>{if(e.key==='Escape'){e.preventDefault();closeAbout();}};
+  window.addEventListener('keydown',onEscape);
+  return()=>window.removeEventListener('keydown',onEscape);
+ },[aboutOpen]);
  const activeIndicator=pending===null?index:pending;
  const visibleDuringSwipe=which=>which===index||which===pending;
  const liveSubtitle=which=><div key={'subtitle-'+which}
@@ -230,8 +371,25 @@ export default function HomepageHero(){
       </g>)}
     </svg>
    </nav>
-   <a className="jw-hit-more" href="#about" aria-label="More about me"/>
+   <a className="jw-hit-more" href="#about" aria-label="More about me" onClick={openAbout}/>
    <a className="jw-hit-swipe" href="#work" aria-label="Swipe up to work"/>
   </div>
+  {aboutOpen&&createPortal(
+   <div ref={aboutStageRef} className="jw-about-transition" role="dialog" aria-modal="true" aria-labelledby="jw-about-heading">
+    <div ref={aboutSplashRef} className="jw-about-splash" aria-hidden="true">
+     <div className="jw-about-splash-glow"/>
+     <div className="jw-about-splash-orbit"/>
+    </div>
+    <div ref={aboutFlightRef} className="jw-about-flight" aria-hidden="true"/>
+    <section ref={aboutContentRef} className="jw-about-content" tabIndex={-1}>
+     <span className="jw-about-kicker">JOHN WOLF / MORE ABOUT ME</span>
+     <h2 id="jw-about-heading">Design is how<br/>I make ideas <em>felt.</em></h2>
+     <p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p>
+     <a className="jw-about-contact" href="#contact" onClick={()=>setAboutOpen(false)}>Let's work together <span aria-hidden="true">↗</span></a>
+    </section>
+    <button ref={aboutCloseRef} type="button" className="jw-about-close" onClick={closeAbout} aria-label="Back to homepage">
+     Back to homepage <span aria-hidden="true">×</span>
+    </button>
+   </div>,document.body)}
  </div>;
 }
