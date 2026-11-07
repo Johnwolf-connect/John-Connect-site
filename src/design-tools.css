@@ -161,7 +161,7 @@
  align-self:center;
  justify-self:center;
  translate:0 clamp(18px,4svh,44px);
- contain:layout paint;
+ contain:layout;
 }
 
 .design-tools-center{
