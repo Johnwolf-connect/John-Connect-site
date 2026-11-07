@@ -129,11 +129,11 @@ export default function HomepageHero(){
  },[]);
  const activeIndicator=pending===null?index:pending;
  const liveTitle=which=><React.Fragment key={which}>
-  <div className="jw-live-title jw-live-title-base" data-title-index={which}
+  <div className={'jw-live-title jw-live-title-base'+(which===index||which===pending?' jw-live-title-visible':'')} data-title-index={which}
        style={{visibility:which===index||which===pending?'visible':'hidden'}} aria-hidden="true">
    <div className="jw-title-whole">{layer(states[which][0],'jw-art-title')}</div>
   </div>
-  <div className="jw-live-title jw-live-title-overlay" data-title-index={which}
+  <div className={'jw-live-title jw-live-title-overlay'+(which===index||which===pending?' jw-live-title-visible':'')} data-title-index={which}
        style={{visibility:which===index||which===pending?'visible':'hidden'}} aria-hidden="true">
    <div className="jw-title-whole">{layer(states[which][1],'jw-art-outline')}</div>
   </div>
