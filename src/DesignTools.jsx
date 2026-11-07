@@ -48,7 +48,7 @@ export default function DesignTools(){
   let previousTime=null,rotation=0,exitAngles=null;
   const positions=new Map();
   const animate=time=>{
-   const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
+   const p=hero ? clamp(Number(hero.style.getPropertyValue('--tools-progress')||0),0,1) : .68;
    const elapsed=previousTime===null?0:Math.min(50,Math.max(0,time-previousTime))/1000;
    previousTime=time;
    const idleBlend=smooth(clamp((p-.54)/.10,0,1));
@@ -61,7 +61,7 @@ export default function DesignTools(){
    if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
    if(prompt)prompt.style.opacity=String(smooth(clamp((p-.56)/.06,0,1))*(1-leave));
    const interactive=p>=.62&&p<.78;
-   host.inert=!interactive;
+   host.inert=hero ? !interactive : false;
    const selectedNode=buttons.current[chosen.current];
    if(selectedNode){selectedNode.style.opacity='0';selectedNode.style.pointerEvents='none';selectedNode.tabIndex=-1}
    const keys=tools.filter(tool=>tool.name!==chosen.current);
