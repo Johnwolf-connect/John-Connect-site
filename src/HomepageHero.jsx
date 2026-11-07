@@ -28,34 +28,30 @@ export default function HomepageHero(){
  useEffect(()=>{
   if(pending===null)return;
   const host=homepageRef.current;
-  const count=9;
+  // Each original Canva title is a single vector drawing, never vertical slices.
+  // Purple and outline are paired and transformed by the same progress value.
   const distance=Math.max(host.clientWidth,800);
-  const outgoing=Array.from({length:count},(_,i)=>({
-   base:host.querySelector('.jw-live-title-base[data-phase="out"] [data-slice="'+i+'"]'),
-   edge:host.querySelector('.jw-live-title-overlay[data-phase="out"] [data-slice="'+i+'"]')
-  }));
-  const incoming=Array.from({length:count},(_,i)=>({
-   base:host.querySelector('.jw-live-title-base[data-phase="in"] [data-slice="'+i+'"]'),
-   edge:host.querySelector('.jw-live-title-overlay[data-phase="in"] [data-slice="'+i+'"]')
-  }));
-  if([...outgoing,...incoming].some(pair=>!pair.base||!pair.edge))return;
-  const sync=(pair,x)=>{gsap.set(pair.base,{x});gsap.set(pair.edge,{x})};
-  outgoing.forEach(pair=>sync(pair,0));
-  incoming.forEach(pair=>sync(pair,distance));
+  const getPair=phase=>({
+   purple:host.querySelector('.jw-live-title-base[data-phase="'+phase+'"] .jw-title-whole'),
+   white:host.querySelector('.jw-live-title-overlay[data-phase="'+phase+'"] .jw-title-whole')
+  });
+  const outgoing=getPair('out'),incoming=getPair('in');
+  if(!outgoing.purple||!outgoing.white||!incoming.purple||!incoming.white)return;
+  const move=(pair,x,stretch=1)=>{
+   gsap.set([pair.purple,pair.white],{x,scaleX:stretch,transformOrigin:'50% 50%',force3D:true});
+  };
+  move(outgoing,0);move(incoming,distance);
   const timeline=gsap.timeline({onComplete:()=>{
    indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
   }});
   titleRunRef.current=timeline;
-  // Chain-pull: each vertical slice follows the preceding slice. Purple and
-  // outline use the same progress value, with a fixed portrait mask above.
-  outgoing.forEach((pair,i)=>{
-   const position={x:0};
-   timeline.to(position,{x:-distance,duration:.62,ease:'power3.inOut',onUpdate:()=>sync(pair,position.x)},i*.027);
-  });
-  incoming.forEach((pair,i)=>{
-   const position={x:distance};
-   timeline.to(position,{x:0,duration:.72,ease:'power3.out',onUpdate:()=>sync(pair,position.x)},.36+i*.027);
-  });
+  const leaving={x:0,stretch:1},arriving={x:distance,stretch:1};
+  timeline.to(leaving,{x:-distance,duration:.82,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
+   .to(leaving,{stretch:1.018,duration:.25,ease:'power2.out',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
+   .to(leaving,{stretch:1,duration:.32,ease:'power2.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.25)
+   .to(arriving,{x:0,duration:.88,ease:'power3.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
+   .to(arriving,{stretch:1.022,duration:.3,ease:'power2.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
+   .to(arriving,{stretch:1,duration:.44,ease:'power2.inOut',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.66);
   return()=>{timeline.kill();titleRunRef.current=null};
  },[pending]);
  useEffect(()=>{
@@ -117,23 +113,14 @@ export default function HomepageHero(){
  },[]);
  const liveTitle=(phase,which)=><React.Fragment>
   <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">
-   {Array.from({length:9},(_,i)=><div key={i} data-slice={i} className="jw-title-slice" style={{clipPath:`inset(0 ${(8-i)*100/9}% 0 ${i*100/9}%)`}}>{layer(states[which][0],'jw-art-title')}</div>)}
+   <div className="jw-title-whole">{layer(states[which][0],'jw-art-title')}</div>
   </div>
   <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">
-   {Array.from({length:9},(_,i)=><div key={i} data-slice={i} className="jw-title-slice" style={{clipPath:`inset(0 ${(8-i)*100/9}% 0 ${i*100/9}%)`}}>{layer(states[which][0],'jw-art-outline')}</div>)}
+   <div className="jw-title-whole">{layer(states[which][1],'jw-art-outline')}</div>
   </div>
  </React.Fragment>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
-   <svg className="jw-outline-filter-defs" aria-hidden="true" width="0" height="0">
-    <defs><filter id="jw-outline-only" x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
-     <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="expanded"/>
-     <feComposite in="expanded" in2="SourceAlpha" operator="out" result="edge"/>
-     <feFlood floodColor="white" result="white"/>
-     <feComposite in="white" in2="edge" operator="in" result="outline"/>
-     <feMerge><feMergeNode in="outline"/></feMerge>
-    </filter></defs>
-   </svg>
    {pending===null&&liveTitle('still',index)}
    {pending!==null&&liveTitle('out',index)}
    {pending!==null&&liveTitle('in',pending)}
