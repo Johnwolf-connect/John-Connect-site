@@ -154,3 +154,10 @@
   -webkit-mask-image:none!important;mask-image:none!important;
 }
 
+
+/* Derive the stroke from the complete original title alpha rather than a
+   pre-cropped overlay asset. The portrait mask remains fixed in the viewport. */
+.jw-outline-filter-defs{position:absolute;pointer-events:none;overflow:hidden}
+.jw-live-title-overlay .jw-art-outline{
+  filter:url(#jw-outline-only);
+}
