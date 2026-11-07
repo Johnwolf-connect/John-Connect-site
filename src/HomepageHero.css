@@ -133,3 +133,9 @@
  .jw-live-title{translate:none}
  .jw-live-title .jw-art-title,.jw-live-title .jw-art-outline{translate:var(--jw-left-shift) 0}
 }
+
+/* Keep the purple Canva title behind the portrait, and its white silhouette
+   overlay in front. Both are animated by the same GSAP timeline. */
+.jw-live-title-base{z-index:1}
+.jw-live-title-overlay{z-index:3}
+.jw-live-title-overlay .jw-art-outline{z-index:3}
