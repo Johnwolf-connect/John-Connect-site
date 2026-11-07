@@ -207,13 +207,10 @@ function App(){
  return <div>
   <VisualContinuity/>
   <PurpleCursor/>
-  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
+  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools">Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
-   <section className="hero hero-reference">
-    <HomepageHero/>
-    <CurvedSwipe/>
-    <DesignTools/>
-   </section>
+   <section className="hero hero-reference"><HomepageHero/></section>
+   <DesignTools/>
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <BrandGallery/>
    <section id="about" className="about"><span className="kicker">CREATIVE PRACTICE</span><h2>Design is how<br/>I make ideas <i>felt.</i></h2><p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p><a href="#contact" className="contact-note">Let’s work together ↗</a></section>
