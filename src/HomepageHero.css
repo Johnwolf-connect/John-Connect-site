@@ -139,3 +139,17 @@
 .jw-live-title-base{z-index:1}
 .jw-live-title-overlay{z-index:3}
 .jw-live-title-overlay .jw-art-outline{z-index:3}
+
+/* The silhouette is stationary while the white Canva lettering moves beneath it.
+   Masking the moving image itself made the mask travel with the word. */
+.jw-live-title-overlay{
+  -webkit-mask-image:url('/homepage-canva/Man.svg');
+  mask-image:url('/homepage-canva/Man.svg');
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-position:calc(50% + var(--jw-right-shift,0px)) calc(50% + var(--jw-portrait-bottom-offset,0px));
+  mask-position:calc(50% + var(--jw-right-shift,0px)) calc(50% + var(--jw-portrait-bottom-offset,0px));
+}
+.jw-live-title-overlay .jw-art-outline{
+  -webkit-mask-image:none!important;mask-image:none!important;
+}
