@@ -86,3 +86,40 @@
  .jw-chain-base .jw-art-title,.jw-chain-outline .jw-art-outline{translate:var(--jw-left-shift) 0}
 }
 @media(prefers-reduced-motion:reduce){.jw-title-chain-strip{will-change:auto}}
+
+
+/* Live typography uses one shared letter layout for fill and masked outline. */
+.jw-live-title{
+ position:absolute;inset:0;z-index:1;pointer-events:none;
+ display:flex;align-items:flex-start;justify-content:flex-start;
+ padding-left:4.4%;padding-top:27.5%;
+ box-sizing:border-box;overflow:visible;
+}
+.jw-live-title-letters{
+ display:flex;white-space:nowrap;align-items:baseline;
+ font-family:Impact,"Arial Narrow",Arial,sans-serif;
+ font-weight:900;font-stretch:condensed;
+ font-size:clamp(50px,10.2vw,210px);
+ letter-spacing:-.045em;line-height:.95;color:#873cf2;
+}
+.jw-live-title .jw-letter{display:inline-block;position:relative;will-change:transform}
+.jw-live-outline{
+ position:absolute;left:4.4%;top:27.5%;
+ color:transparent;-webkit-text-stroke:2px white;
+ paint-order:stroke fill;
+ mask-image:url('/homepage-canva/Man.svg');
+ -webkit-mask-image:url('/homepage-canva/Man.svg');
+ mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;
+ mask-size:100vw 100svh;-webkit-mask-size:100vw 100svh;
+ mask-position:calc(-4.4vw + var(--jw-mask-x,0px)) calc(-27.5svh + var(--jw-portrait-bottom-offset,0px));
+ -webkit-mask-position:calc(-4.4vw + var(--jw-mask-x,0px)) calc(-27.5svh + var(--jw-portrait-bottom-offset,0px));
+}
+.jw-live-title[data-phase="in"]{z-index:1}
+@media(max-width:760px){
+ .jw-live-title{padding-top:34%;padding-left:3%}
+ .jw-live-title-letters{font-size:clamp(40px,10vw,90px)}
+ .jw-live-outline{left:3%;top:34%}
+}
+@media(min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-live-title{translate:var(--jw-left-shift) 0}
+}
