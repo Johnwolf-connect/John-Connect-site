@@ -168,3 +168,17 @@ main > .design-tools .design-tools-stage{inset:0;background:transparent}
 /* Lower the orbit as a whole without altering its horizontal placement or icon paths. */
 main > .design-tools .design-tools-orbit{translate:0 clamp(18px,4svh,44px)}
 @media(max-width:720px){main > .design-tools .design-tools-orbit{translate:0 16px}}
+
+/* Section 2 content must remain readable regardless of entrance or pin state. */
+#root main > #design-tools .design-tools-stage,
+#root main > #design-tools .design-tools-layout,
+#root main > #design-tools .design-tools-information{
+ visibility:visible;opacity:1;content-visibility:visible;
+}
+#root main > #design-tools .design-tools-information,
+#root main > #design-tools .design-tools-information h2,
+#root main > #design-tools .design-tools-information p,
+#root main > #design-tools .design-tools-eyebrow{
+ opacity:1!important;visibility:visible!important;animation:none!important;
+}
+#root main > #design-tools .design-tools-center{visibility:visible;opacity:1}
