@@ -253,3 +253,102 @@
 @media(prefers-reduced-motion:reduce){
  .jw-subtitle-motion,.jw-body-motion{will-change:auto!important}
 }
+
+
+/* The live Canva glyphs rush toward the camera, then a signature-purple
+   splash blooms into a full-screen, accessible More About Me view. The overlay
+   lives in a body portal, outside pinned/overflow-clipped homepage sections. */
+.jw-about-transition{
+ position:fixed;inset:0;z-index:250;isolation:isolate;
+ display:grid;place-items:center;
+ overflow-x:hidden;overflow-y:auto;
+ color:#fff;overscroll-behavior:contain;
+ background:transparent;
+}
+.jw-about-splash{
+ position:absolute;inset:0;z-index:0;
+ overflow:hidden;pointer-events:none;
+ background:
+  radial-gradient(ellipse at 70% 18%,rgba(210,166,255,.8),transparent 32%),
+  radial-gradient(ellipse at 15% 77%,rgba(72,19,174,.75),transparent 52%),
+  linear-gradient(137deg,#6b2acc 0%,#8a4cf3 49%,#6630c0 100%);
+ clip-path:circle(0% at 50% 48%);
+}
+.jw-about-splash::before{
+ content:"";position:absolute;left:-18%;top:-45%;
+ width:74%;aspect-ratio:1;border-radius:47% 53% 67% 33%/62% 37% 63% 38%;
+ background:radial-gradient(circle,rgba(228,196,255,.33),rgba(200,132,255,.03) 72%);
+ transform:rotate(-28deg);filter:blur(11px);
+}
+.jw-about-splash-glow{
+ position:absolute;right:-18%;bottom:-48%;
+ width:72%;aspect-ratio:1;border-radius:60% 40% 38% 62%/44% 69% 31% 56%;
+ background:radial-gradient(circle at 45% 42%,rgba(240,220,255,.4),rgba(137,63,245,.07) 64%);
+ transform:rotate(26deg);filter:blur(9px);
+}
+.jw-about-splash-orbit{
+ position:absolute;left:51%;top:51%;width:min(85vw,900px);aspect-ratio:1;
+ border:1px solid rgba(255,255,255,.19);border-radius:43% 57% 61% 39%/51% 32% 68% 49%;
+ transform:translate(-50%,-50%) rotate(-25deg);
+ box-shadow:0 0 0 55px rgba(255,255,255,.025),0 0 0 128px rgba(255,255,255,.018);
+}
+.jw-about-flight{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:visible;perspective:850px}
+.jw-about-fly-svg,.jw-about-fly-fallback{
+ position:absolute;display:block;max-width:none;pointer-events:none;
+ overflow:visible;object-fit:contain;will-change:transform,opacity;
+}
+.jw-about-fly-glyph{transform-box:fill-box;transform-origin:center;will-change:transform,opacity,filter}
+.jw-about-content{
+ position:relative;z-index:5;
+ width:min(100%,1260px);padding:clamp(90px,13vh,150px) clamp(30px,8vw,135px);
+ margin:auto;color:#fff;
+ opacity:0;outline:none;
+}
+.jw-about-kicker{
+ display:inline-block;font-size:clamp(10px,1.1vw,14px);font-weight:700;
+ letter-spacing:.23em;color:rgba(255,255,255,.78);
+ margin-bottom:clamp(22px,4vw,52px);
+}
+.jw-about-content h2{
+ font-family:'DM Sans',Arial,sans-serif;
+ font-size:clamp(54px,9vw,142px);font-weight:700;
+ line-height:.92;letter-spacing:-.075em;max-width:1100px;
+ margin:0 0 clamp(34px,5vh,64px);text-wrap:balance;
+}
+.jw-about-content h2 em{
+ font-family:'Playfair Display',Georgia,serif;font-weight:600;
+ letter-spacing:-.06em;color:#fff;
+}
+.jw-about-content p{
+ max-width:680px;font-size:clamp(17px,1.8vw,24px);
+ line-height:1.65;color:rgba(255,255,255,.9);margin:0 0 32px;
+}
+.jw-about-contact{
+ display:inline-flex;align-items:center;gap:24px;
+ font-size:13px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
+ padding:13px 0 15px;border-bottom:1px solid rgba(255,255,255,.8);
+ color:#fff;
+}
+.jw-about-contact span{font-size:22px}
+.jw-about-close{
+ position:fixed;top:clamp(22px,4vw,54px);right:clamp(22px,4vw,60px);
+ z-index:7;display:flex;align-items:center;gap:12px;
+ color:#fff;background:rgba(255,255,255,.11);
+ border:1px solid rgba(255,255,255,.5);border-radius:999px;
+ padding:12px 14px 12px 22px;font-size:12px;font-weight:700;
+ letter-spacing:.06em;backdrop-filter:blur(8px);
+}
+.jw-about-close span{font-size:22px;line-height:1}
+.jw-about-close:hover{background:rgba(255,255,255,.24)}
+.jw-about-transition :is(a,button):focus-visible{
+ outline:3px solid #fff;outline-offset:5px;
+}
+@media(max-width:760px){
+ .jw-about-content{padding:125px 26px 80px}
+ .jw-about-content h2{font-size:clamp(48px,13vw,86px)}
+ .jw-about-close{top:18px;right:18px;padding:10px 12px 10px 16px;font-size:11px}
+ .jw-about-splash-orbit{width:125vw}
+}
+@media(prefers-reduced-motion:reduce){
+ .jw-about-fly-glyph,.jw-about-fly-fallback{will-change:auto}
+}
