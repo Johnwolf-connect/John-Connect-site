@@ -272,7 +272,7 @@
   radial-gradient(ellipse at 70% 18%,rgba(210,166,255,.8),transparent 32%),
   radial-gradient(ellipse at 15% 77%,rgba(72,19,174,.75),transparent 52%),
   linear-gradient(137deg,#6b2acc 0%,#8a4cf3 49%,#6630c0 100%);
- clip-path:circle(0% at 50% 48%);
+ clip-path:none;opacity:0;visibility:hidden;
 }
 .jw-about-splash::before{
  content:"";position:absolute;left:-18%;top:-45%;
