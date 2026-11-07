@@ -1,5 +1,7 @@
 import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {gsap} from 'gsap';
+import {ScrollTrigger} from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
 import './design-tools.css';
 
 const tools=[
@@ -22,6 +24,7 @@ function ToolIcon({tool}){
  return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>;
 }
 export default function DesignTools(){
+ const exitProgress=useRef(0);
  const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),travel=useRef(null),travelName=useRef(null),busy=useRef(false),feature=useRef(null),flightTween=useRef(null);
  const [selected,setSelected]=useState(null),[reduced,setReduced]=useState(false);
  chosen.current=selected;
@@ -36,6 +39,7 @@ export default function DesignTools(){
   const host=root.current,field=orbit.current;
   if(!host||!field)return;
   const information=host.querySelector('.design-tools-information');
+  const pin=ScrollTrigger.create({id:'design-tools-lock',trigger:host,start:'top top',end:'+=110%',pin:true,pinSpacing:true,anticipatePin:1,invalidateOnRefresh:true,onUpdate:self=>{exitProgress.current=self.progress},onRefresh:self=>{exitProgress.current=self.progress}});
   const prompt=host.querySelector('.design-tools-center');
   if(reduced){
    Object.values(buttons.current).forEach(node=>{
@@ -95,6 +99,7 @@ export default function DesignTools(){
    const topX=centerX,topY=centerY-radius;
    const visibleTools=tools.filter(tool=>tool.name!==chosen.current);
    const ready=elapsed>=finalLanding;
+   const leaving=clamp(exitProgress.current,0,1);
    host.inert=false;
    host.style.setProperty('--tool-panel-opacity','1');
    if(information)information.style.transform='translateY(0)';
@@ -145,12 +150,31 @@ export default function DesignTools(){
      x=centerX+Math.cos(angle)*radius;
      y=centerY+Math.sin(angle)*radius;
     }
-    const opacity=smooth(clamp(ride/.14,0,1));
+    // Scroll-scrubbed departure: sequentially peel icons off the TOP of
+    // the orbit, then retrace the same curved approach toward lower-left.
+    // Reverse scroll reverses these exact coordinates without restarting.
+    const exitRide=clamp((leaving*1.75-i/count*.75),0,1);
+    if(exitRide>0){
+     const topStage=clamp(exitRide/.32,0,1);
+     const returnStage=clamp((exitRide-.32)/.68,0,1);
+     const atTopX=x+(topX-x)*smooth(topStage);
+     const atTopY=y+(topY-y)*smooth(topStage);
+     if(returnStage>0){
+      const turnX=originX+(topX-originX)*.52;
+      const back=1-returnStage;
+      let rx,ry;
+      if(back<.38){rx=originX+(turnX-originX)*back/.38;ry=originY}
+      else{const t=(back-.38)/.62;rx=cubic(turnX,turnX+(topX-originX)*.28,topX,topX,t);ry=cubic(originY,originY,topY+(originY-topY)*.24,topY,t)}
+      x=atTopX+(rx-atTopX)*smooth(returnStage);
+      y=atTopY+(ry-atTopY)*smooth(returnStage);
+     }else{x=atTopX;y=atTopY}
+    }
+    const opacity=smooth(clamp(ride/.14,0,1))*(1-smooth(clamp((exitRide-.88)/.12,0,1)));
     node.style.transform='translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%) rotate('+bank+'deg) scale('+(0.84+ride*.16)+')';
     node.style.opacity=String(travelName.current===tool.name?0:opacity);
-    node.style.pointerEvents=complete?'auto':'none';
+    node.style.pointerEvents=complete&&exitRide===0?'auto':'none';
     node.tabIndex=complete?0:-1;
-    if(complete&&travelName.current!==tool.name){
+    if(complete&&exitRide===0&&travelName.current!==tool.name){
      centers.push({tool,node,x,y});
     }
    });
@@ -210,6 +234,8 @@ export default function DesignTools(){
   observer.observe(host);
   return()=>{
    observer.disconnect();
+   pin.kill();
+   exitProgress.current=0;
    stop();
    window.removeEventListener('pointermove',movePointer);
    window.removeEventListener('blur',clearPointer);
