@@ -305,12 +305,19 @@ export default function HomepageHero(){
     gsap.set(glyphs,{transformOrigin:'50% 50%',transformBox:'fill-box',force3D:true});
     const targets=glyphs.map(glyph=>{
      const rect=glyph.getBoundingClientRect();
-     const midX=rect.left+rect.width/2,midY=rect.top+rect.height/2;
-     // One large glyph must cover the viewport before the color handoff.
+     const matrix=glyph.parentNode.getScreenCTM();
+     const bounds=glyph.getBBox();
+     if(!matrix||!bounds.width||!bounds.height)return {x:0,y:0,scale:1};
+     // GSAP translates nested SVG groups in local SVG units, not CSS pixels.
+     // Convert the actual viewport center into this glyph parent's user space.
+     // This stays centered across viewBox scaling, letter offsets and screens.
+     const aim=new DOMPoint(centerX,centerY).matrixTransform(matrix.inverse());
+     const glyphCenterX=bounds.x+bounds.width/2;
+     const glyphCenterY=bounds.y+bounds.height/2;
      const scale=Math.max(36,Math.min(100,
       Math.max(window.innerWidth/Math.max(rect.width,1),
                window.innerHeight/Math.max(rect.height,1))*2.1));
-     return {x:centerX-midX,y:centerY-midY,scale};
+     return {x:aim.x-glyphCenterX,y:aim.y-glyphCenterY,scale};
     });
     flightTimeline=gsap.timeline({onComplete:()=>{
      if(!cancelled)close.focus({preventScroll:true});
