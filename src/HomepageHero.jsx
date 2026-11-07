@@ -1,4 +1,4 @@
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {gsap} from 'gsap';
 import './HomepageHero.css';
 const root='/homepage-canva/';
@@ -28,7 +28,7 @@ export default function HomepageHero(){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){setIndex(next);return}
   pendingRef.current=next;setPending(next);
  };
- useEffect(()=>{
+ useLayoutEffect(()=>{
   if(pending===null)return;
   const host=homepageRef.current;
   // Each original Canva title is a single vector drawing, never vertical slices.
@@ -36,28 +36,39 @@ export default function HomepageHero(){
   const distance=Math.max(host.clientWidth,800);
   // Mirror the same motion for previous titles so backward gestures feel natural.
   const direction=pending>indexRef.current?1:-1;
-  const getPair=phase=>({
-   purple:host.querySelector('.jw-live-title-base[data-phase="'+phase+'"] .jw-title-whole'),
-   white:host.querySelector('.jw-live-title-overlay[data-phase="'+phase+'"] .jw-title-whole')
+  const getPair=titleIndex=>({
+   purple:host.querySelector('.jw-live-title-base[data-title-index="'+titleIndex+'"] .jw-title-whole'),
+   white:host.querySelector('.jw-live-title-overlay[data-title-index="'+titleIndex+'"] .jw-title-whole')
   });
-  const outgoing=getPair('out'),incoming=getPair('in');
+  // All seven Canva title pairs stay mounted, so nothing is replaced mid-swipe.
+  const outgoing=getPair(indexRef.current),incoming=getPair(pending);
   if(!outgoing.purple||!outgoing.white||!incoming.purple||!incoming.white)return;
   const move=(pair,x,stretch=1)=>{
    gsap.set([pair.purple,pair.white],{x,scaleX:stretch,transformOrigin:'50% 50%',force3D:true});
   };
   move(outgoing,0);move(incoming,distance*direction);
-  const timeline=gsap.timeline({onComplete:()=>{
-   indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
-  }});
-  titleRunRef.current=timeline;
+  let cancelled=false;
+  let timeline=null;
   const leaving={x:0,stretch:1},arriving={x:distance*direction,stretch:1};
-  timeline.to(leaving,{x:-distance*direction,duration:.82,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
-   .to(leaving,{stretch:1.018,duration:.25,ease:'power2.out',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
-   .to(leaving,{stretch:1,duration:.32,ease:'power2.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.25)
-   .to(arriving,{x:0,duration:.88,ease:'power3.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
-   .to(arriving,{stretch:1.022,duration:.3,ease:'power2.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
-   .to(arriving,{stretch:1,duration:.44,ease:'power2.inOut',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.66);
-  return()=>{timeline.kill();titleRunRef.current=null};
+  // Use the same progress for each purple/white pair, avoiding any timing split.
+  const run=()=>{
+   if(cancelled)return;
+   timeline=gsap.timeline({onComplete:()=>{
+    indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
+   }});
+   titleRunRef.current=timeline;
+   timeline.to(leaving,{x:-distance*direction,duration:.82,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
+    .to(leaving,{stretch:1.018,duration:.25,ease:'power2.out',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
+    .to(leaving,{stretch:1,duration:.32,ease:'power2.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.25)
+    .to(arriving,{x:0,duration:.88,ease:'power3.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
+    .to(arriving,{stretch:1.022,duration:.3,ease:'power2.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
+    .to(arriving,{stretch:1,duration:.44,ease:'power2.inOut',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.66);
+  };
+  // Both images of the incoming title must be decoded before its first frame.
+  // The outgoing title remains in place until that is true.
+  const images=[...incoming.purple.querySelectorAll('img'),...incoming.white.querySelectorAll('img')];
+  Promise.all(images.map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve())).then(run);
+  return()=>{cancelled=true;timeline?.kill();titleRunRef.current=null};
  },[pending]);
  useEffect(()=>{
   const host=homepageRef.current;if(!host)return;
@@ -117,19 +128,19 @@ export default function HomepageHero(){
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
  const activeIndicator=pending===null?index:pending;
- const liveTitle=(phase,which)=><React.Fragment>
-  <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">
+ const liveTitle=which=><React.Fragment key={which}>
+  <div className="jw-live-title jw-live-title-base" data-title-index={which}
+       style={{visibility:which===index||which===pending?'visible':'hidden'}} aria-hidden="true">
    <div className="jw-title-whole">{layer(states[which][0],'jw-art-title')}</div>
   </div>
-  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">
+  <div className="jw-live-title jw-live-title-overlay" data-title-index={which}
+       style={{visibility:which===index||which===pending?'visible':'hidden'}} aria-hidden="true">
    <div className="jw-title-whole">{layer(states[which][1],'jw-art-outline')}</div>
   </div>
  </React.Fragment>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
-   {pending===null&&liveTitle('still',index)}
-   {pending!==null&&liveTitle('out',index)}
-   {pending!==null&&liveTitle('in',pending)}
+   {states.map((_,which)=>liveTitle(which))}
    {layer('Man.svg','jw-art-man')}
    
    {layer('Subtitle dot.svg','jw-art-subtitle-dot')}
