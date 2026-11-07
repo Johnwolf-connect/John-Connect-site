@@ -31,6 +31,8 @@ export default function HomepageHero(){
   // Each original Canva title is a single vector drawing, never vertical slices.
   // Purple and outline are paired and transformed by the same progress value.
   const distance=Math.max(host.clientWidth,800);
+  // Mirror the same motion for previous titles so backward gestures feel natural.
+  const direction=pending>indexRef.current?1:-1;
   const getPair=phase=>({
    purple:host.querySelector('.jw-live-title-base[data-phase="'+phase+'"] .jw-title-whole'),
    white:host.querySelector('.jw-live-title-overlay[data-phase="'+phase+'"] .jw-title-whole')
@@ -40,13 +42,13 @@ export default function HomepageHero(){
   const move=(pair,x,stretch=1)=>{
    gsap.set([pair.purple,pair.white],{x,scaleX:stretch,transformOrigin:'50% 50%',force3D:true});
   };
-  move(outgoing,0);move(incoming,distance);
+  move(outgoing,0);move(incoming,distance*direction);
   const timeline=gsap.timeline({onComplete:()=>{
    indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
   }});
   titleRunRef.current=timeline;
-  const leaving={x:0,stretch:1},arriving={x:distance,stretch:1};
-  timeline.to(leaving,{x:-distance,duration:.82,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
+  const leaving={x:0,stretch:1},arriving={x:distance*direction,stretch:1};
+  timeline.to(leaving,{x:-distance*direction,duration:.82,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
    .to(leaving,{stretch:1.018,duration:.25,ease:'power2.out',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
    .to(leaving,{stretch:1,duration:.32,ease:'power2.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.25)
    .to(arriving,{x:0,duration:.88,ease:'power3.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
