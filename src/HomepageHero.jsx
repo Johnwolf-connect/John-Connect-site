@@ -31,6 +31,18 @@ const bodyLines=[
   'Design can turn problems into meaningful solutions.']
 ];
 // Exact circle centers from the original Canva Indicators.svg (1440 x 810 viewBox).
+const aboutPrinciples=[
+ {name:'THINK',detail:'I look for the idea underneath the design—the part that gives everything else a reason to exist.'},
+ {name:'BUILD',detail:'Identity systems, logos, digital experiences, and visual direction built to work as one clear system.'},
+ {name:'REFINE',detail:'I keep pushing the work until every decision feels intentional rather than merely finished.'}
+];
+const aboutCapabilities=['Brand identity','Logo systems','Digital experiences','Art direction','Interactive design','Creative problem solving'];
+const aboutProof=[
+ ['20+ years','Designing brands, identities, visual communication, and digital experiences.'],
+ ['Independent by nature','Working directly with businesses, founders, and ideas from concept through execution.'],
+ ['Design + technology','Visual design combined with interaction, motion, web development, and modern creative tools.']
+];
+
 const indicatorXs=[483.425781,517.5,551.574219,585.644531,619.71875,653.789062,687.863281];
 const indicatorY=195.027344;
 const layer=(name,cls)=> <img className={'jw-art '+cls} src={root+encodeURIComponent(name)} alt="" aria-hidden="true" draggable="false"/>;
@@ -107,6 +119,7 @@ export default function HomepageHero(){
  const homepageRef=useRef(null);
  const [pending,setPending]=useState(null);
  const [aboutOpen,setAboutOpen]=useState(false);
+ const [aboutPrinciple,setAboutPrinciple]=useState(0);
  const aboutStageRef=useRef(null),aboutSplashRef=useRef(null),aboutFlightRef=useRef(null);
  const aboutContentRef=useRef(null),aboutCloseRef=useRef(null);
  const aboutLaunchQueuedRef=useRef(false),aboutClosingRef=useRef(false);
@@ -481,14 +494,68 @@ export default function HomepageHero(){
      <div className="jw-about-splash-orbit"/>
     </div>
     <div ref={aboutFlightRef} className="jw-about-flight" aria-hidden="true"/>
-    <section ref={aboutContentRef} className="jw-about-content" tabIndex={-1}>
-     <span className="jw-about-kicker">JOHN WOLF / MORE ABOUT ME</span>
-     <h2 id="jw-about-heading">Design is how<br/>I make ideas <em>felt.</em></h2>
-     <p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p>
-     <a className="jw-about-contact" href="#contact" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>Let's work together <span aria-hidden="true">↗</span></a>
-    </section>
-    <button ref={aboutCloseRef} type="button" className="jw-about-close" onClick={closeAbout} aria-label="Back to homepage">
-     Back to homepage <span aria-hidden="true">×</span>
+    <main ref={aboutContentRef} className="jw-about-content" tabIndex={-1}>
+     <section className="jw-about-hero" aria-labelledby="jw-about-heading">
+      <span className="jw-about-kicker">JOHN WOLF / CREATIVE DESIGNER</span>
+      <h2 id="jw-about-heading">I make ideas<br/><strong>clear enough to understand,</strong><br/><em>distinct enough to remember.</em></h2>
+      <p className="jw-about-lede">I’m John Wolf, a multidisciplinary designer working across brand identity, visual systems, digital experiences, and creative direction. I’m interested in the point where strategy becomes something people can actually see, use, and feel.</p>
+      <a className="jw-about-explore" href="#jw-about-process">Explore how I work <span aria-hidden="true">↓</span></a>
+     </section>
+
+     <section id="jw-about-process" className="jw-about-process" aria-labelledby="jw-about-process-heading">
+      <div className="jw-about-section-intro">
+       <span className="jw-about-kicker">HOW I WORK</span>
+       <h3 id="jw-about-process-heading">Three moves.<br/>One connected process.</h3>
+      </div>
+      <div className="jw-about-principles">
+       <div className="jw-about-principle-list" role="tablist" aria-label="How I work">
+        {aboutPrinciples.map((item,i)=><button key={item.name} type="button" role="tab"
+         aria-selected={aboutPrinciple===i}
+         aria-controls="jw-about-principle-panel"
+         className={'jw-about-principle'+(aboutPrinciple===i?' is-active':'')}
+         onPointerEnter={()=>setAboutPrinciple(i)}
+         onFocus={()=>setAboutPrinciple(i)}
+         onClick={()=>setAboutPrinciple(i)}>
+         <span>{String(i+1).padStart(2,'0')}</span>{item.name}
+        </button>)}
+       </div>
+       <div id="jw-about-principle-panel" className="jw-about-principle-panel" role="tabpanel" aria-live="polite">
+        <span className="jw-about-principle-index">{String(aboutPrinciple+1).padStart(2,'0')} / 03</span>
+        <p key={aboutPrinciples[aboutPrinciple].name}>{aboutPrinciples[aboutPrinciple].detail}</p>
+       </div>
+      </div>
+     </section>
+
+     <section className="jw-about-capabilities" aria-labelledby="jw-about-capabilities-heading">
+      <span className="jw-about-kicker">WHAT I DO</span>
+      <h3 id="jw-about-capabilities-heading">Ideas need systems,<br/>not isolated pieces.</h3>
+      <div className="jw-about-capability-list">
+       {aboutCapabilities.map((item,i)=><span key={item}><small>{String(i+1).padStart(2,'0')}</small>{item}</span>)}
+      </div>
+     </section>
+
+     <section className="jw-about-proof" aria-labelledby="jw-about-proof-heading">
+      <div className="jw-about-section-intro">
+       <span className="jw-about-kicker">EXPERIENCE</span>
+       <h3 id="jw-about-proof-heading">Built through doing.</h3>
+      </div>
+      <div className="jw-about-proof-grid">
+       {aboutProof.map(([title,copy])=><article key={title}><h4>{title}</h4><p>{copy}</p></article>)}
+      </div>
+     </section>
+
+     <section className="jw-about-closeout" aria-labelledby="jw-about-closeout-heading">
+      <span className="jw-about-kicker">NEXT</span>
+      <h3 id="jw-about-closeout-heading">Seen enough?</h3>
+      <p>I don’t just make things look different. I figure out what they need to communicate, then build the visual system that makes the idea unmistakable.</p>
+      <div className="jw-about-actions">
+       <a href="#work" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>View my work <span aria-hidden="true">→</span></a>
+       <a href="#contact" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>Start a project <span aria-hidden="true">→</span></a>
+      </div>
+     </section>
+    </main>
+    <button ref={aboutCloseRef} type="button" className="jw-about-close" onClick={closeAbout} aria-label="Return to portfolio">
+     <span aria-hidden="true">←</span> Portfolio
     </button>
    </div>,document.body)}
  </div>;
