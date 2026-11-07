@@ -99,7 +99,7 @@ export default function DesignTools(){
    if(!active)return;
    // Never spend the entrance clock while Section 2 is still below the viewport.
    // The pin's actual active state, not intersection proximity, starts it.
-   if(!introStarted&&pin.isActive){
+   if(!introStarted&&(pin.isActive||host.getBoundingClientRect().top<window.innerHeight*.55)) {
     introStarted=true;
     entranceRequested=false;
     start=reverseEntry?now-3150:now;
@@ -139,7 +139,7 @@ export default function DesignTools(){
    // Do not let scroll progress bypass the entrance before it has played.
    // Previously any nonzero progress skipped the entire intro branch.
    const introDuration=3.15;
-   const entering=(!introStarted||elapsed<introDuration)&&!reverseEntry;
+   const entering=introStarted&&elapsed<introDuration&&!reverseEntry;
    const departure=entering?0:clamp01(exitProgress.current);
    // Freeze the orbit phase on the FIRST intentional departure; reverse
    // scrolling reuses the exact same phase and geometry.
@@ -147,7 +147,7 @@ export default function DesignTools(){
    if(departure===0)frozenPhase=null;
    const introTravel=incoming.length+(count-1)*gap;
    // Show the leading icon at the launch point immediately on arrival.
-   const introDistance=1+introTravel*clamp01(elapsed/introDuration);
+   const introDistance=gap*1.15+introTravel*clamp01(elapsed/introDuration);
    const introEndPhase=(count-1)*gap/radius;
    if(departure===0&&elapsed>=introDuration)phase+=dt*.19;
    // Match the last arrival's angular position at the intro/orbit boundary.
@@ -164,7 +164,11 @@ export default function DesignTools(){
     }
     let x,y,visible=true,onRing=false;
     const offset=i*gap;
-    if(entering){
+    if(!introStarted){
+     const angle=-Math.PI/2-i*TAU/count;
+     x=cx+Math.cos(angle)*radius;y=cy+Math.sin(angle)*radius;
+     onRing=true;
+    }else if(entering){
      const distance=introDistance-offset;
      if(distance<0){visible=false;({x,y}=origin)}
      else if(distance<incoming.length){({x,y}=incoming.pointAt(distance))}
