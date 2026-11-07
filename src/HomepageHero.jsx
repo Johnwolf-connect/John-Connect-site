@@ -28,21 +28,34 @@ export default function HomepageHero(){
  useEffect(()=>{
   if(pending===null)return;
   const host=homepageRef.current;
-  const outgoing=host?.querySelectorAll('.jw-live-title-base[data-phase="out"], .jw-live-title-overlay[data-phase="out"] .jw-art-outline');
-  const incoming=host?.querySelectorAll('.jw-live-title-base[data-phase="in"], .jw-live-title-overlay[data-phase="in"] .jw-art-outline');
-  if(!outgoing?.length||!incoming?.length)return;
+  const count=9;
   const distance=Math.max(host.clientWidth,800);
-  // One animated coordinate per title, applied to its purple art and white
-  // silhouette art on every frame. Neither layer has its own tween.
-  const outPosition={x:0},inPosition={x:distance};
-  const sync=(nodes,position)=>nodes.forEach(node=>gsap.set(node,{x:position.x}));
-  sync(outgoing,outPosition);sync(incoming,inPosition);
+  const outgoing=Array.from({length:count},(_,i)=>({
+   base:host.querySelector('.jw-live-title-base[data-phase="out"] [data-slice="'+i+'"]'),
+   edge:host.querySelector('.jw-live-title-overlay[data-phase="out"] [data-slice="'+i+'"]')
+  }));
+  const incoming=Array.from({length:count},(_,i)=>({
+   base:host.querySelector('.jw-live-title-base[data-phase="in"] [data-slice="'+i+'"]'),
+   edge:host.querySelector('.jw-live-title-overlay[data-phase="in"] [data-slice="'+i+'"]')
+  }));
+  if([...outgoing,...incoming].some(pair=>!pair.base||!pair.edge))return;
+  const sync=(pair,x)=>{gsap.set(pair.base,{x});gsap.set(pair.edge,{x})};
+  outgoing.forEach(pair=>sync(pair,0));
+  incoming.forEach(pair=>sync(pair,distance));
   const timeline=gsap.timeline({onComplete:()=>{
    indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
   }});
   titleRunRef.current=timeline;
-  timeline.to(outPosition,{x:-distance,duration:.52,ease:'power3.in',onUpdate:()=>sync(outgoing,outPosition)},0);
-  timeline.to(inPosition,{x:0,duration:.65,ease:'power3.out',onUpdate:()=>sync(incoming,inPosition)},.55);
+  // Chain-pull: each vertical slice follows the preceding slice. Purple and
+  // outline use the same progress value, with a fixed portrait mask above.
+  outgoing.forEach((pair,i)=>{
+   const position={x:0};
+   timeline.to(position,{x:-distance,duration:.62,ease:'power3.inOut',onUpdate:()=>sync(pair,position.x)},i*.027);
+  });
+  incoming.forEach((pair,i)=>{
+   const position={x:distance};
+   timeline.to(position,{x:0,duration:.72,ease:'power3.out',onUpdate:()=>sync(pair,position.x)},.36+i*.027);
+  });
   return()=>{timeline.kill();titleRunRef.current=null};
  },[pending]);
  useEffect(()=>{
@@ -103,8 +116,12 @@ export default function HomepageHero(){
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
  const liveTitle=(phase,which)=><React.Fragment>
-  <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-title')}</div>
-  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-outline')}</div>
+  <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">
+   {Array.from({length:9},(_,i)=><div key={i} data-slice={i} className="jw-title-slice" style={{clipPath:`inset(0 ${(8-i)*100/9}% 0 ${i*100/9}%)`}}>{layer(states[which][0],'jw-art-title')}</div>)}
+  </div>
+  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">
+   {Array.from({length:9},(_,i)=><div key={i} data-slice={i} className="jw-title-slice" style={{clipPath:`inset(0 ${(8-i)*100/9}% 0 ${i*100/9}%)`}}>{layer(states[which][0],'jw-art-outline')}</div>)}
+  </div>
  </React.Fragment>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
