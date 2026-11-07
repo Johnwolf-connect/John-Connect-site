@@ -3,15 +3,14 @@
 .hero.hero-reference .jw-homepage{position:relative;width:100%;height:calc(100svh - 68px);min-height:540px;background:#fff;overflow:hidden;isolation:isolate}
 .jw-artboard{
  position:absolute;
- width:max(100%, calc((100svh - 68px) * 16 / 9));
- height:max(100%, calc(100vw * 9 / 16));
- aspect-ratio:16 / 9;
- left:50%;
- bottom:0;
- transform:translateX(-50%);
+ inset:0;
+ width:100%;
+ height:100%;
+ aspect-ratio:auto;
+ transform:none;
  background:#fff;
 }
-.jw-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
+.jw-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
 .jw-art-title{z-index:1}
 .jw-art-man{z-index:2}
 .jw-art-outline{z-index:3}
@@ -25,9 +24,5 @@
 .jw-homepage *{animation:none!important;transition:none!important}
 @media(max-width:760px){
  .hero.hero-reference .jw-homepage{height:calc(100svh - 68px);min-height:480px}
- .jw-artboard{
-  width:max(100%, calc((100svh - 68px) * 16 / 9));
-  height:max(100%, calc(100vw * 9 / 16));
-  left:50%;bottom:0;transform:translateX(-50%);
- }
+ .jw-artboard{inset:0;width:100%;height:100%;transform:none}
 }
