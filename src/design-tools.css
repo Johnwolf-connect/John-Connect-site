@@ -1,45 +1,364 @@
-/* Standalone section: no hero overlay, scroll reveal, pin, or entrance/exit. */
-#root main > #design-tools{position:relative;isolation:isolate;display:block;width:100%;height:100svh;min-height:600px;overflow:hidden;clip-path:none;opacity:1;visibility:visible;background:#fff;color:#141414;z-index:3;scroll-margin-top:0;--tool-panel-opacity:1}
-#root main > #design-tools .design-tools-stage{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:hidden;opacity:1;visibility:visible;background:transparent}
-#root main > #design-tools .design-tools-layout{position:relative;z-index:2;display:grid;grid-template-columns:40% 60%;align-items:center;width:100%;height:100%;padding:clamp(42px,5vw,84px) clamp(26px,4vw,72px);opacity:1;visibility:visible}
-#root main > #design-tools .design-tools-information{display:block;position:relative;z-index:3;align-self:start;padding-top:clamp(20px,8vh,70px);padding-right:24px;max-width:390px;opacity:1;visibility:visible;color:#141414;transform:none}
-.design-tools-eyebrow{font-size:10px;letter-spacing:.2em;font-weight:700;color:#8b8b8b}
-#root main > #design-tools .design-tools-information h2{font-size:clamp(30px,3.2vw,52px);line-height:1.08;letter-spacing:-.045em;margin:19px 0 14px;font-weight:700;opacity:1;visibility:visible;animation:none}
-#root main > #design-tools .design-tools-information p{font-size:clamp(13px,1.05vw,16px);line-height:1.95;color:#686868;max-width:345px;margin:12px 0;opacity:1;visibility:visible;animation:none}
-.design-tool-feature-icon{height:0;opacity:1;display:flex;align-items:center;justify-content:flex-start;flex-shrink:0;overflow:visible}
-.design-tool-feature-icon img{max-height:124px;max-width:130px;object-fit:contain}
-.design-tools-reset{background:none;border:0;border-bottom:1px solid #aaa;padding:7px 0;color:#555;font-size:12px}
-#root main > #design-tools .design-tools-orbit{position:relative;display:block;z-index:2;width:100%;height:min(70svh,680px,calc(100svh - 125px));min-width:0;align-self:center;justify-self:center;translate:0 clamp(18px,4svh,44px);opacity:1;visibility:visible}
-.design-tools-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:clamp(16px,1.9vw,26px);font-weight:700;letter-spacing:.09em;white-space:nowrap;color:#74657e;pointer-events:none}
-#root main > #design-tools .design-tool-orbit-item{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:clamp(52px,5.6vw,84px);min-height:76px;padding:6px 2px;border:0;background:transparent;color:#333;opacity:1;visibility:visible;cursor:pointer;will-change:left,top}
-.design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:box-shadow .28s,transform .28s,background .28s}
-.design-tool-orbit-icon img{max-height:83%;max-width:83%;object-fit:contain}
-.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:scale(1.24)}
-.design-tool-orbit-label{font-size:clamp(9px,.8vw,12px);font-weight:600;line-height:1.25;text-align:center;max-width:110px;text-shadow:0 1px 8px #fff}
-#root main > #design-tools .design-tools-stage::before{content:"";display:block;position:absolute;inset:-12%;z-index:0;pointer-events:none;background:radial-gradient(ellipse 40% 45% at 55% 50%,#9900ff4d,transparent 75%);filter:blur(26px)}
-@media(max-width:720px){#root main > #design-tools .design-tools-layout{grid-template-columns:1fr;grid-template-rows:38% 62%;padding:88px 20px 24px}#root main > #design-tools .design-tools-information{align-self:start;padding:0 6px;max-width:none}#root main > #design-tools .design-tools-information h2{font-size:32px;margin:9px 0 10px}#root main > #design-tools .design-tools-information p{font-size:12px;line-height:1.5;margin:10px 0}#root main > #design-tools .design-tools-orbit{height:100%;translate:0 16px}#root main > #design-tools .design-tool-orbit-item{width:50px;min-height:54px;gap:2px}.design-tool-orbit-icon{width:30px;height:30px}.design-tool-orbit-label{font-size:8px}.design-tool-feature-icon img{max-height:65px;max-width:70px}}
-@media(prefers-reduced-motion:reduce){.design-tool-orbit-icon{transition:none}}
+/* Design Tools — coordinated standalone section. No scroll pinning, entrance, or exit choreography. */
+#root main > #design-tools{
+ position:relative;
+ isolation:isolate;
+ display:block;
+ width:100%;
+ height:100svh;
+ min-height:620px;
+ overflow:hidden;
+ background:#fff;
+ color:#141414;
+ z-index:3;
+}
 
+#root main > #design-tools .design-tools-stage{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ overflow:hidden;
+ background:transparent;
+}
 
-/* Orbit only moves while pointer is over the orbit (or keyboard focus is inside). */
-#root main > #design-tools .design-tool-orbit-item{transition:none;animation:none}
-#root main > #design-tools .design-tool-orbit-icon{transition:transform .22s ease,box-shadow .22s ease,background .22s ease}
+#root main > #design-tools .design-tools-stage::before{
+ content:"";
+ position:absolute;
+ inset:-12%;
+ z-index:0;
+ pointer-events:none;
+ background:radial-gradient(ellipse 40% 45% at 55% 50%,rgba(153,0,255,.28),transparent 74%);
+ filter:blur(28px);
+ transform:scale(.96);
+ animation:design-tools-glow 7s ease-in-out infinite alternate;
+}
+
+#root main > #design-tools .design-tools-layout{
+ position:relative;
+ z-index:2;
+ display:grid;
+ grid-template-columns:minmax(290px,40%) minmax(0,60%);
+ align-items:center;
+ width:100%;
+ height:100%;
+ padding:clamp(44px,5vw,86px) clamp(28px,4.5vw,78px);
+}
+
+#root main > #design-tools .design-tools-information{
+ position:relative;
+ z-index:4;
+ align-self:start;
+ padding-top:clamp(26px,8vh,72px);
+ padding-right:28px;
+ max-width:410px;
+ min-height:390px;
+ color:#141414;
+}
+
+.design-tools-eyebrow{
+ display:inline-block;
+ font-size:10px;
+ line-height:1;
+ letter-spacing:.2em;
+ font-weight:700;
+ color:#8a8a8a;
+}
+
+#root main > #design-tools .design-tools-information h2{
+ margin:18px 0 13px;
+ font-size:clamp(31px,3.25vw,53px);
+ line-height:1.05;
+ letter-spacing:-.046em;
+ font-weight:700;
+}
+
+.design-tools-heading-copy,
+.design-tools-copy{
+ animation:design-tools-content-in .42s cubic-bezier(.2,.72,.22,1) both;
+}
+
+.design-tool-feature-slot{
+ display:flex;
+ align-items:center;
+ justify-content:flex-start;
+ width:132px;
+ height:0;
+ margin:0;
+ overflow:visible;
+ opacity:0;
+ transition:
+  height .19s cubic-bezier(.2,.72,.22,1),
+  margin .19s cubic-bezier(.2,.72,.22,1),
+  opacity .15s ease;
+}
+
+.design-tools-information.has-tool-space .design-tool-feature-slot{
+ height:132px;
+ margin:12px 0 14px;
+ opacity:1;
+}
+
+.design-tool-feature-icon{
+ display:flex;
+ align-items:center;
+ justify-content:flex-start;
+ width:126px;
+ height:126px;
+ opacity:1;
+ transform:translateZ(0);
+ transition:opacity .12s ease;
+}
+
+.design-tool-feature-icon img{
+ display:block;
+ max-width:118px;
+ max-height:118px;
+ width:auto;
+ height:auto;
+ object-fit:contain;
+}
+
+.design-tools-information.is-returning .design-tool-feature-icon{
+ opacity:0;
+}
+
+#root main > #design-tools .design-tools-information p{
+ max-width:350px;
+ margin:0;
+ font-size:clamp(13px,1.05vw,16px);
+ line-height:1.88;
+ color:#666;
+}
+
+.design-tools-reset{
+ margin-top:18px;
+ padding:7px 0 6px;
+ border:0;
+ border-bottom:1px solid rgba(20,20,20,.36);
+ background:transparent;
+ color:#4d4d4d;
+ font:inherit;
+ font-size:12px;
+ line-height:1.2;
+ cursor:pointer;
+ transition:border-color .2s ease,color .2s ease,transform .2s ease;
+}
+
+.design-tools-reset:hover,
+.design-tools-reset:focus-visible{
+ color:#141414;
+ border-color:#141414;
+ transform:translateX(2px);
+ outline:none;
+}
+
+#root main > #design-tools .design-tools-orbit{
+ position:relative;
+ z-index:2;
+ width:100%;
+ height:min(70svh,680px,calc(100svh - 126px));
+ min-width:0;
+ align-self:center;
+ justify-self:center;
+ translate:0 clamp(18px,4svh,44px);
+ contain:layout paint;
+}
+
+.design-tools-center{
+ position:absolute;
+ left:50%;
+ top:50%;
+ transform:translate(-50%,-50%);
+ font-size:clamp(15px,1.75vw,24px);
+ font-weight:700;
+ letter-spacing:.09em;
+ white-space:nowrap;
+ color:#76677f;
+ opacity:.88;
+ pointer-events:none;
+ user-select:none;
+}
+
+#root main > #design-tools .design-tool-orbit-item{
+ position:absolute;
+ left:50%;
+ top:50%;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:8px;
+ width:clamp(54px,5.8vw,86px);
+ min-height:78px;
+ padding:6px 2px;
+ border:0;
+ background:transparent;
+ color:#333;
+ cursor:pointer;
+ opacity:1;
+ visibility:visible;
+ will-change:transform,opacity;
+ touch-action:manipulation;
+}
+
+#root main > #design-tools .design-tool-orbit-item[aria-disabled="true"]{
+ cursor:default;
+}
+
+.design-tool-orbit-icon{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ width:clamp(37px,3.65vw,55px);
+ height:clamp(37px,3.65vw,55px);
+ border-radius:17px;
+ transform:scale(1);
+ transform-origin:center;
+ background:transparent;
+ box-shadow:0 0 0 0 rgba(128,69,219,0);
+ transition:
+  transform .32s cubic-bezier(.2,.8,.2,1),
+  box-shadow .32s ease,
+  background .32s ease;
+}
+
+.design-tool-orbit-icon img{
+ display:block;
+ max-width:83%;
+ max-height:83%;
+ width:auto;
+ height:auto;
+ object-fit:contain;
+ pointer-events:none;
+ user-select:none;
+}
+
+#root main > #design-tools .design-tool-orbit-item.is-proximity .design-tool-orbit-icon,
 #root main > #design-tools .design-tool-orbit-item:hover .design-tool-orbit-icon,
-#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:scale(1.75);background:#8045db12;box-shadow:0 0 34px 12px #8045db30}
-#root main > #design-tools .design-tool-orbit-item:hover{z-index:5}
-#root main > #design-tools .design-tool-orbit-item.is-selected{visibility:hidden;pointer-events:none}
-#root main > #design-tools .design-tool-feature-icon.is-visible{height:clamp(90px,15vh,155px);margin:12px 0;animation:tool-reveal .35s ease-out both}
-#root main > #design-tools .design-tools-information p{transition:none}
-@keyframes tool-reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){#root main > #design-tools .design-tool-feature-icon.is-visible{animation:none}#root main > #design-tools .design-tool-orbit-icon{transition:none}}
+#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{
+ transform:scale(1.9);
+ background:rgba(128,69,219,.07);
+ box-shadow:0 0 36px 13px rgba(128,69,219,.19);
+}
 
-/* Enlarged hover is intentionally prominent, while the orbit's icon centers keep their spacing. */
-#root main > #design-tools .design-tool-orbit-item:hover .design-tool-orbit-icon,
-#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:scale(1.75);transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease;}
-#root main > #design-tools .design-tool-orbit-item.is-selected{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+#root main > #design-tools .design-tool-orbit-item.is-proximity{
+ z-index:7;
+}
 
-/* Coordinated carousel: smoothly close/open gaps, and magnify whichever icon passes the pointer. */
-#root main > #design-tools .design-tool-orbit-item{transition:none!important}
-#root main > #design-tools .design-tool-orbit-item.is-proximity .design-tool-orbit-icon{transform:scale(1.9);background:#8045db12;box-shadow:0 0 34px 12px #8045db30}
-#root main > #design-tools .design-tool-orbit-item.is-proximity{z-index:6}
-@media(prefers-reduced-motion:reduce){#root main > #design-tools .design-tool-orbit-item{transition:none!important}#root main > #design-tools .design-tool-orbit-item.is-proximity .design-tool-orbit-icon{transform:none}}
+#root main > #design-tools .design-tool-orbit-item:focus-visible{
+ outline:none;
+ z-index:8;
+}
+
+.design-tool-orbit-label{
+ max-width:112px;
+ font-size:clamp(9px,.82vw,12px);
+ font-weight:600;
+ line-height:1.22;
+ text-align:center;
+ text-shadow:0 1px 8px #fff,0 0 12px #fff;
+ pointer-events:none;
+}
+
+#root main > #design-tools .design-tool-orbit-item.is-selected{
+ opacity:0;
+ visibility:hidden;
+ pointer-events:none;
+}
+
+@keyframes design-tools-content-in{
+ from{opacity:0;transform:translateY(8px)}
+ to{opacity:1;transform:translateY(0)}
+}
+
+@keyframes design-tools-glow{
+ from{opacity:.72;transform:scale(.96)}
+ to{opacity:1;transform:scale(1.04)}
+}
+
+@media(max-width:900px){
+ #root main > #design-tools .design-tools-layout{
+  grid-template-columns:38% 62%;
+  padding-left:28px;
+  padding-right:28px;
+ }
+ #root main > #design-tools .design-tools-information{
+  padding-right:18px;
+ }
+}
+
+@media(max-width:720px){
+ #root main > #design-tools{
+  min-height:700px;
+ }
+ #root main > #design-tools .design-tools-layout{
+  grid-template-columns:1fr;
+  grid-template-rows:42% 58%;
+  padding:82px 20px 24px;
+ }
+ #root main > #design-tools .design-tools-information{
+  align-self:start;
+  max-width:none;
+  min-height:0;
+  padding:0 6px;
+ }
+ #root main > #design-tools .design-tools-information h2{
+  margin:9px 0 8px;
+  font-size:32px;
+ }
+ #root main > #design-tools .design-tools-information p{
+  max-width:520px;
+  font-size:12px;
+  line-height:1.5;
+ }
+ .design-tools-information.has-tool-space .design-tool-feature-slot{
+  width:92px;
+  height:76px;
+  margin:6px 0 8px;
+ }
+ .design-tool-feature-icon{
+  width:88px;
+  height:76px;
+ }
+ .design-tool-feature-icon img{
+  max-width:82px;
+  max-height:72px;
+ }
+ .design-tools-reset{
+  margin-top:10px;
+ }
+ #root main > #design-tools .design-tools-orbit{
+  height:100%;
+  translate:0 14px;
+ }
+ #root main > #design-tools .design-tool-orbit-item{
+  width:52px;
+  min-height:56px;
+  gap:3px;
+ }
+ .design-tool-orbit-icon{
+  width:31px;
+  height:31px;
+  border-radius:11px;
+ }
+ .design-tool-orbit-label{
+  font-size:8px;
+ }
+ .design-tools-center{
+  font-size:14px;
+ }
+}
+
+@media(prefers-reduced-motion:reduce){
+ #root main > #design-tools .design-tools-stage::before,
+ .design-tools-heading-copy,
+ .design-tools-copy{
+  animation:none;
+ }
+ .design-tool-feature-slot,
+ .design-tool-feature-icon,
+ .design-tool-orbit-icon,
+ .design-tools-reset{
+  transition:none;
+ }
+}
