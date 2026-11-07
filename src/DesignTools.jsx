@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import './design-tools.css';
 
 const tools=[
@@ -18,6 +18,17 @@ const intro='Software applications used to conceptualize, plan, and create visua
 function ToolIcon({tool}){return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>}
 export default function DesignTools(){
  const [selected,setSelected]=useState(null);
+ const orbitRef=useRef(null);
+ const phase=useRef(0);
+ const raf=useRef(0);
+ const last=useRef(0);
+ const running=useRef(false);
+ const buttons=useRef([]);
+ const paint=()=>{buttons.current.forEach((node,i)=>{if(!node)return;const a=-Math.PI/2-i*2*Math.PI/tools.length+phase.current;node.style.left=(50+40*Math.cos(a))+'%';node.style.top=(50+40*Math.sin(a))+'%';});};
+ const tick=(time)=>{if(!running.current)return;if(last.current)phase.current+=(Math.min(64,time-last.current)/1000)*.32;last.current=time;paint();raf.current=requestAnimationFrame(tick);};
+ const start=()=>{if(window.matchMedia('(prefers-reduced-motion: reduce)').matches||running.current)return;running.current=true;last.current=0;raf.current=requestAnimationFrame(tick);};
+ const stop=()=>{running.current=false;cancelAnimationFrame(raf.current);last.current=0;};
+ useEffect(()=>()=>{running.current=false;cancelAnimationFrame(raf.current);},[]);
  const current=tools.find(tool=>tool.name===selected);
  return <section id="design-tools" className="design-tools" aria-label="Design tools">
   <div className="design-tools-stage">
@@ -29,11 +40,11 @@ export default function DesignTools(){
      <p>{current?current.detail:intro}</p>
      {current&&<button className="design-tools-reset" type="button" onClick={()=>setSelected(null)}>Back to all tools</button>}
     </div>
-    <div className="design-tools-orbit" aria-label="Select a design tool">
+    <div className="design-tools-orbit" ref={orbitRef} onPointerEnter={start} onPointerLeave={stop} onFocus={start} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))stop();}} aria-label="Select a design tool">
      <span className="design-tools-center" aria-hidden="true">{current?'Design Tools':'Select a tool'}</span>
      {tools.map((tool,i)=>{
       const a=-Math.PI/2-i*2*Math.PI/tools.length;
-      return <button key={tool.name} className="design-tool-orbit-item" style={{left:(50+40*Math.cos(a))+'%',top:(50+40*Math.sin(a))+'%',transform:'translate(-50%,-50%)',opacity:1,pointerEvents:'auto'}} type="button" aria-label={'Explore '+tool.name} aria-pressed={selected===tool.name} onClick={()=>setSelected(tool.name)}>
+      return <button key={tool.name} ref={node=>{buttons.current[i]=node;}} className={"design-tool-orbit-item"+(selected===tool.name?" is-selected":"")} style={{left:(50+40*Math.cos(a))+'%',top:(50+40*Math.sin(a))+'%',transform:'translate(-50%,-50%)',opacity:selected===tool.name?0:1,pointerEvents:selected===tool.name?'none':'auto'}} type="button" aria-label={'Explore '+tool.name} aria-pressed={selected===tool.name} onClick={()=>setSelected(tool.name)}>
        <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
        <span className="design-tool-orbit-label">{tool.name}</span>
       </button>
