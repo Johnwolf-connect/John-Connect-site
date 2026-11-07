@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import './HomepageHero.css';
 const root='/homepage-canva/';
 const states=[
@@ -14,7 +14,44 @@ const labels=['Portfolio','Branding','Designer','Creation','Guidelines','Learnin
 const layer=(name,cls)=> <img className={'jw-art '+cls} src={root+encodeURIComponent(name)} alt="" aria-hidden="true" draggable="false"/>;
 export default function HomepageHero(){
  const [index,setIndex]=useState(0);
- return <div className="jw-homepage" aria-label="John Wolf portfolio homepage">
+ const homepageRef=useRef(null);
+ useEffect(()=>{
+  const host=homepageRef.current;
+  const portrait=host?.querySelector('.jw-art-man');
+  if(!host||!portrait)return;
+  let cancelled=false;
+  const align=()=>{
+   if(cancelled||!portrait.complete||!portrait.naturalWidth)return;
+   const w=portrait.naturalWidth,h=portrait.naturalHeight;
+   const canvas=document.createElement('canvas');
+   canvas.width=w;canvas.height=h;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});
+   if(!ctx)return;
+   try{
+    ctx.clearRect(0,0,w,h);
+    ctx.drawImage(portrait,0,0,w,h);
+    const pixels=ctx.getImageData(0,0,w,h).data;
+    let last=-1;
+    for(let y=h-1;y>=0&&last<0;y--){
+     for(let x=0;x<w;x++){
+      if(pixels[(y*w+x)*4+3]>24){last=y+1;break}
+     }
+    }
+    if(last<0)return;
+    const box=host.getBoundingClientRect();
+    const scale=Math.min(box.width/w,box.height/h);
+    const imageTop=(box.height-h*scale)/2;
+    const visibleBottom=imageTop+last*scale;
+    host.style.setProperty('--jw-portrait-bottom-offset',Math.max(0,box.height-visibleBottom).toFixed(2)+'px');
+   }catch(error){host.style.removeProperty('--jw-portrait-bottom-offset')}
+  };
+  const observer=new ResizeObserver(align);
+  observer.observe(host);
+  if(portrait.complete)align();
+  portrait.addEventListener('load',align);
+  return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
+ },[]);
+ return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
    {layer(states[index][0],'jw-art-title')}
    {layer('Man.svg','jw-art-man')}
