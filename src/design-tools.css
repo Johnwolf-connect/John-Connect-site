@@ -33,7 +33,7 @@
 }
 .design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,transform .3s,background .3s}
 .design-tool-orbit-icon img{max-height:83%;max-width:83%;object-fit:contain}
-.design-tool-orbit-item:hover .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:none}
+.design-tool-orbit-item.is-pointer-magnified .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:none}
 .design-tool-orbit-label{font-size:clamp(9px,.8vw,12px);font-weight:600;line-height:1.25;text-align:center;max-width:110px}
 .tool-icon-fallback{display:flex;align-items:center;justify-content:center;color:#8045db;background:#f3edfd;border-radius:12px;font-size:13px;font-weight:800;width:40px;height:40px}
 .design-tool-travel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;filter:drop-shadow(0 0 14px #8045db55)}
@@ -80,7 +80,7 @@
 }
 
 /* Independent scale leaves the scroll/rotation transform running untouched. */
-.design-tool-orbit-item:hover,
+.design-tool-orbit-item.is-pointer-magnified,
 .design-tool-orbit-item:focus-visible{scale:1.24;z-index:2}
 @media(prefers-reduced-motion:reduce){
  .design-tool-orbit-item{transition:none}
@@ -106,7 +106,7 @@
  .design-tools-information h2{margin-bottom:10px}
  .design-tool-feature-icon,.design-tool-feature-icon.is-visible{height:0}
 }
-.design-tool-orbit-item{left:0;top:0}
+.design-tool-orbit-item{left:0;top:0;opacity:0;pointer-events:none}
 @media(prefers-reduced-motion:reduce){
  .hero-reference .design-tools{display:block;position:relative;grid-column:1/-1;height:auto;clip-path:none}
  .hero-reference .design-tools-stage{position:relative}
@@ -126,3 +126,19 @@ main > .design-tools{position:relative;display:block;width:100%;height:100svh;mi
 main > .design-tools .design-tools-stage{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
 main > .design-tools .design-tools-information{opacity:1}
 @media(max-width:720px){main > .design-tools{min-height:760px}}
+
+/* The orbit itself never pauses. Pointer magnification follows the moving
+   icon under the stationary cursor, and resets as each icon moves away. */
+.design-tool-orbit-item{
+ transform-origin:50% 50%;
+}
+.design-tool-orbit-item.is-pointer-magnified{
+ scale:1.24;
+ z-index:5;
+}
+@media(prefers-reduced-motion:reduce){
+ main > .design-tools .design-tool-orbit-item{
+  opacity:1;
+  pointer-events:auto;
+ }
+}
