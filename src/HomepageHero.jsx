@@ -63,6 +63,18 @@ export default function HomepageHero(){
  const aboutStageRef=useRef(null),aboutSplashRef=useRef(null),aboutFlightRef=useRef(null);
  const aboutContentRef=useRef(null),aboutCloseRef=useRef(null);
  const aboutLaunchQueuedRef=useRef(false),aboutClosingRef=useRef(false);
+ const aboutReturnFocusRef=useRef(true),titleSvgCacheRef=useRef(new Map());
+ useEffect(()=>{
+  // Warm the exact Canva vector paths so the camera rush starts immediately.
+  let live=true;
+  states.forEach(([name])=>{
+   fetch(root+encodeURIComponent(name),{cache:'force-cache'})
+    .then(res=>res.ok?res.text():null)
+    .then(xml=>{if(live&&xml)titleSvgCacheRef.current.set(name,xml)})
+    .catch(()=>{});
+  });
+  return()=>{live=false};
+ },[]);
  const titleRunRef=useRef(null);
  const pendingRef=useRef(null),indexRef=useRef(0),touchRef=useRef(null),directionRef=useRef(1);
  indexRef.current=index;
@@ -206,6 +218,7 @@ export default function HomepageHero(){
  const openAbout=event=>{
   event.preventDefault();
   if(aboutOpen||aboutClosingRef.current)return;
+  aboutReturnFocusRef.current=true;
   // If the visitor clicks during a swipe, finish the current word first.
   if(pendingRef.current!==null){aboutLaunchQueuedRef.current=true;return;}
   setAboutOpen(true);
@@ -213,6 +226,8 @@ export default function HomepageHero(){
  const closeAbout=()=>{
   if(aboutClosingRef.current)return;
   aboutClosingRef.current=true;
+  // Restore the live lettering while purple still covers the screen.
+  homepageRef.current?.querySelectorAll('.jw-live-title-visible').forEach(node=>node.style.removeProperty('opacity'));
   const stage=aboutStageRef.current;
   if(!stage){setAboutOpen(false);return;}
   gsap.to(stage,{autoAlpha:0,duration:.3,ease:'power2.inOut',
@@ -248,9 +263,14 @@ export default function HomepageHero(){
    let glyphs=[],fallback=null;
    const url=root+encodeURIComponent(states[activeTitle][0]);
    try{
-    const res=await fetch(url,{cache:'force-cache'});
-    if(!res.ok)throw new Error('Title SVG was not available');
-    const vector=buildFlyThroughArtwork(await res.text());
+    let markup=titleSvgCacheRef.current.get(states[activeTitle][0]);
+    if(!markup){
+     const res=await fetch(url,{cache:'force-cache'});
+     if(!res.ok)throw new Error('Title SVG was not available');
+     markup=await res.text();
+     titleSvgCacheRef.current.set(states[activeTitle][0],markup);
+    }
+    const vector=buildFlyThroughArtwork(markup);
     if(!vector)throw new Error('Title SVG did not contain glyph paths');
     if(cancelled)return;
     const originalBounds=originalTitle?.getBoundingClientRect();
@@ -305,7 +325,7 @@ export default function HomepageHero(){
    document.body.style.overflow=savedOverflow;
    aboutClosingRef.current=false;
    const hit=homepageRef.current?.querySelector('.jw-hit-more');
-   if(hit&&document.contains(hit))hit.focus({preventScroll:true});
+   if(aboutReturnFocusRef.current&&hit&&document.contains(hit))hit.focus({preventScroll:true});
   };
  },[aboutOpen]);
  useEffect(()=>{
@@ -385,7 +405,7 @@ export default function HomepageHero(){
      <span className="jw-about-kicker">JOHN WOLF / MORE ABOUT ME</span>
      <h2 id="jw-about-heading">Design is how<br/>I make ideas <em>felt.</em></h2>
      <p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p>
-     <a className="jw-about-contact" href="#contact" onClick={()=>setAboutOpen(false)}>Let's work together <span aria-hidden="true">↗</span></a>
+     <a className="jw-about-contact" href="#contact" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>Let's work together <span aria-hidden="true">↗</span></a>
     </section>
     <button ref={aboutCloseRef} type="button" className="jw-about-close" onClick={closeAbout} aria-label="Back to homepage">
      Back to homepage <span aria-hidden="true">×</span>
