@@ -74,7 +74,7 @@ function safeOutboundRoute(start,end,orbit){
  }
  const upper=start[1]<=cy;
  const corridorY=upper?orbit.top-clearance:orbit.bottom+clearance;
- const approachX=Math.min(orbit.left-clearance*.5,end[0]+clearance*.35);
+ const approachX=Math.max(orbit.left-clearance*.65,end[0]+clearance*.9);
  return [start,radial,[radial[0],corridorY],[approachX,corridorY],[approachX,end[1]],end];
 }
 
@@ -265,7 +265,7 @@ export default function DesignTools(){
   setDeparting(tool.name);
 
   await wait(PANEL_PREP_MS);
-  const target=featureSlotRef.current?.getBoundingClientRect();
+  const target=featureIconRef.current?.getBoundingClientRect();
   const orbit=orbitRef.current?.getBoundingClientRect();
   if(target&&orbit)await flyGhost(ghost,target,orbit,false,OUTBOUND_MS);
 
