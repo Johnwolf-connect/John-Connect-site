@@ -32,13 +32,17 @@ export default function HomepageHero(){
   const incoming=host?.querySelectorAll('.jw-live-title-base[data-phase="in"], .jw-live-title-overlay[data-phase="in"] .jw-art-outline');
   if(!outgoing?.length||!incoming?.length)return;
   const distance=Math.max(host.clientWidth,800);
-  gsap.set(incoming,{x:distance,opacity:1});
+  // One animated coordinate per title, applied to its purple art and white
+  // silhouette art on every frame. Neither layer has its own tween.
+  const outPosition={x:0},inPosition={x:distance};
+  const sync=(nodes,position)=>nodes.forEach(node=>gsap.set(node,{x:position.x}));
+  sync(outgoing,outPosition);sync(incoming,inPosition);
   const timeline=gsap.timeline({onComplete:()=>{
    indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
   }});
   titleRunRef.current=timeline;
-  timeline.to(outgoing,{x:-distance,duration:.52,ease:'power3.in'},0);
-  timeline.to(incoming,{x:0,duration:.65,ease:'power3.out'},.55);
+  timeline.to(outPosition,{x:-distance,duration:.52,ease:'power3.in',onUpdate:()=>sync(outgoing,outPosition)},0);
+  timeline.to(inPosition,{x:0,duration:.65,ease:'power3.out',onUpdate:()=>sync(incoming,inPosition)},.55);
   return()=>{timeline.kill();titleRunRef.current=null};
  },[pending]);
  useEffect(()=>{
