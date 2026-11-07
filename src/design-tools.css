@@ -81,7 +81,7 @@
 
 /* Independent scale leaves the scroll/rotation transform running untouched. */
 .design-tool-orbit-item.is-pointer-magnified,
-.design-tool-orbit-item:focus-visible{scale:1.24;z-index:2}
+.design-tool-orbit-item:focus-visible{z-index:2}
 @media(prefers-reduced-motion:reduce){
  .design-tool-orbit-item{transition:none}
 }
