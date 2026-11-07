@@ -29,11 +29,11 @@
  position:absolute;width:clamp(52px,5.6vw,84px);min-height:76px;
  padding:6px 2px;border:0;background:transparent;color:#333;
  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
- cursor:pointer;will-change:transform,opacity;scale:1;transition:scale .28s cubic-bezier(.2,.8,.2,1);
+ cursor:pointer;will-change:transform,opacity;
 }
-.design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,transform .3s,background .3s}
+.design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transform-origin:50% 50%;transition:box-shadow .28s,transform .28s cubic-bezier(.2,.8,.2,1),background .28s}
 .design-tool-orbit-icon img{max-height:83%;max-width:83%;object-fit:contain}
-.design-tool-orbit-item.is-pointer-magnified .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:none}
+.design-tool-orbit-item.is-pointer-magnified .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:scale(1.24)}
 .design-tool-orbit-label{font-size:clamp(9px,.8vw,12px);font-weight:600;line-height:1.25;text-align:center;max-width:110px}
 .tool-icon-fallback{display:flex;align-items:center;justify-content:center;color:#8045db;background:#f3edfd;border-radius:12px;font-size:13px;font-weight:800;width:40px;height:40px}
 .design-tool-travel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;filter:drop-shadow(0 0 14px #8045db55)}
@@ -133,7 +133,7 @@ main > .design-tools .design-tools-information{opacity:1}
  transform-origin:50% 50%;
 }
 .design-tool-orbit-item.is-pointer-magnified{
- scale:1.24;
+ /* Never scale the moving button, its transform, or its pointer hitbox. */
  z-index:5;
 }
 @media(prefers-reduced-motion:reduce){
@@ -141,4 +141,5 @@ main > .design-tools .design-tools-information{opacity:1}
   opacity:1;
   pointer-events:auto;
  }
+ .design-tool-orbit-icon{transition:none}
 }
