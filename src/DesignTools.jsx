@@ -54,7 +54,7 @@ export default function DesignTools(){
    id:'design-tools-lock',trigger:host,start:'top top',end:'+=115%',
    pin:true,pinSpacing:true,scrub:true,anticipatePin:1,
    invalidateOnRefresh:true,
-   onEnter:()=>{entranceRequested=true;reverseEntry=false},
+   onEnter:()=>{if(start===null){entranceRequested=true;reverseEntry=false}},
    onEnterBack:()=>{entranceRequested=true;reverseEntry=true},
    onUpdate:self=>{exitProgress.current=self.progress},
    onRefresh:self=>{exitProgress.current=self.progress}
@@ -214,19 +214,28 @@ export default function DesignTools(){
     node.style.opacity='0';node.style.pointerEvents='none';node.tabIndex=-1;
    });
   };
-  const observer=new IntersectionObserver(([entry])=>{
-   if(entry.isIntersecting&&!active){
+  // The pin can temporarily remove the section from intersection observation.
+  // Drive activation from its actual viewport geometry instead; this avoids
+  // an empty first visit and works whether entering from above or below.
+  const checkVisibility=()=>{
+   const bounds=host.getBoundingClientRect();
+   const near=bounds.top<window.innerHeight*.78&&bounds.bottom>0;
+   if(near&&!active){
     active=true;start=null;last=null;phase=0;frozenPhase=null;
-    if(pin.isActive&&pin.direction>=0){entranceRequested=true;reverseEntry=false}
-    else if(pin.isActive){entranceRequested=true;reverseEntry=true}
+    entranceRequested=true;
+    reverseEntry=window.scrollY>pin.start+8;
     frame.current=requestAnimationFrame(animate);
-   }else if(!entry.isIntersecting&&active)stop();
-  },{threshold:0});
+   }else if(!near&&active){stop()}
+  };
+  window.addEventListener('scroll',checkVisibility,{passive:true});
+  window.addEventListener('resize',checkVisibility);
+  checkVisibility();
   window.addEventListener('pointermove',movePointer,{passive:true});
   window.addEventListener('blur',clearPointer);
-  observer.observe(host);
   return()=>{
-   observer.disconnect();pin.kill();stop();exitProgress.current=0;
+   window.removeEventListener('scroll',checkVisibility);
+   window.removeEventListener('resize',checkVisibility);
+   pin.kill();stop();exitProgress.current=0;
    window.removeEventListener('pointermove',movePointer);
    window.removeEventListener('blur',clearPointer);
   };
