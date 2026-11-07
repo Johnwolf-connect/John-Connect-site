@@ -212,3 +212,11 @@
  stroke:#23132f;
  stroke-width:2.5;
 }
+
+/* Preloaded title artwork stays mounted but inactive titles do not reserve GPU layers.
+   Only the visible pair (and incoming pair during transitions) is composited. */
+.jw-title-whole{will-change:auto}
+.jw-live-title-visible .jw-title-whole{will-change:transform}
+@media(prefers-reduced-motion:reduce){
+ .jw-live-title-visible .jw-title-whole{will-change:auto}
+}
