@@ -100,7 +100,7 @@ export default function HomepageHero(){
  },[]);
  const liveTitle=(phase,which)=><React.Fragment>
   <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-title')}</div>
-  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-outline')}</div>
+  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">{layer(states[which][1],'jw-art-outline')}</div>
  </React.Fragment>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
