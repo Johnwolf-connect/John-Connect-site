@@ -220,3 +220,36 @@
 @media(prefers-reduced-motion:reduce){
  .jw-live-title-visible .jw-title-whole{will-change:auto}
 }
+
+
+/* Choreographed homepage copy. The body is clipped at the title's lower edge
+   while it retracts into the letters, then reveals from that same edge.
+   The subtitle stays anchored and moves only a single character-width. */
+.jw-subtitle-stage,.jw-body-stage{
+ position:absolute;
+ inset:0;
+ pointer-events:none;
+}
+.jw-subtitle-stage{z-index:4}
+.jw-body-stage{
+ z-index:2;
+ clip-path:inset(var(--jw-body-reveal-top,51.5%) 0 0 0);
+}
+.jw-subtitle-motion,.jw-body-motion{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ will-change:auto;
+}
+.jw-subtitle-stage[style*="visible"] .jw-subtitle-motion,
+.jw-body-stage[style*="visible"] .jw-body-motion{
+ will-change:transform,opacity;
+}
+.jw-subtitle-svg,.jw-body-svg{display:block}
+@media(min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-subtitle-svg,.jw-body-svg{translate:var(--jw-left-shift) 0}
+}
+@media(prefers-reduced-motion:reduce){
+ .jw-subtitle-motion,.jw-body-motion{will-change:auto!important}
+}
