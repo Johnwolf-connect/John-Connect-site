@@ -245,7 +245,7 @@ export default function DesignTools(){
   });
 
   const threshold=Math.max(84,Math.min(112,rect.width*.105));
-  const proximityIndex=minimum<threshold?nearest:-1;
+  const proximityIndex=!busy.current&&minimum<threshold?nearest:-1;
   buttons.current.forEach((node,index)=>{
    if(!node)return;
    node.classList.toggle('is-proximity',index===proximityIndex);
@@ -501,7 +501,7 @@ export default function DesignTools(){
      onPointerMove={event=>{pointer.current.inside=true;pointer.current.x=event.clientX;pointer.current.y=event.clientY}}
      onPointerLeave={()=>{pointer.current.inside=false;if(!focusedRef.current)updateHighlight(null)}}
      aria-label="Select a design tool">
-     <span className={'design-tools-center'+(highlighted?' has-highlight':'')} aria-live="polite" aria-atomic="true">
+     <span className={'design-tools-center'+(highlighted?' has-highlight':'')} aria-hidden="true">
       <span key={highlighted||'select'} className="design-tools-center-copy">{highlighted||'Select a tool'}</span>
      </span>
      {tools.map((tool,index)=><button
