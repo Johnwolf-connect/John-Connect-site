@@ -39,207 +39,180 @@ export default function DesignTools(){
   const host=root.current,field=orbit.current;
   if(!host||!field)return;
   const information=host.querySelector('.design-tools-information');
-  const pin=ScrollTrigger.create({id:'design-tools-lock',trigger:host,start:'top top',end:'+=110%',pin:true,pinSpacing:true,anticipatePin:1,invalidateOnRefresh:true,onUpdate:self=>{exitProgress.current=self.progress},onRefresh:self=>{exitProgress.current=self.progress}});
   const prompt=host.querySelector('.design-tools-center');
-  if(reduced){
-   Object.values(buttons.current).forEach(node=>{
-    node.removeAttribute('style');
-    node.classList.remove('is-pointer-magnified');
-   });
-   host.inert=false;
+  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reducedMotion){
+   Object.values(buttons.current).forEach(node=>node.removeAttribute('style'));
    host.style.setProperty('--tool-panel-opacity','1');
-   if(information)information.style.removeProperty('transform');
-   if(prompt)prompt.style.removeProperty('opacity');
    return;
   }
-
-  // Section 2 is standalone: entrance progress must come from its own
-  // visibility, never the retired homepage --tools-progress variable.
+  // Pin only during deliberate scrolling. The pinned section remains a full
+  // viewport; wheel/touch scroll controls departure and naturally reverses it.
+  const pin=ScrollTrigger.create({
+   id:'design-tools-lock',trigger:host,start:'top top',end:'+=115%',
+   pin:true,pinSpacing:true,scrub:true,anticipatePin:1,
+   invalidateOnRefresh:true,
+   onUpdate:self=>{exitProgress.current=self.progress},
+   onRefresh:self=>{exitProgress.current=self.progress}
+  });
   const count=tools.length;
-  const spacing=.16;
-  const flightDuration=1.05;
-  const finalLanding=flightDuration+(count-1)*spacing;
-  const fastOrbit=2*Math.PI/(count*spacing);
-  const idleOrbit=.19;
-  const slowing=.38;
-  const angles=new Map(tools.map((tool,i)=>[tool.name,-2*Math.PI*(i+1)/count]));
+  const TAU=Math.PI*2;
+  const clamp01=v=>Math.max(0,Math.min(1,v));
+  const mod=(v,m)=>((v%m)+m)%m;
+  const cubic=(a,b,c,d,t)=>{const q=1-t;return q*q*q*a+3*q*q*t*b+3*q*t*t*c+t*t*t*d};
+  const curve=(p0,p1,p2,p3,t)=>({
+   x:cubic(p0.x,p1.x,p2.x,p3.x,t),
+   y:cubic(p0.y,p1.y,p2.y,p3.y,t)
+  });
+  // Lookup tables turn each Bezier into a constant-speed, arc-length track.
+  // This is essential: equal time delays do NOT preserve spacing in bends.
+  const track=(segments)=>{
+   const samples=[],lengths=[];let length=0,previous=null;
+   for(const segment of segments){
+    for(let j=0;j<=80;j++){
+     if(samples.length&&j===0)continue;
+     const point=curve(...segment,j/80);
+     if(previous)length+=Math.hypot(point.x-previous.x,point.y-previous.y);
+     samples.push(point);lengths.push(length);previous=point;
+    }
+   }
+   return {length,pointAt(distance){
+    const d=Math.max(0,Math.min(length,distance));
+    let low=0,high=lengths.length-1;
+    while(low<high){const mid=(low+high)>>1;if(lengths[mid]<d)low=mid+1;else high=mid}
+    if(low===0)return samples[0];
+    const fraction=(d-lengths[low-1])/Math.max(.00001,lengths[low]-lengths[low-1]);
+    return {x:samples[low-1].x+(samples[low].x-samples[low-1].x)*fraction,
+     y:samples[low-1].y+(samples[low].y-samples[low-1].y)*fraction};
+   }};
+  };
   const pointer={x:null,y:null,inside:false};
-  let active=false,start=null,previous=null,hovered=null;
-  const movePointer=event=>{
-   if(event.pointerType==='touch')return;
-   pointer.x=event.clientX;
-   pointer.y=event.clientY;
-   pointer.inside=true;
-  };
-  const clearPointer=()=>{pointer.inside=false;};
-  const cubic=(a,b,c,d,t)=>{
-   const k=1-t;
-   return k*k*k*a+3*k*k*t*b+3*k*t*t*c+t*t*t*d;
-  };
-  const clock=t=>{
-   if(t<=finalLanding)return fastOrbit*(t-finalLanding);
-   const after=t-finalLanding;
-   return (fastOrbit-idleOrbit)*slowing*(1-Math.exp(-after/slowing))+idleOrbit*after;
-  };
-  const animate=time=>{
+  const movePointer=e=>{if(e.pointerType!=='touch'){pointer.x=e.clientX;pointer.y=e.clientY;pointer.inside=true}};
+  const clearPointer=()=>{pointer.inside=false};
+  let active=false,start=null,last=null,phase=0,frozenPhase=null,hovered=null;
+  const animate=now=>{
    if(!active)return;
-   if(start===null)start=time;
-   const elapsed=Math.max(0,(time-start)/1000);
-   const delta=previous===null?0:Math.min(.06,Math.max(0,(time-previous)/1000));
-   previous=time;
+   if(start===null)start=now;
+   const dt=last===null?0:Math.min(.06,(now-last)/1000);
+   last=now;
+   const elapsed=(now-start)/1000;
+   const rect=field.getBoundingClientRect();
+   const section=host.getBoundingClientRect();
    const width=field.clientWidth,height=field.clientHeight;
-   const radius=Math.min(width,height)*.4;
-   const centerX=width*.5,centerY=height*.5;
-   const sectionRect=host.getBoundingClientRect();
-   const fieldRect=field.getBoundingClientRect();
-   // The icons begin near the lower LEFT of the entire Design Tools screen,
-   // not at the left edge of the circular selector.
-   const originX=sectionRect.left+Math.max(28,sectionRect.width*.055)-fieldRect.left;
-   const originY=sectionRect.top+sectionRect.height*.86-fieldRect.top;
-   const topX=centerX,topY=centerY-radius;
-   const visibleTools=tools.filter(tool=>tool.name!==chosen.current);
-   const ready=elapsed>=finalLanding;
-   const leaving=clamp(exitProgress.current,0,1);
-   host.inert=false;
-   host.style.setProperty('--tool-panel-opacity','1');
-   if(information)information.style.transform='translateY(0)';
-   if(prompt)prompt.style.opacity=String(smooth(clamp((elapsed-finalLanding+.18)/.35,0,1)));
-
+   const cx=width/2,cy=height/2,radius=Math.min(width,height)*.4;
+   const circumference=TAU*radius;
+   const gap=circumference/count;
+   const origin={x:section.left+Math.max(28,section.width*.055)-rect.left,
+    y:section.top+section.height*.86-rect.top};
+   const top={x:cx,y:cy-radius};
+   const turn={x:origin.x+(top.x-origin.x)*.52,y:origin.y};
+   // Tangent-continuous entry: horizontal -> rising -> horizontal at 12 o'clock.
+   const incoming=track([
+    [origin,{x:origin.x+(turn.x-origin.x)*.35,y:origin.y},
+     {x:turn.x-(turn.x-origin.x)*.28,y:turn.y},turn],
+    [turn,{x:turn.x+(top.x-turn.x)*.55,y:turn.y},
+     {x:top.x-(top.x-turn.x)*.40,y:top.y},top]
+   ]);
+   const right={x:cx+radius,y:cy};
+   const bottom={x:right.x,y:cy+Math.max(radius*.7,height*.22)};
+   const end={x:width+Math.max(140,width*.22),y:bottom.y+Math.min(height*.19,130)};
+   // Tangent-continuous exit at 3 o'clock: down -> down/right -> right.
+   const outgoing=track([
+    [right,{x:right.x,y:right.y+(bottom.y-right.y)*.35},
+     {x:bottom.x,y:bottom.y-(bottom.y-right.y)*.35},bottom],
+    [bottom,{x:bottom.x,y:bottom.y+(end.y-bottom.y)*.65},
+     {x:end.x-(end.x-bottom.x)*.55,y:end.y},end]
+   ]);
+   const departure=clamp01(exitProgress.current);
+   // Freeze the orbit phase on the FIRST intentional departure; reverse
+   // scrolling reuses the exact same phase and geometry.
+   if(departure>0&&frozenPhase===null)frozenPhase=phase;
+   if(departure===0)frozenPhase=null;
+   const introDuration=3.15;
+   const introTravel=incoming.length+circumference;
+   const introDistance=introTravel*clamp01(elapsed/introDuration);
+   if(departure===0&&elapsed>=introDuration)phase+=dt*.19;
+   const ringPhase=frozenPhase===null?phase:frozenPhase;
+   const travelOut=departure*(circumference+outgoing.length+gap);
    const centers=[];
    tools.forEach((tool,i)=>{
-    const node=buttons.current[tool.name];
-    if(!node)return;
-    if(tool.name===chosen.current){
-     node.style.opacity='0';
-     node.style.pointerEvents='none';
-     node.tabIndex=-1;
-     node.classList.remove('is-pointer-magnified');
-     return;
+    const node=buttons.current[tool.name];if(!node)return;
+    if(chosen.current===tool.name){
+     node.style.opacity='0';node.style.pointerEvents='none';node.tabIndex=-1;
+     node.classList.remove('is-pointer-magnified');return;
     }
-    const started=elapsed-i*spacing;
-    const ride=clamp(started/flightDuration,0,1);
-    const complete=ride>=1;
-    const currentOffset=angles.get(tool.name)??-2*Math.PI*(i+1)/count;
-    // When a tool is selected, the remaining slots re-space gently rather
-    // than snapping, while the orbit continues rotating at its normal pace.
-    const slot=visibleTools.findIndex(item=>item.name===tool.name);
-    const targetOffset=-2*Math.PI*(slot+1)/visibleTools.length;
-    const angularError=Math.atan2(Math.sin(targetOffset-currentOffset),Math.cos(targetOffset-currentOffset));
-    const offset=currentOffset+angularError*(1-Math.exp(-delta/.42));
-    angles.set(tool.name,offset);
-    const angle=-Math.PI/2+clock(elapsed)+offset;
-    let x,y,bank=0;
-    if(!complete){
-     // Keep the same lower-left origin, but fly RIGHT before turning upward.
-     // The first 38% is perfectly horizontal; the second leg is a cubic
-     // sweep with a horizontal entry tangent and vertical top-ring arrival.
-     // Icons still launch 160ms apart, already spaced along the route.
-     const straightFraction=.38;
-     const turnX=originX+(topX-originX)*.52;
-     if(ride<straightFraction){
-      const t=ride/straightFraction;
-      x=originX+(turnX-originX)*t;
-      y=originY;
-     }else{
-      const t=(ride-straightFraction)/(1-straightFraction);
-      x=cubic(turnX,turnX+(topX-originX)*.28,topX,topX,t);
-      y=cubic(originY,originY,topY+(originY-topY)*.24,topY,t);
+    let x,y,visible=true,onRing=false;
+    const offset=i*gap;
+    if(elapsed<introDuration&&departure===0){
+     const distance=introDistance-offset;
+     if(distance<0){visible=false;({x,y}=origin)}
+     else if(distance<incoming.length){({x,y}=incoming.pointAt(distance))}
+     else{
+      const angle=-Math.PI/2+(distance-incoming.length)/radius;
+      x=cx+Math.cos(angle)*radius;y=cy+Math.sin(angle)*radius;
+      onRing=true;
      }
-     bank=(1-ride)*(-10+12*Math.sin(ride*Math.PI));
     }else{
-     x=centerX+Math.cos(angle)*radius;
-     y=centerY+Math.sin(angle)*radius;
+     const angle=-Math.PI/2+ringPhase-i*TAU/count;
+     // Clockwise distance from the current position to the 3 o'clock exit.
+     const toGate=mod(Math.PI/2-angle,TAU)*radius;
+     const along=travelOut-toGate;
+     if(departure>0&&along>=0){
+      ({x,y}=outgoing.pointAt(along));
+      if(along>=outgoing.length)visible=false;
+     }else{
+      const a=angle+travelOut/radius;
+      x=cx+Math.cos(a)*radius;y=cy+Math.sin(a)*radius;
+      onRing=true;
+     }
     }
-    // Scroll-scrubbed departure: sequentially peel icons off the TOP of
-    // the orbit, then retrace the same curved approach toward lower-left.
-    // Reverse scroll reverses these exact coordinates without restarting.
-    const exitRide=clamp((leaving*1.75-i/count*.75),0,1);
-    if(exitRide>0){
-     const topStage=clamp(exitRide/.32,0,1);
-     const returnStage=clamp((exitRide-.32)/.68,0,1);
-     const atTopX=x+(topX-x)*smooth(topStage);
-     const atTopY=y+(topY-y)*smooth(topStage);
-     if(returnStage>0){
-      const turnX=originX+(topX-originX)*.52;
-      const back=1-returnStage;
-      let rx,ry;
-      if(back<.38){rx=originX+(turnX-originX)*back/.38;ry=originY}
-      else{const t=(back-.38)/.62;rx=cubic(turnX,turnX+(topX-originX)*.28,topX,topX,t);ry=cubic(originY,originY,topY+(originY-topY)*.24,topY,t)}
-      x=atTopX+(rx-atTopX)*smooth(returnStage);
-      y=atTopY+(ry-atTopY)*smooth(returnStage);
-     }else{x=atTopX;y=atTopY}
-    }
-    const opacity=smooth(clamp(ride/.14,0,1))*(1-smooth(clamp((exitRide-.88)/.12,0,1)));
-    node.style.transform='translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%) rotate('+bank+'deg) scale('+(0.84+ride*.16)+')';
-    node.style.opacity=String(travelName.current===tool.name?0:opacity);
-    node.style.pointerEvents=complete&&exitRide===0?'auto':'none';
-    node.tabIndex=complete?0:-1;
-    if(complete&&exitRide===0&&travelName.current!==tool.name){
-     centers.push({tool,node,x,y});
-    }
+    node.style.transform='translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%)';
+    node.style.opacity=visible&&travelName.current!==tool.name?'1':'0';
+    node.style.pointerEvents=visible&&onRing&&departure===0?'auto':'none';
+    node.tabIndex=visible&&onRing&&departure===0?0:-1;
+    if(visible&&onRing&&departure===0&&travelName.current!==tool.name)
+     centers.push({node,name:tool.name,x,y});
    });
-
-   // Hit-test against unmagnified orbit slots EVERY frame. This means a
-   // stationary mouse enlarges whichever rotating icon is currently beneath
-   // it, and the previous icon shrinks immediately after passing by.
-   let nextHovered=null,bestDistance=Infinity;
-   const pointerX=pointer.x-fieldRect.left;
-   const pointerY=pointer.y-fieldRect.top;
-   if(ready&&pointer.inside&&pointer.x>=fieldRect.left&&pointer.x<=fieldRect.right&&
-      pointer.y>=fieldRect.top&&pointer.y<=fieldRect.bottom){
+   let next=null,nearest=Infinity;
+   if(pointer.inside&&departure===0){
+    const px=pointer.x-rect.left,py=pointer.y-rect.top;
     for(const item of centers){
-     const halfW=item.node.offsetWidth*.48;
-     const halfH=item.node.offsetHeight*.48;
-     const dx=pointerX-item.x,dy=pointerY-item.y;
-     if(Math.abs(dx)>halfW||Math.abs(dy)>halfH)continue;
-     const distance=dx*dx+dy*dy;
-     if(distance<bestDistance){bestDistance=distance;nextHovered=item.tool.name;}
+     const dx=px-item.x,dy=py-item.y;
+     if(Math.abs(dx)>item.node.offsetWidth*.48||Math.abs(dy)>item.node.offsetHeight*.48)continue;
+     const d=dx*dx+dy*dy;if(d<nearest){nearest=d;next=item.name}
     }
    }
-   if(nextHovered!==hovered){
-    hovered=nextHovered;
-    Object.values(buttons.current).forEach(node=>node.classList.toggle(
-     'is-pointer-magnified',Boolean(hovered&&node===buttons.current[hovered])
-    ));
+   if(hovered!==next){
+    hovered=next;
+    Object.entries(buttons.current).forEach(([name,node])=>
+     node.classList.toggle('is-pointer-magnified',name===hovered));
    }
+   host.style.setProperty('--tool-panel-opacity','1');
+   if(information)information.style.transform='translateY(0)';
+   if(prompt)prompt.style.opacity=String(clamp01((elapsed-introDuration+.45)/.4)*(1-departure));
    frame.current=requestAnimationFrame(animate);
   };
   const stop=()=>{
-   active=false;
-   cancelAnimationFrame(frame.current);
-   frame.current=0;
-   hovered=null;
+   active=false;cancelAnimationFrame(frame.current);frame.current=0;
+   hovered=null;frozenPhase=null;
    Object.values(buttons.current).forEach(node=>{
     node.classList.remove('is-pointer-magnified');
-    node.style.opacity='0';
-    node.style.pointerEvents='none';
-    node.tabIndex=-1;
+    node.style.opacity='0';node.style.pointerEvents='none';node.tabIndex=-1;
    });
   };
   const observer=new IntersectionObserver(([entry])=>{
-   const sufficientlyVisible=entry.isIntersecting&&entry.intersectionRatio>=.16;
-   if(sufficientlyVisible&&!active){
-    active=true;
-    start=null;
-    previous=null;
-    angles.clear();
-    tools.forEach((tool,i)=>angles.set(tool.name,-2*Math.PI*(i+1)/count));
+   if(entry.isIntersecting&&!active){
+    active=true;start=null;last=null;phase=0;frozenPhase=null;
     frame.current=requestAnimationFrame(animate);
-   }else if(!sufficientlyVisible&&active){
-    stop();
-   }
-  },{threshold:.16});
+   }else if(!entry.isIntersecting&&active)stop();
+  },{threshold:0});
   window.addEventListener('pointermove',movePointer,{passive:true});
   window.addEventListener('blur',clearPointer);
   observer.observe(host);
   return()=>{
-   observer.disconnect();
-   pin.kill();
-   exitProgress.current=0;
-   stop();
+   observer.disconnect();pin.kill();stop();exitProgress.current=0;
    window.removeEventListener('pointermove',movePointer);
    window.removeEventListener('blur',clearPointer);
-   host.inert=false;
   };
  },[reduced]);
  useEffect(()=>()=>{flightTween.current?.kill();if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
