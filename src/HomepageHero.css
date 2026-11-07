@@ -30,5 +30,16 @@
 
 .hero.hero-reference{height:100svh!important;min-height:0!important;max-height:100svh!important;margin:0!important;padding:0!important;box-sizing:border-box!important}
 .hero.hero-reference .jw-homepage{height:100%!important;min-height:0!important;max-height:none!important}
-.jw-art-man,.jw-art-outline{transform:translate3d(0,var(--jw-portrait-bottom-offset,0px),0)}
+.jw-art-man{transform:translate3d(0,var(--jw-portrait-bottom-offset,0px),0)}
+/* Outline stays registered to the title; its portrait mask follows the visible portrait. */
+.jw-art-outline{transform:none;mask-image:url('/homepage-canva/Man.svg');-webkit-mask-image:url('/homepage-canva/Man.svg');mask-size:contain;-webkit-mask-size:contain;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;mask-position:center calc(50% + var(--jw-portrait-bottom-offset,0px));-webkit-mask-position:center calc(50% + var(--jw-portrait-bottom-offset,0px))}
 @media(max-width:760px){.hero.hero-reference .jw-homepage{height:100%!important;min-height:0!important}}
+
+/* At narrower desktop widths the Canva artboard fits by width, leaving spare
+   vertical room. Distribute the copy vertically instead of keeping every
+   layer locked to its original 16:9 y-coordinate. */
+@media (max-aspect-ratio: 16/9) and (min-width:761px){
+ .jw-art-subbody,.jw-art-body{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .18),90px))}
+ .jw-art-more,.jw-art-underline,.jw-art-more-arrow{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .30),145px))}
+ .jw-art-swipe{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .36),175px))}
+}
