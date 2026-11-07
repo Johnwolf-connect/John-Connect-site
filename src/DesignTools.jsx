@@ -125,14 +125,22 @@ export default function DesignTools(){
     const angle=-Math.PI/2+clock(elapsed)+offset;
     let x,y,bank=0;
     if(!complete){
-     // One continuous swoop: low-left -> high-left -> the TOP of the ring.
-     // The .16s launch spacing keeps the icons separate throughout the flight.
-     const t=1-Math.pow(1-ride,2.1);
-     x=cubic(originX,originX+sectionRect.width*.13,
-             centerX-radius*1.15,topX,t);
-     y=cubic(originY,originY-sectionRect.height*.35,
-             centerY-radius*1.25,topY,t);
-     bank=(1-ride)*(-18+22*Math.sin(ride*Math.PI));
+     // Keep the same lower-left origin, but fly RIGHT before turning upward.
+     // The first 38% is perfectly horizontal; the second leg is a cubic
+     // sweep with a horizontal entry tangent and vertical top-ring arrival.
+     // Icons still launch 160ms apart, already spaced along the route.
+     const straightFraction=.38;
+     const turnX=originX+(topX-originX)*.52;
+     if(ride<straightFraction){
+      const t=ride/straightFraction;
+      x=originX+(turnX-originX)*t;
+      y=originY;
+     }else{
+      const t=(ride-straightFraction)/(1-straightFraction);
+      x=cubic(turnX,turnX+(topX-originX)*.28,topX,topX,t);
+      y=cubic(originY,originY,topY+(originY-topY)*.24,topY,t);
+     }
+     bank=(1-ride)*(-10+12*Math.sin(ride*Math.PI));
     }else{
      x=centerX+Math.cos(angle)*radius;
      y=centerY+Math.sin(angle)*radius;
