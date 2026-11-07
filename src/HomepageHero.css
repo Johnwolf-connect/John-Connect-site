@@ -1,86 +1,17 @@
-/* Static homepage layout review. Approved fonts load locally when installed in public/fonts. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Roboto:wght@700&display=swap');
-@font-face{font-family:'JW League Spartan';src:url('/fonts/LeagueSpartan-Bold.otf') format('opentype');font-weight:700;font-style:normal;font-display:swap}
-@font-face{font-family:'JW Inter';src:url('/fonts/Inter-Variable.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
-@font-face{font-family:'JW Roboto';src:url('/fonts/Roboto-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap}
-.hero.hero-reference{display:block!important;min-height:100svh!important;padding:0!important;grid-template-columns:none!important;grid-template-rows:none!important;background:#fff!important;overflow:hidden!important}
-.hero.hero-reference .jw-homepage{position:relative;display:block;width:100%;height:100svh;min-height:620px;background:#fff;color:#151515;overflow:hidden;isolation:isolate}
-.jw-hero-dot{display:none}
-.jw-hero-photo{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
-.jw-hero-photo img{position:absolute;display:block;width:104%;max-width:none;height:auto;right:-2%;bottom:-2%;filter:grayscale(1)}
-.jw-hero-content{position:absolute;left:4.45%;top:27.8%;width:91.1%;z-index:6;pointer-events:none}
-.jw-eyebrow{position:relative;display:flex;align-items:center;gap:9px;font-family:'JW Roboto',Roboto,Arial,sans-serif;font-size:clamp(15px,1.58333vw,30.4px);font-weight:700;line-height:1.12;letter-spacing:0;text-transform:uppercase;z-index:9}
-.jw-subtitle-dot{display:block;flex:0 0 14px;width:14px;height:14px;border-radius:50%;background:#8747f5}
-.jw-title-layer{position:relative;width:100%;margin-top:12px;overflow:visible}
-.jw-title{font-family:'JW League Spartan','League Spartan',Arial,sans-serif!important;font-size:clamp(115px,13.16vw,217px)!important;font-weight:700!important;line-height:1!important;letter-spacing:-.035em!important;text-transform:uppercase;white-space:nowrap;width:max-content;max-width:none;margin:0!important}
-.jw-title:not(.jw-outline){position:relative;color:#8747f5;z-index:1}
-.jw-title.jw-outline{position:absolute;inset:0;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-text-stroke:1.8px #fff;clip-path:polygon(57% 0,86% 0,86% 100%,57% 100%);z-index:8;pointer-events:none}
-.jw-body{position:relative;z-index:9;max-width:66%;margin-top:35px;font-family:'JW Inter',Inter,Arial,sans-serif}
-.jw-body p{font-family:inherit;font-size:clamp(16px,1.354167vw,26px);font-weight:400;line-height:1.4;margin:.2em 0}
-.jw-more,.jw-swipe{position:absolute;left:4.45%;z-index:9;text-decoration:none;font-family:'JW Inter',Inter,Arial,sans-serif}
-.jw-more{bottom:18%;font-size:clamp(16px,1.354167vw,26px);font-weight:600;letter-spacing:.04em;color:#111;border-bottom:2px solid #111;padding-bottom:8px}
-.jw-more span{color:#8747f5}
-.jw-swipe{bottom:9%;font-size:14px;font-weight:600;letter-spacing:.07em;border:1px solid #bbb;border-radius:40px;padding:9px 13px;background:#fff;color:#888}
-.jw-indicators{position:absolute;top:24%;left:40%;display:flex;gap:12px;z-index:9;transform:translateX(-50%)}
-.jw-indicators button{display:block;width:11px;height:11px;padding:0;border:0;border-radius:50%;background:#ccc6d2;cursor:pointer}
-.jw-indicators button.active{background:#8747f5}
-.jw-homepage *,.jw-homepage *::before,.jw-homepage *::after{animation:none!important;transition:none!important}
-@media(max-width:760px){
- .hero.hero-reference .jw-homepage{min-height:680px}
- .jw-hero-photo img{width:110%;right:-20%;bottom:-2%}
- .jw-hero-content{top:25%;left:4%;width:92%}
- .jw-title{font-size:clamp(46px,11.3vw,87px)!important;letter-spacing:-.04em!important}
- .jw-title.jw-outline{clip-path:polygon(45% 0,100% 0,100% 100%,45% 100%)}
- .jw-eyebrow{font-size:clamp(13px,3.8vw,19px)}
- .jw-body{max-width:85%;margin-top:24px}
- .jw-body p{font-size:clamp(14px,3.7vw,18px)}
- .jw-more{bottom:18%;font-size:clamp(14px,3.7vw,18px)}
- .jw-swipe{bottom:9%}
- .jw-indicators{top:20%;left:68%}
-}
-
-/* Precise portrait alpha masking — no rectangular clip, no solid letters over face. */
-.hero.hero-reference .jw-hero-content{z-index:auto!important}
-.hero.hero-reference .jw-title-layer{position:relative;z-index:auto!important}
-.hero.hero-reference .jw-title-layer .jw-title:not(.jw-outline){z-index:2!important;position:relative!important}
-.hero.hero-reference .jw-hero-photo{z-index:3!important}
-.hero.hero-reference .jw-portrait-outline-mask{
- position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;
- -webkit-mask-image:url('/man.png');mask-image:url('/man.png');
- -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
- -webkit-mask-size:104% auto;mask-size:104% auto;
- -webkit-mask-position:right -2% bottom -2%;mask-position:right -2% bottom -2%;
-}
-.hero.hero-reference .jw-outline-title-position{
- position:absolute;left:4.45%;top:calc(27.8% + clamp(15px,1.78vw,34px) + 12px);
- width:91.1%;white-space:nowrap
-}
-.hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{
- display:block;position:relative!important;inset:auto!important;
- width:max-content!important;max-width:none!important;
- font-family:'JW League Spartan','League Spartan',Arial,sans-serif!important;
- font-size:clamp(115px,13.16vw,217px)!important;
- font-weight:700!important;line-height:1!important;letter-spacing:-.035em!important;
- color:transparent!important;-webkit-text-fill-color:transparent!important;
- -webkit-text-stroke:2px #fff!important;clip-path:none!important;
-}
-.hero.hero-reference .jw-eyebrow,.hero.hero-reference .jw-body{z-index:6!important}
-@media(max-width:760px){
- .hero.hero-reference .jw-portrait-outline-mask{
-  -webkit-mask-size:110% auto;mask-size:110% auto;
-  -webkit-mask-position:right -20% bottom -2%;mask-position:right -20% bottom -2%;
- }
- .hero.hero-reference .jw-outline-title-position{left:4%;top:calc(25% + clamp(13px,4.25vw,21px) + 12px);width:92%}
- .hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{font-size:clamp(46px,11.3vw,87px)!important;letter-spacing:-.04em!important}
-}
-
-
-/* Preserve League Spartan's original glyph proportions. Never scaleX typography. */
-.hero.hero-reference .jw-title-layer .jw-title,
-.hero.hero-reference .jw-outline-title-position .jw-title.jw-outline{
- transform:none!important;
- letter-spacing:normal!important;
- font-stretch:normal!important;
-}
-.hero.hero-reference .jw-body p{font-size:clamp(18px,1.577vw,26px)!important}
-.hero.hero-reference .jw-more{font-size:clamp(18px,1.577vw,26px)!important}
+/* Static Canva artboard: every supplied SVG shares the same 1920x1080 coordinate system. */
+.hero.hero-reference{display:block!important;padding:0!important;grid-template-columns:none!important;background:#fff!important;overflow:hidden!important}
+.hero.hero-reference .jw-homepage{position:relative;width:100%;height:calc(100svh - 68px);min-height:540px;background:#fff;overflow:hidden;isolation:isolate}
+.jw-artboard{position:absolute;inset:0;width:100%;height:100%;background:#fff}
+.jw-art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;user-select:none}
+.jw-art-title{z-index:1}
+.jw-art-man{z-index:2}
+.jw-art-outline{z-index:3}
+.jw-art-subtitle-dot,.jw-art-subtitle,.jw-art-indicator-visual,.jw-art-subbody,.jw-art-body,.jw-art-more,.jw-art-underline,.jw-art-more-arrow,.jw-art-swipe{z-index:4}
+.jw-hit-indicators{position:absolute;z-index:6;left:31%;top:18%;width:20%;height:6%;display:flex;justify-content:space-between;align-items:center}
+.jw-hit-indicators button{width:14%;height:100%;padding:0;border:0;background:transparent;cursor:pointer}
+.jw-hit-indicators button:focus-visible{outline:2px solid #8747f5}
+.jw-hit-more,.jw-hit-swipe{position:absolute;z-index:6}
+.jw-hit-more{left:4%;top:73%;width:23%;height:7%}
+.jw-hit-swipe{left:4%;top:81%;width:13%;height:8%}
+.jw-homepage *{animation:none!important;transition:none!important}
+@media(max-width:760px){.hero.hero-reference .jw-homepage{height:min(100svh,680px);min-height:480px}.jw-artboard{width:1920px;height:1080px;transform:scale(var(--jw-mobile-scale, .42));transform-origin:top left}}
