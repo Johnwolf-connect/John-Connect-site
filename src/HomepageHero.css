@@ -26,3 +26,11 @@
  .hero.hero-reference .jw-homepage{height:calc(100svh - 68px);min-height:480px}
  .jw-artboard{inset:0;width:100%;height:100%;transform:none}
 }
+/* Approved: portrait reaches bottom of hero. Move/scale the whole Canva artboard
+   together so its lettering and silhouette overlay remain perfectly registered. */
+@media (min-width:761px){
+ .hero.hero-reference .jw-artboard{
+  transform:translateY(12%) scale(1.06)!important;
+  transform-origin:50% 100%!important;
+ }
+}
