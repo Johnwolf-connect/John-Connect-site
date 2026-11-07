@@ -55,6 +55,53 @@ function buildFlyThroughArtwork(xml){
  });
  return glyphs.length?{svg,glyphs}:null;
 }
+
+// Render each original Canva vector path in its own *pixel-aligned* stage.
+// SVG groups use viewBox/local transform units, which can make a numerically
+// centered destination look visibly low. HTML elements use viewport pixels,
+// so the transform center here is exactly the viewer's eye-level center.
+function makeScreenAlignedGlyphs(vector,flight,stage){
+ const stageRect=stage.getBoundingClientRect();
+ const ns='http://www.w3.org/2000/svg';
+ const holders=[];
+ for(const group of vector.glyphs){
+  const path=group.querySelector('path');
+  if(!path)continue;
+  const rect=path.getBoundingClientRect();
+  const ctm=path.getScreenCTM();
+  if(!ctm||!rect.width||!rect.height)continue;
+  const holder=document.createElement('div');
+  holder.className='jw-about-screen-glyph';
+  holder.style.left=(rect.left-stageRect.left)+'px';
+  holder.style.top=(rect.top-stageRect.top)+'px';
+  holder.style.width=rect.width+'px';
+  holder.style.height=rect.height+'px';
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox','0 0 '+rect.width+' '+rect.height);
+  svg.setAttribute('width','100%');
+  svg.setAttribute('height','100%');
+  svg.setAttribute('aria-hidden','true');
+  const copy=path.cloneNode(true);
+  const style=getComputedStyle(path);
+  copy.removeAttribute('transform');
+  copy.setAttribute('fill',style.fill||'#8a4cf3');
+  copy.setAttribute('fill-opacity',style.fillOpacity||'1');
+  if(style.stroke&&style.stroke!=='none'){
+   copy.setAttribute('stroke',style.stroke);
+   copy.setAttribute('stroke-width',style.strokeWidth);
+  }
+  // Transform the path directly into this letter's pixel-space crop.
+  copy.setAttribute('transform','matrix('+[
+   ctm.a,ctm.b,ctm.c,ctm.d,ctm.e-rect.left,ctm.f-rect.top
+  ].join(' ')+')');
+  svg.appendChild(copy);
+  holder.appendChild(svg);
+  flight.appendChild(holder);
+  holders.push(holder);
+ }
+ vector.svg.remove();
+ return holders;
+}
 export default function HomepageHero(){
  const [index,setIndex]=useState(0);
  const homepageRef=useRef(null);
@@ -282,7 +329,8 @@ export default function HomepageHero(){
     placement.width=(originalBounds?.width??stageBounds.width)+'px';
     placement.height=(originalBounds?.height??stageBounds.height)+'px';
     flight.appendChild(vector.svg);
-    glyphs=vector.glyphs;
+    glyphs=makeScreenAlignedGlyphs(vector,flight,stage);
+    if(!glyphs.length)throw new Error('Vector letters could not be isolated');
    }catch(error){
     // Fallback keeps navigation functional if an SVG can't be fetched.
     if(cancelled)return;
@@ -302,22 +350,17 @@ export default function HomepageHero(){
    // Every letter converges toward the same camera point, unlike the old
    // fan-out that pushed letters toward the edges of the viewport.
    if(glyphs.length){
-    gsap.set(glyphs,{transformOrigin:'50% 50%',transformBox:'fill-box',force3D:true});
+    // Individual HTML layers translate in pixels; their own visual centers
+    // move straight to 50vw/50vh at every viewport size.
+    gsap.set(glyphs,{transformOrigin:'50% 50%',force3D:true});
     const targets=glyphs.map(glyph=>{
      const rect=glyph.getBoundingClientRect();
-     const matrix=glyph.parentNode.getScreenCTM();
-     const bounds=glyph.getBBox();
-     if(!matrix||!bounds.width||!bounds.height)return {x:0,y:0,scale:1};
-     // GSAP translates nested SVG groups in local SVG units, not CSS pixels.
-     // Convert the actual viewport center into this glyph parent's user space.
-     // This stays centered across viewBox scaling, letter offsets and screens.
-     const aim=new DOMPoint(centerX,centerY).matrixTransform(matrix.inverse());
-     const glyphCenterX=bounds.x+bounds.width/2;
-     const glyphCenterY=bounds.y+bounds.height/2;
+     const midX=rect.left+rect.width/2,midY=rect.top+rect.height/2;
+     // A letter becomes larger than the screen, completing the engulfing rush.
      const scale=Math.max(36,Math.min(100,
       Math.max(window.innerWidth/Math.max(rect.width,1),
                window.innerHeight/Math.max(rect.height,1))*2.1));
-     return {x:aim.x-glyphCenterX,y:aim.y-glyphCenterY,scale};
+     return {x:centerX-midX,y:centerY-midY,scale};
     });
     flightTimeline=gsap.timeline({onComplete:()=>{
      if(!cancelled)close.focus({preventScroll:true});
