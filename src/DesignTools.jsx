@@ -185,14 +185,15 @@ export default function DesignTools(){
    });
   };
   const observer=new IntersectionObserver(([entry])=>{
-   if(entry.isIntersecting&&!active){
+   const sufficientlyVisible=entry.isIntersecting&&entry.intersectionRatio>=.16;
+   if(sufficientlyVisible&&!active){
     active=true;
     start=null;
     previous=null;
     angles.clear();
     tools.forEach((tool,i)=>angles.set(tool.name,-2*Math.PI*(i+1)/count));
     frame.current=requestAnimationFrame(animate);
-   }else if(!entry.isIntersecting&&active){
+   }else if(!sufficientlyVisible&&active){
     stop();
    }
   },{threshold:.16});
