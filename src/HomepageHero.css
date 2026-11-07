@@ -75,3 +75,14 @@
 @media (min-width:761px) and (min-aspect-ratio:16/9){
  .jw-homepage{--jw-mask-x:calc(var(--jw-right-shift) - var(--jw-left-shift))}
 }
+
+/* Title-only pull-chain motion: each slice carries the original Canva SVG
+   and its matching white silhouette outline in exactly the same geometry. */
+.jw-title-chain-strip{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;will-change:transform}
+.jw-title-chain-strip .jw-art{display:block}
+.jw-chain-base{z-index:1}
+.jw-chain-outline{z-index:3}
+@media (min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-chain-base .jw-art-title,.jw-chain-outline .jw-art-outline{translate:var(--jw-left-shift) 0}
+}
+@media(prefers-reduced-motion:reduce){.jw-title-chain-strip{will-change:auto}}
