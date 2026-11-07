@@ -29,11 +29,11 @@
  position:absolute;width:clamp(52px,5.6vw,84px);min-height:76px;
  padding:6px 2px;border:0;background:transparent;color:#333;
  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
- cursor:pointer;will-change:transform,opacity;scale:1;transition:scale .28s cubic-bezier(.2,.8,.2,1);
+ cursor:pointer;will-change:transform,opacity;
 }
-.design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:box-shadow .3s,transform .3s,background .3s}
+.design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transform-origin:50% 50%;transition:box-shadow .28s,transform .28s cubic-bezier(.2,.8,.2,1),background .28s}
 .design-tool-orbit-icon img{max-height:83%;max-width:83%;object-fit:contain}
-.design-tool-orbit-item:hover .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:none}
+.design-tool-orbit-item.is-pointer-magnified .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:scale(1.24)}
 .design-tool-orbit-label{font-size:clamp(9px,.8vw,12px);font-weight:600;line-height:1.25;text-align:center;max-width:110px}
 .tool-icon-fallback{display:flex;align-items:center;justify-content:center;color:#8045db;background:#f3edfd;border-radius:12px;font-size:13px;font-weight:800;width:40px;height:40px}
 .design-tool-travel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;filter:drop-shadow(0 0 14px #8045db55)}
@@ -80,8 +80,8 @@
 }
 
 /* Independent scale leaves the scroll/rotation transform running untouched. */
-.design-tool-orbit-item:hover,
-.design-tool-orbit-item:focus-visible{scale:1.24;z-index:2}
+.design-tool-orbit-item.is-pointer-magnified,
+.design-tool-orbit-item:focus-visible{z-index:2}
 @media(prefers-reduced-motion:reduce){
  .design-tool-orbit-item{transition:none}
 }
@@ -106,7 +106,7 @@
  .design-tools-information h2{margin-bottom:10px}
  .design-tool-feature-icon,.design-tool-feature-icon.is-visible{height:0}
 }
-.design-tool-orbit-item{left:0;top:0}
+.design-tool-orbit-item{left:0;top:0;opacity:0;pointer-events:none}
 @media(prefers-reduced-motion:reduce){
  .hero-reference .design-tools{display:block;position:relative;grid-column:1/-1;height:auto;clip-path:none}
  .hero-reference .design-tools-stage{position:relative}
@@ -120,3 +120,51 @@
 @media(prefers-reduced-motion:reduce) and (max-width:720px){
  .hero-reference{grid-template-rows:auto auto auto}
 }
+
+/* Standalone Section 2 fills exactly one visible screen, like the hero.
+   No forced snapping or extra scroll-distance: its bottom and the viewport
+   bottom coincide whenever the section is aligned to the viewport top. */
+main > .design-tools{
+ position:relative;display:block;width:100%;
+ height:100svh;min-height:0;max-height:100svh;
+ overflow:hidden;scroll-margin-top:0;--tool-panel-opacity:1;
+}
+main > .design-tools .design-tools-stage{
+ position:absolute;inset:0;width:100%;height:100%;
+ overflow:hidden;
+}
+main > .design-tools .design-tools-information{opacity:1}
+/* Keep the revolving selector inside the available screen on short displays. */
+main > .design-tools .design-tools-orbit{
+ height:min(70svh,680px,calc(100svh - 125px));
+}
+@media(max-width:720px){
+ main > .design-tools{height:100svh;min-height:0;max-height:100svh}
+ main > .design-tools .design-tools-orbit{height:100%}
+}
+
+/* The orbit itself never pauses. Pointer magnification follows the moving
+   icon under the stationary cursor, and resets as each icon moves away. */
+.design-tool-orbit-item{
+ transform-origin:50% 50%;
+}
+.design-tool-orbit-item.is-pointer-magnified{
+ /* Never scale the moving button, its transform, or its pointer hitbox. */
+ z-index:5;
+}
+@media(prefers-reduced-motion:reduce){
+ main > .design-tools .design-tool-orbit-item{
+  opacity:1;
+  pointer-events:auto;
+ }
+ .design-tool-orbit-icon{transition:none}
+}
+
+/* Section 2 occupies exactly one viewport; its bottom edge meets the screen edge. */
+main > .design-tools{height:100svh;min-height:0;max-height:100svh;scroll-margin-top:0;background:transparent}
+main > .design-tools .design-tools-stage{inset:0;background:transparent}
+@media(max-width:720px){main > .design-tools{height:100svh;min-height:0;max-height:100svh}}
+
+/* Lower the orbit as a whole without altering its horizontal placement or icon paths. */
+main > .design-tools .design-tools-orbit{translate:0 clamp(18px,4svh,44px)}
+@media(max-width:720px){main > .design-tools .design-tools-orbit{translate:0 16px}}

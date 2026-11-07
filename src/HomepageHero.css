@@ -1,0 +1,373 @@
+/* Static Canva artboard: every supplied SVG shares the same 1920x1080 coordinate system. */
+.hero.hero-reference{display:block!important;padding:0!important;grid-template-columns:none!important;background:#fff!important;overflow:hidden!important}
+.hero.hero-reference .jw-homepage{position:relative;width:100%;height:calc(100svh - 68px);min-height:540px;background:#fff;overflow:hidden;isolation:isolate}
+.jw-artboard{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ aspect-ratio:auto;
+ transform:none;
+ background:#fff;
+}
+.jw-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+.jw-art-title{z-index:1}
+.jw-art-man{z-index:2}
+.jw-art-outline{z-index:3}
+.jw-art-subtitle-dot,.jw-art-subtitle,.jw-art-indicator-visual,.jw-art-subbody,.jw-art-body,.jw-art-more,.jw-art-underline,.jw-art-more-arrow,.jw-art-swipe{z-index:4}
+.jw-hit-indicators{position:absolute;z-index:6;left:31%;top:18%;width:20%;height:6%;display:flex;justify-content:space-between;align-items:center}
+.jw-hit-indicators button{width:14%;height:100%;padding:0;border:0;background:transparent;cursor:pointer}
+.jw-hit-indicators button:focus-visible{outline:2px solid #8747f5}
+.jw-hit-more,.jw-hit-swipe{position:absolute;z-index:6}
+.jw-hit-more{left:4%;top:73%;width:23%;height:7%}
+.jw-hit-swipe{left:4%;top:81%;width:13%;height:8%}
+.jw-homepage *{animation:none!important;transition:none!important}
+@media(max-width:760px){
+ .hero.hero-reference .jw-homepage{height:calc(100svh - 68px);min-height:480px}
+ .jw-artboard{inset:0;width:100%;height:100%;transform:none}
+}
+
+
+.hero.hero-reference{height:100svh!important;min-height:0!important;max-height:100svh!important;margin:0!important;padding:0!important;box-sizing:border-box!important}
+.hero.hero-reference .jw-homepage{height:100%!important;min-height:0!important;max-height:none!important}
+.jw-art-man{transform:translate3d(0,var(--jw-portrait-bottom-offset,0px),0)}
+/* Outline stays registered to the title; its portrait mask follows the visible portrait. */
+.jw-art-outline{transform:none;mask-image:url('/homepage-canva/Man.svg');-webkit-mask-image:url('/homepage-canva/Man.svg');mask-size:contain;-webkit-mask-size:contain;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;mask-position:center calc(50% + var(--jw-portrait-bottom-offset,0px));-webkit-mask-position:center calc(50% + var(--jw-portrait-bottom-offset,0px))}
+@media(max-width:760px){.hero.hero-reference .jw-homepage{height:100%!important;min-height:0!important}}
+
+/* At narrower desktop widths the Canva artboard fits by width, leaving spare
+   vertical room. Distribute the copy vertically instead of keeping every
+   layer locked to its original 16:9 y-coordinate. */
+@media (max-aspect-ratio: 16/9) and (min-width:761px){
+ .jw-art-subbody,.jw-art-body{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .18),90px))}
+ .jw-art-more,.jw-art-underline,.jw-art-more-arrow{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .30),145px))}
+ .jw-art-swipe{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .36),175px))}
+}
+
+/* Horizontal responsiveness: the Canva artwork has a fixed 16:9 viewBox.
+   On wide viewports, object-fit:contain centers it and creates side gutters.
+   Shift left-hand artwork into the available left gutter and the portrait
+   into the right gutter without changing any SVG's aspect ratio. */
+@media (min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-homepage{
+  --jw-side-gutter:max(0px,calc((100vw - 100svh * 16 / 9) / 2));
+  --jw-left-shift:calc(-1 * var(--jw-side-gutter) * .78);
+  --jw-right-shift:calc(var(--jw-side-gutter) * .78);
+ }
+ .jw-art-subtitle-dot,.jw-art-subtitle,.jw-art-indicator-visual,
+ .jw-art-subbody,.jw-art-body,.jw-art-more,.jw-art-underline,
+ .jw-art-more-arrow,.jw-art-swipe{translate:var(--jw-left-shift) 0}
+ .jw-art-title{translate:var(--jw-left-shift) 0}
+ .jw-art-man{translate:var(--jw-right-shift) 0}
+ /* The title outline stays in title coordinates, with the portrait silhouette
+    translated separately by the existing mask-position rule. */
+ .jw-art-outline{translate:var(--jw-left-shift) 0}
+ .jw-hit-indicators,.jw-hit-more,.jw-hit-swipe{translate:var(--jw-left-shift) 0}
+}
+
+/* Register the silhouette mask to the translated portrait, not to the title.
+   mask-mode:alpha is necessary because the portrait is black-and-white. */
+.jw-art-outline{
+ mask-mode:alpha;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+ -webkit-mask-position:calc(50% + var(--jw-mask-x,0px)) calc(50% + var(--jw-portrait-bottom-offset,0px));
+ mask-position:calc(50% + var(--jw-mask-x,0px)) calc(50% + var(--jw-portrait-bottom-offset,0px));
+}
+@media (min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-homepage{--jw-mask-x:calc(var(--jw-right-shift) - var(--jw-left-shift))}
+}
+
+/* Title-only pull-chain motion: each slice carries the original Canva SVG
+   and its matching white silhouette outline in exactly the same geometry. */
+.jw-title-chain-strip{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;will-change:transform}
+.jw-title-chain-strip .jw-art{display:block}
+.jw-chain-base{z-index:1}
+.jw-chain-outline{z-index:3}
+@media (min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-chain-base .jw-art-title,.jw-chain-outline .jw-art-outline{translate:var(--jw-left-shift) 0}
+}
+@media(prefers-reduced-motion:reduce){.jw-title-chain-strip{will-change:auto}}
+
+
+/* Live typography uses one shared letter layout for fill and masked outline. */
+.jw-live-title{
+ position:absolute;inset:0;z-index:1;pointer-events:none;
+ display:flex;align-items:flex-start;justify-content:flex-start;
+ padding-left:4.4%;padding-top:27.5%;
+ box-sizing:border-box;overflow:visible;
+}
+.jw-live-title-letters{
+ display:flex;white-space:nowrap;align-items:baseline;
+ font-family:Impact,"Arial Narrow",Arial,sans-serif;
+ font-weight:900;font-stretch:condensed;
+ font-size:clamp(50px,10.2vw,210px);
+ letter-spacing:-.045em;line-height:.95;color:#873cf2;
+}
+.jw-live-title .jw-letter{display:inline-block;position:relative;will-change:transform}
+.jw-live-outline{
+ position:absolute;left:4.4%;top:27.5%;
+ color:transparent;-webkit-text-stroke:2px white;
+ paint-order:stroke fill;
+ mask-image:url('/homepage-canva/Man.svg');
+ -webkit-mask-image:url('/homepage-canva/Man.svg');
+ mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;
+ mask-size:100vw 100svh;-webkit-mask-size:100vw 100svh;
+ mask-position:calc(-4.4vw + var(--jw-mask-x,0px)) calc(-27.5svh + var(--jw-portrait-bottom-offset,0px));
+ -webkit-mask-position:calc(-4.4vw + var(--jw-mask-x,0px)) calc(-27.5svh + var(--jw-portrait-bottom-offset,0px));
+}
+.jw-live-title[data-phase="in"]{z-index:1}
+@media(max-width:760px){
+ .jw-live-title{padding-top:34%;padding-left:3%}
+ .jw-live-title-letters{font-size:clamp(40px,10vw,90px)}
+ .jw-live-outline{left:3%;top:34%}
+}
+@media(min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-live-title{translate:var(--jw-left-shift) 0}
+}
+
+/* Canva-accurate title restoration: full artboard SVGs, not substitute text. */
+.jw-live-title{inset:0;padding:0;display:block;overflow:visible;translate:none}
+.jw-live-title .jw-art-title{z-index:1}
+.jw-live-title .jw-art-outline{z-index:3}
+.jw-live-title .jw-art-title,.jw-live-title .jw-art-outline{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+@media(min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-live-title{translate:none}
+ .jw-live-title .jw-art-title,.jw-live-title .jw-art-outline{translate:var(--jw-left-shift) 0}
+}
+
+/* Keep the purple Canva title behind the portrait, and its white silhouette
+   overlay in front. Both are animated by the same GSAP timeline. */
+.jw-live-title-base{z-index:1}
+.jw-live-title-overlay{z-index:3}
+.jw-live-title-overlay .jw-art-outline{z-index:3}
+
+/* The silhouette is stationary while the white Canva lettering moves beneath it.
+   Masking the moving image itself made the mask travel with the word. */
+.jw-live-title-overlay{
+  -webkit-mask-image:url('/homepage-canva/Man.svg');
+  mask-image:url('/homepage-canva/Man.svg');
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-size:contain;mask-size:contain;
+  -webkit-mask-position:calc(50% + var(--jw-right-shift,0px)) calc(50% + var(--jw-portrait-bottom-offset,0px));
+  mask-position:calc(50% + var(--jw-right-shift,0px)) calc(50% + var(--jw-portrait-bottom-offset,0px));
+}
+.jw-live-title-overlay .jw-art-outline{
+  -webkit-mask-image:none!important;mask-image:none!important;
+}
+
+
+/* Derive the stroke from the complete original title alpha rather than a
+   pre-cropped overlay asset. The portrait mask remains fixed in the viewport. */
+.jw-outline-filter-defs{position:absolute;pointer-events:none;overflow:hidden}
+.jw-live-title-overlay .jw-art-outline{
+  filter:url(#jw-outline-only);
+}
+
+/* Chain-pull slices retain the exact Canva full-artboard geometry. Each slice
+   moves as one paired purple/white unit; the overlay viewport does not move. */
+.jw-title-slice{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;will-change:transform}
+.jw-title-slice .jw-art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.jw-live-title-overlay{pointer-events:none;isolation:isolate}
+@media(prefers-reduced-motion:reduce){.jw-title-slice{will-change:auto}}
+
+/* Motion-safe Canva composition: solid word and actual vector outline,
+   synchronized while the portrait-shaped mask stays fixed over the viewport. */
+.jw-title-whole{
+ position:absolute;inset:0;width:100%;height:100%;
+ pointer-events:none;will-change:transform;
+}
+.jw-live-title-base .jw-title-whole{z-index:1}
+.jw-live-title-overlay .jw-title-whole{z-index:3}
+.jw-live-title-overlay{overflow:hidden;isolation:auto}
+.jw-live-title-overlay .jw-art-outline{
+ filter:none!important;
+ -webkit-mask-image:none!important;
+ mask-image:none!important;
+}
+@media(prefers-reduced-motion:reduce){.jw-title-whole{will-change:auto}}
+
+
+/* Interactive Canva indicators. Replace the baked-in active dot with vector
+   dots at the exact same positions in the original 1440x810 artboard. */
+.jw-hit-indicators{
+ inset:0;
+ width:100%;
+ height:100%;
+ display:block;
+ pointer-events:none;
+}
+.jw-hit-indicators svg{
+ display:block;
+ width:100%;
+ height:100%;
+ overflow:visible;
+ pointer-events:none;
+}
+.jw-hit-indicators .jw-indicator{
+ pointer-events:all;
+ cursor:pointer;
+ outline:none;
+}
+.jw-hit-indicators .jw-indicator-dot{pointer-events:none}
+.jw-hit-indicators .jw-indicator:focus-visible .jw-indicator-dot{
+ stroke:#23132f;
+ stroke-width:2.5;
+}
+
+/* Preloaded title artwork stays mounted but inactive titles do not reserve GPU layers.
+   Only the visible pair (and incoming pair during transitions) is composited. */
+.jw-title-whole{will-change:auto}
+.jw-live-title-visible .jw-title-whole{will-change:transform}
+@media(prefers-reduced-motion:reduce){
+ .jw-live-title-visible .jw-title-whole{will-change:auto}
+}
+
+
+/* Choreographed homepage copy. The body is clipped at the title's lower edge
+   while it retracts into the letters, then reveals from that same edge.
+   The subtitle stays anchored and moves only a single character-width. */
+.jw-subtitle-stage,.jw-body-stage{
+ position:absolute;
+ inset:0;
+ pointer-events:none;
+}
+.jw-subtitle-stage{z-index:4}
+.jw-body-stage{
+ z-index:2;
+ clip-path:inset(var(--jw-body-reveal-top,51.5%) 0 0 0);
+}
+.jw-subtitle-motion,.jw-body-motion{
+ position:absolute;
+ inset:0;
+ width:100%;
+ height:100%;
+ will-change:auto;
+}
+.jw-subtitle-stage[style*="visible"] .jw-subtitle-motion,
+.jw-body-stage[style*="visible"] .jw-body-motion{
+ will-change:transform,opacity;
+}
+.jw-subtitle-svg,.jw-body-svg{display:block}
+@media(min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-subtitle-svg,.jw-body-svg{translate:var(--jw-left-shift) 0}
+}
+@media(prefers-reduced-motion:reduce){
+ .jw-subtitle-motion,.jw-body-motion{will-change:auto!important}
+}
+
+
+/* The live Canva glyphs rush toward the camera, then a signature-purple
+   splash blooms into a full-screen, accessible More About Me view. The overlay
+   lives in a body portal, outside pinned/overflow-clipped homepage sections. */
+.jw-about-transition{
+ position:fixed;inset:0;z-index:250;isolation:isolate;
+ display:grid;place-items:center;
+ overflow-x:hidden;overflow-y:auto;
+ color:#fff;overscroll-behavior:contain;
+ background:transparent;
+}
+.jw-about-splash{
+ position:absolute;inset:0;z-index:0;
+ overflow:hidden;pointer-events:none;
+ background:
+  radial-gradient(ellipse at 70% 18%,rgba(210,166,255,.8),transparent 32%),
+  radial-gradient(ellipse at 15% 77%,rgba(72,19,174,.75),transparent 52%),
+  linear-gradient(137deg,#6b2acc 0%,#8a4cf3 49%,#6630c0 100%);
+ clip-path:none;opacity:0;visibility:hidden;
+}
+.jw-about-splash::before{
+ content:"";position:absolute;left:-18%;top:-45%;
+ width:74%;aspect-ratio:1;border-radius:47% 53% 67% 33%/62% 37% 63% 38%;
+ background:radial-gradient(circle,rgba(228,196,255,.33),rgba(200,132,255,.03) 72%);
+ transform:rotate(-28deg);filter:blur(11px);
+}
+.jw-about-splash-glow{
+ position:absolute;right:-18%;bottom:-48%;
+ width:72%;aspect-ratio:1;border-radius:60% 40% 38% 62%/44% 69% 31% 56%;
+ background:radial-gradient(circle at 45% 42%,rgba(240,220,255,.4),rgba(137,63,245,.07) 64%);
+ transform:rotate(26deg);filter:blur(9px);
+}
+.jw-about-splash-orbit{
+ position:absolute;left:51%;top:51%;width:min(85vw,900px);aspect-ratio:1;
+ border:1px solid rgba(255,255,255,.19);border-radius:43% 57% 61% 39%/51% 32% 68% 49%;
+ transform:translate(-50%,-50%) rotate(-25deg);
+ box-shadow:0 0 0 55px rgba(255,255,255,.025),0 0 0 128px rgba(255,255,255,.018);
+}
+.jw-about-flight{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:visible;perspective:850px}
+.jw-about-fly-svg,.jw-about-fly-fallback{
+ position:absolute;display:block;max-width:none;pointer-events:none;
+ overflow:visible;object-fit:contain;will-change:transform,opacity;
+}
+/* Every copied Canva letter is positioned at its exact on-screen origin.
+   Without absolute positioning, the div holders stack vertically at the left. */
+.jw-about-screen-glyph{
+ position:absolute;
+ display:block;
+ margin:0;
+ padding:0;
+ border:0;
+ pointer-events:none;
+ overflow:visible;
+ transform-origin:50% 50%;
+ will-change:transform;
+}
+.jw-about-screen-glyph>svg{
+ display:block;
+ width:100%;
+ height:100%;
+ overflow:visible;
+}
+.jw-about-fly-glyph{transform-box:fill-box;transform-origin:center;will-change:transform,opacity,filter}
+.jw-about-content{
+ position:relative;z-index:5;
+ width:min(100%,1260px);padding:clamp(90px,13vh,150px) clamp(30px,8vw,135px);
+ margin:auto;color:#fff;
+ opacity:0;outline:none;
+}
+.jw-about-kicker{
+ display:inline-block;font-size:clamp(10px,1.1vw,14px);font-weight:700;
+ letter-spacing:.23em;color:rgba(255,255,255,.78);
+ margin-bottom:clamp(22px,4vw,52px);
+}
+.jw-about-content h2{
+ font-family:'DM Sans',Arial,sans-serif;
+ font-size:clamp(54px,9vw,142px);font-weight:700;
+ line-height:.92;letter-spacing:-.075em;max-width:1100px;
+ margin:0 0 clamp(34px,5vh,64px);text-wrap:balance;
+}
+.jw-about-content h2 em{
+ font-family:'Playfair Display',Georgia,serif;font-weight:600;
+ letter-spacing:-.06em;color:#fff;
+}
+.jw-about-content p{
+ max-width:680px;font-size:clamp(17px,1.8vw,24px);
+ line-height:1.65;color:rgba(255,255,255,.9);margin:0 0 32px;
+}
+.jw-about-contact{
+ display:inline-flex;align-items:center;gap:24px;
+ font-size:13px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;
+ padding:13px 0 15px;border-bottom:1px solid rgba(255,255,255,.8);
+ color:#fff;
+}
+.jw-about-contact span{font-size:22px}
+.jw-about-close{
+ position:fixed;top:clamp(22px,4vw,54px);right:clamp(22px,4vw,60px);
+ z-index:7;display:flex;align-items:center;gap:12px;
+ color:#fff;background:rgba(255,255,255,.11);
+ border:1px solid rgba(255,255,255,.5);border-radius:999px;
+ padding:12px 14px 12px 22px;font-size:12px;font-weight:700;
+ letter-spacing:.06em;backdrop-filter:blur(8px);
+}
+.jw-about-close span{font-size:22px;line-height:1}
+.jw-about-close:hover{background:rgba(255,255,255,.24)}
+.jw-about-transition :is(a,button):focus-visible{
+ outline:3px solid #fff;outline-offset:5px;
+}
+@media(max-width:760px){
+ .jw-about-content{padding:125px 26px 80px}
+ .jw-about-content h2{font-size:clamp(48px,13vw,86px)}
+ .jw-about-close{top:18px;right:18px;padding:10px 12px 10px 16px;font-size:11px}
+ .jw-about-splash-orbit{width:125vw}
+}
+@media(prefers-reduced-motion:reduce){
+ .jw-about-fly-glyph,.jw-about-fly-fallback{will-change:auto}
+}

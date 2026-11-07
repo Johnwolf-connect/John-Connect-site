@@ -31,116 +31,190 @@ export default function DesignTools(){
   sync();mq.addEventListener?.('change',sync);
   return()=>mq.removeEventListener?.('change',sync);
  },[]);
+
  useEffect(()=>{
   const host=root.current,field=orbit.current;
   if(!host||!field)return;
-  if(reduced){
-   for(const button of Object.values(buttons.current))button.removeAttribute('style');
-   host.inert=false;
-   host.style.removeProperty('--tool-panel-opacity');
-   host.querySelector('.design-tools-information').style.removeProperty('transform');
-   host.querySelector('.design-tools-center').style.removeProperty('opacity');
-   return;
-  }
-  const hero=host.closest('.hero');
   const information=host.querySelector('.design-tools-information');
   const prompt=host.querySelector('.design-tools-center');
-  let previousTime=null,rotation=0,exitAngles=null;
-  const positions=new Map();
-  const animate=time=>{
-   const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
-   const elapsed=previousTime===null?0:Math.min(50,Math.max(0,time-previousTime))/1000;
-   previousTime=time;
-   const idleBlend=smooth(clamp((p-.54)/.10,0,1));
-   if(p>=.54&&p<.78&&!document.hidden)rotation+=elapsed*.10*idleBlend;
-   if(p<=.54)rotation=0;
-   const idleAngle=rotation*idleBlend;
-   const leave=smooth(clamp((p-.78)/.20,0,1));
-   const panel=smooth(clamp((p-.53)/.09,0,1))*(1-leave);
-   host.style.setProperty('--tool-panel-opacity',String(panel));
-   if(information)information.style.transform=`translateY(${(1-panel)*18}px)`;
-   if(prompt)prompt.style.opacity=String(smooth(clamp((p-.56)/.06,0,1))*(1-leave));
-   const interactive=p>=.62&&p<.78;
-   host.inert=!interactive;
-   const selectedNode=buttons.current[chosen.current];
-   if(selectedNode){selectedNode.style.opacity='0';selectedNode.style.pointerEvents='none';selectedNode.tabIndex=-1}
-   const keys=tools.filter(tool=>tool.name!==chosen.current);
-   const width=field.clientWidth,height=field.clientHeight;
-   const radius=Math.min(width,height)*.40;
-   const interval=.014,flight=.30,firstLanding=.36;
-   const speed=2*Math.PI/(tools.length*interval);
-   // Integrate one shared orbit clock. Arrivals use its exact position and
-   // tangent, then it gently slows to the browsing rotation.
-   const clock=q=>{
-    if(q<=.54)return speed*(q-firstLanding);
-    const d=Math.min(q-.54,.10),u=d/.10;
-    return speed*(.54-firstLanding)+speed*d+(.8-speed)*.10*(u*u/2)+Math.max(0,q-.64)*.8;
-   };
-   const fieldLeft=field.getBoundingClientRect().left;
-   const cubic=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d};
-   // Capture the live rotation once, then feed icons through the top exit.
-   // The leading icon is the next one to reach twelve o'clock.
-   if(p<.78)exitAngles=null;
-   if(p>=.78&&!exitAngles){
-    exitAngles=new Map(keys.map((tool,i)=>[tool.name,positions.get(tool.name)??(Math.PI+clock(.78)-clock(firstLanding)-i*2*Math.PI/keys.length+idleAngle)]));
-   }
-   keys.forEach((tool,i)=>{
-    const node=buttons.current[tool.name];if(!node)return;
-    const landing=firstLanding+i*interval;
-    const ride=clamp((p-(landing-flight))/flight,0,1);
-    const entryX=width*.5-radius,entryY=height*.5;
-    let a=Math.PI+clock(Math.max(p,landing))-clock(landing)+idleAngle;
-    if(p>=.58){
-     const target=Math.PI+clock(p)-clock(firstLanding)-i*2*Math.PI/keys.length+idleAngle;
-     const previous=positions.get(tool.name)??a;
-     const delta=Math.atan2(Math.sin(target-previous),Math.cos(target-previous));
-     a=previous+delta*(1-Math.exp(-elapsed/ .24));
-    }
-    positions.set(tool.name,a);
-    // The last control point aligns with the circle's tangent.
-    // Keep the entrance inside the selector so icons never sweep through the copy.
-    const xTrack=cubic(width*.5,entryX,entryX,entryX,ride);
-    const yTrack=cubic(height*.94,height*.84,entryY+Math.min(radius*.65,radius*speed*flight/3),entryY,ride);
-    const finalX=width*.5+Math.cos(a)*radius;
-    const finalY=height*.5+Math.sin(a)*radius;
-    const dock=ride;
-    let departure=0;
-    let x=ride<1?xTrack:finalX,y=ride<1?yTrack:finalY;
-    if(p>=.78&&exitAngles?.has(tool.name)){
-     const start=exitAngles.get(tool.name),tau=2*Math.PI;
-     const distance=((-Math.PI/2-start)%tau+tau)%tau;
-     const travelSpeed=tau/.12;
-     const toTop=distance/travelSpeed;
-     const exitProgress=p-.78;
-     if(exitProgress<=toTop){
-      const exitAngle=start+exitProgress*travelSpeed;
-      x=width*.5+Math.cos(exitAngle)*radius;
-      y=height*.5+Math.sin(exitAngle)*radius;
-     }else{
-      departure=clamp((exitProgress-toTop)/.08,0,1);
-      const topX=width*.5,topY=height*.5-radius;
-      const offscreen=window.innerWidth-fieldLeft+100;
-      // Horizontal tangent at twelve o'clock continues into a shared right sweep.
-      x=cubic(topX,topX+radius*travelSpeed*.08/3,offscreen-width*.22,offscreen,departure);
-      y=cubic(topY,topY,topY+height*.16,topY+height*.12,departure);
-     }
-    }
-    const bank=(1-dock)*Math.sin(ride*Math.PI*2)*12-departure*10;
-    const reveal=smooth(clamp(ride/.16,0,1))*(1-smooth(clamp((departure-.45)/.55,0,1)));
-    node.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%) rotate(${bank}deg) scale(${.82+.18*dock-.10*departure})`;
-    node.style.opacity=String(travelName.current===tool.name?0:reveal);
-    node.style.pointerEvents=interactive?'auto':'none';
-    node.tabIndex=interactive?0:-1;
+  if(reduced){
+   Object.values(buttons.current).forEach(node=>{
+    node.removeAttribute('style');
+    node.classList.remove('is-pointer-magnified');
    });
+   host.inert=false;
+   host.style.setProperty('--tool-panel-opacity','1');
+   if(information)information.style.removeProperty('transform');
+   if(prompt)prompt.style.removeProperty('opacity');
+   return;
+  }
+
+  // Section 2 is standalone: entrance progress must come from its own
+  // visibility, never the retired homepage --tools-progress variable.
+  const count=tools.length;
+  const spacing=.16;
+  const flightDuration=1.05;
+  const finalLanding=flightDuration+(count-1)*spacing;
+  const fastOrbit=2*Math.PI/(count*spacing);
+  const idleOrbit=.19;
+  const slowing=.38;
+  const angles=new Map(tools.map((tool,i)=>[tool.name,-2*Math.PI*(i+1)/count]));
+  const pointer={x:null,y:null,inside:false};
+  let active=false,start=null,previous=null,hovered=null;
+  const movePointer=event=>{
+   if(event.pointerType==='touch')return;
+   pointer.x=event.clientX;
+   pointer.y=event.clientY;
+   pointer.inside=true;
+  };
+  const clearPointer=()=>{pointer.inside=false;};
+  const cubic=(a,b,c,d,t)=>{
+   const k=1-t;
+   return k*k*k*a+3*k*k*t*b+3*k*t*t*c+t*t*t*d;
+  };
+  const clock=t=>{
+   if(t<=finalLanding)return fastOrbit*(t-finalLanding);
+   const after=t-finalLanding;
+   return (fastOrbit-idleOrbit)*slowing*(1-Math.exp(-after/slowing))+idleOrbit*after;
+  };
+  const animate=time=>{
+   if(!active)return;
+   if(start===null)start=time;
+   const elapsed=Math.max(0,(time-start)/1000);
+   const delta=previous===null?0:Math.min(.06,Math.max(0,(time-previous)/1000));
+   previous=time;
+   const width=field.clientWidth,height=field.clientHeight;
+   const radius=Math.min(width,height)*.4;
+   const centerX=width*.5,centerY=height*.5;
+   const sectionRect=host.getBoundingClientRect();
+   const fieldRect=field.getBoundingClientRect();
+   // The icons begin near the lower LEFT of the entire Design Tools screen,
+   // not at the left edge of the circular selector.
+   const originX=sectionRect.left+Math.max(28,sectionRect.width*.055)-fieldRect.left;
+   const originY=sectionRect.top+sectionRect.height*.86-fieldRect.top;
+   const topX=centerX,topY=centerY-radius;
+   const visibleTools=tools.filter(tool=>tool.name!==chosen.current);
+   const ready=elapsed>=finalLanding;
+   host.inert=false;
+   host.style.setProperty('--tool-panel-opacity','1');
+   if(information)information.style.transform='translateY(0)';
+   if(prompt)prompt.style.opacity=String(smooth(clamp((elapsed-finalLanding+.18)/.35,0,1)));
+
+   const centers=[];
+   tools.forEach((tool,i)=>{
+    const node=buttons.current[tool.name];
+    if(!node)return;
+    if(tool.name===chosen.current){
+     node.style.opacity='0';
+     node.style.pointerEvents='none';
+     node.tabIndex=-1;
+     node.classList.remove('is-pointer-magnified');
+     return;
+    }
+    const started=elapsed-i*spacing;
+    const ride=clamp(started/flightDuration,0,1);
+    const complete=ride>=1;
+    const currentOffset=angles.get(tool.name)??-2*Math.PI*(i+1)/count;
+    // When a tool is selected, the remaining slots re-space gently rather
+    // than snapping, while the orbit continues rotating at its normal pace.
+    const slot=visibleTools.findIndex(item=>item.name===tool.name);
+    const targetOffset=-2*Math.PI*(slot+1)/visibleTools.length;
+    const angularError=Math.atan2(Math.sin(targetOffset-currentOffset),Math.cos(targetOffset-currentOffset));
+    const offset=currentOffset+angularError*(1-Math.exp(-delta/.42));
+    angles.set(tool.name,offset);
+    const angle=-Math.PI/2+clock(elapsed)+offset;
+    let x,y,bank=0;
+    if(!complete){
+     // Keep the same lower-left origin, but fly RIGHT before turning upward.
+     // The first 38% is perfectly horizontal; the second leg is a cubic
+     // sweep with a horizontal entry tangent and vertical top-ring arrival.
+     // Icons still launch 160ms apart, already spaced along the route.
+     const straightFraction=.38;
+     const turnX=originX+(topX-originX)*.52;
+     if(ride<straightFraction){
+      const t=ride/straightFraction;
+      x=originX+(turnX-originX)*t;
+      y=originY;
+     }else{
+      const t=(ride-straightFraction)/(1-straightFraction);
+      x=cubic(turnX,turnX+(topX-originX)*.28,topX,topX,t);
+      y=cubic(originY,originY,topY+(originY-topY)*.24,topY,t);
+     }
+     bank=(1-ride)*(-10+12*Math.sin(ride*Math.PI));
+    }else{
+     x=centerX+Math.cos(angle)*radius;
+     y=centerY+Math.sin(angle)*radius;
+    }
+    const opacity=smooth(clamp(ride/.14,0,1));
+    node.style.transform='translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%) rotate('+bank+'deg) scale('+(0.84+ride*.16)+')';
+    node.style.opacity=String(travelName.current===tool.name?0:opacity);
+    node.style.pointerEvents=complete?'auto':'none';
+    node.tabIndex=complete?0:-1;
+    if(complete&&travelName.current!==tool.name){
+     centers.push({tool,node,x,y});
+    }
+   });
+
+   // Hit-test against unmagnified orbit slots EVERY frame. This means a
+   // stationary mouse enlarges whichever rotating icon is currently beneath
+   // it, and the previous icon shrinks immediately after passing by.
+   let nextHovered=null,bestDistance=Infinity;
+   const pointerX=pointer.x-fieldRect.left;
+   const pointerY=pointer.y-fieldRect.top;
+   if(ready&&pointer.inside&&pointer.x>=fieldRect.left&&pointer.x<=fieldRect.right&&
+      pointer.y>=fieldRect.top&&pointer.y<=fieldRect.bottom){
+    for(const item of centers){
+     const halfW=item.node.offsetWidth*.48;
+     const halfH=item.node.offsetHeight*.48;
+     const dx=pointerX-item.x,dy=pointerY-item.y;
+     if(Math.abs(dx)>halfW||Math.abs(dy)>halfH)continue;
+     const distance=dx*dx+dy*dy;
+     if(distance<bestDistance){bestDistance=distance;nextHovered=item.tool.name;}
+    }
+   }
+   if(nextHovered!==hovered){
+    hovered=nextHovered;
+    Object.values(buttons.current).forEach(node=>node.classList.toggle(
+     'is-pointer-magnified',Boolean(hovered&&node===buttons.current[hovered])
+    ));
+   }
    frame.current=requestAnimationFrame(animate);
   };
-  const visibility=new IntersectionObserver(([entry])=>{
+  const stop=()=>{
+   active=false;
    cancelAnimationFrame(frame.current);
-   previousTime=null;
-   if(entry.isIntersecting)frame.current=requestAnimationFrame(animate);
-  });
-  visibility.observe(hero||host);
-  return()=>{visibility.disconnect();cancelAnimationFrame(frame.current);host.inert=false};
+   frame.current=0;
+   hovered=null;
+   Object.values(buttons.current).forEach(node=>{
+    node.classList.remove('is-pointer-magnified');
+    node.style.opacity='0';
+    node.style.pointerEvents='none';
+    node.tabIndex=-1;
+   });
+  };
+  const observer=new IntersectionObserver(([entry])=>{
+   const sufficientlyVisible=entry.isIntersecting&&entry.intersectionRatio>=.16;
+   if(sufficientlyVisible&&!active){
+    active=true;
+    start=null;
+    previous=null;
+    angles.clear();
+    tools.forEach((tool,i)=>angles.set(tool.name,-2*Math.PI*(i+1)/count));
+    frame.current=requestAnimationFrame(animate);
+   }else if(!sufficientlyVisible&&active){
+    stop();
+   }
+  },{threshold:.16});
+  window.addEventListener('pointermove',movePointer,{passive:true});
+  window.addEventListener('blur',clearPointer);
+  observer.observe(host);
+  return()=>{
+   observer.disconnect();
+   stop();
+   window.removeEventListener('pointermove',movePointer);
+   window.removeEventListener('blur',clearPointer);
+   host.inert=false;
+  };
  },[reduced]);
  useEffect(()=>()=>{flightTween.current?.kill();if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
 

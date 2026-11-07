@@ -5,7 +5,7 @@
 .site-light-field span:first-child{background:radial-gradient(ellipse 36% 42%,#9900ff 0%,#9900ff99 28%,transparent 72%)}
 .site-light-field span:last-child{background:radial-gradient(ellipse 40% 32%,#9900ffbb 0%,#9900ff45 35%,transparent 75%)}
 #root main{position:relative;z-index:1}
-#root .hero-reference,#root .hero-reference .design-tools,#root .hero-reference .design-tools-stage,#root .scroll-gallery,#root .scroll-gallery-sticky,#root .brand-gallery,#root .brand-gallery-dock,#root .about{background:transparent}
+#root .hero-reference,#root .hero-reference .design-tools,#root .hero-reference .design-tools-stage,#root main > .design-tools,#root main > .design-tools .design-tools-stage,#root .scroll-gallery,#root .scroll-gallery-sticky,#root .brand-gallery,#root .brand-gallery-dock,#root .about{background:transparent}
 #root .design-tools-stage::before,#root .scroll-gallery-sticky::before{display:none}
 .hero-reference .hero-copy,.hero-reference .hero-visual,.hero-reference .hero-scroll{opacity:clamp(0,calc(1 - var(--tools-progress,0) * 5),1)}
 .brand-gallery-heading,.logo-creations-title,.about h2{transform-origin:0 50%}
@@ -26,3 +26,7 @@
 @media(prefers-reduced-motion:reduce){
  .project-info-morph .project-info-layer{will-change:auto;filter:none!important;transform:none!important}
 }
+
+/* Let the same persistent purple glow show through Design Tools as Logo Creations. */
+#root main > .design-tools,#root main > .design-tools .design-tools-stage{background:transparent}
+#root main > .design-tools .design-tools-stage::before{display:none}
