@@ -7,7 +7,7 @@
  height:100svh;
  min-height:620px;
  overflow:hidden;
- background:#fff;
+ background:transparent;
  color:#141414;
  z-index:3;
 }
