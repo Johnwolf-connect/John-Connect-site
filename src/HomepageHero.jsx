@@ -250,11 +250,12 @@ export default function HomepageHero(){
   const originalTitle=hero?.querySelector('.jw-live-title-base[data-title-index="'+activeTitle+'"] img');
   const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
   const restoreOriginal=()=>originalLayers.forEach(node=>node.style.removeProperty('opacity'));
-  gsap.set(splash,{clipPath:'circle(0% at 50% 48%)'});
+  // No radial-dot wipe: the lettering itself is the transition. The full-screen purple field fades in only after the letters fill the frame.
+  gsap.set(splash,{autoAlpha:0,clipPath:'none'});
   gsap.set(content,{autoAlpha:0,y:34});
   gsap.set(close,{autoAlpha:0,y:-10});
   if(reduced){
-   gsap.set(splash,{clipPath:'circle(155% at 50% 48%)'});
+   gsap.set(splash,{autoAlpha:1,clipPath:'none'});
    gsap.set([content,close],{autoAlpha:1,y:0});
    close.focus({preventScroll:true});
    return()=>{document.body.style.overflow=savedOverflow;aboutClosingRef.current=false;};
@@ -296,26 +297,55 @@ export default function HomepageHero(){
    if(cancelled)return;
    // The copy is now in the same position as the live title: no blink at launch.
    originalLayers.forEach(node=>node.style.opacity='0');
-   if(glyphs.length)gsap.set(glyphs,{transformOrigin:'50% 50%',transformBox:'fill-box',force3D:true});
-   flightTimeline=gsap.timeline({onComplete:()=>{
-    if(!cancelled)close.focus({preventScroll:true});
-   }});
+   const centerX=window.innerWidth/2,centerY=window.innerHeight/2;
+   const rushStart=.06;
+   // Every letter converges toward the same camera point, unlike the old
+   // fan-out that pushed letters toward the edges of the viewport.
    if(glyphs.length){
-    const middle=(glyphs.length-1)/2;
-    flightTimeline.to(glyphs,{
-     scale:i=>13+(i%3)*3,
-     x:i=>(i-middle)*window.innerWidth*.14,
-     y:i=>((i%3)-1)*window.innerHeight*.18,
-     rotation:i=>(i-middle)*3.2,
-     opacity:0,filter:'blur(7px)',duration:1.12,ease:'power4.in',
-     stagger:{each:.045,from:'center'}
-    },0);
-   }else if(fallback){
-    flightTimeline.to(fallback,{scale:13,opacity:0,filter:'blur(8px)',duration:1.12,ease:'power4.in'},0);
+    gsap.set(glyphs,{transformOrigin:'50% 50%',transformBox:'fill-box',force3D:true});
+    const targets=glyphs.map(glyph=>{
+     const rect=glyph.getBoundingClientRect();
+     const midX=rect.left+rect.width/2,midY=rect.top+rect.height/2;
+     // One large glyph must cover the viewport before the color handoff.
+     const scale=Math.max(36,Math.min(100,
+      Math.max(window.innerWidth/Math.max(rect.width,1),
+               window.innerHeight/Math.max(rect.height,1))*2.1));
+     return {x:centerX-midX,y:centerY-midY,scale};
+    });
+    flightTimeline=gsap.timeline({onComplete:()=>{
+     if(!cancelled)close.focus({preventScroll:true});
+    }});
+    // A short cinematic anticipation is followed by a rapid depth rush.
+    flightTimeline.to(glyphs,{scale:1.1,duration:.18,ease:'power1.out'},0);
+    glyphs.forEach((glyph,i)=>{
+     const t=targets[i];
+     flightTimeline.to(glyph,{
+      x:t.x,y:t.y,scale:t.scale,rotation:0,duration:1.2,
+      ease:'power3.in',force3D:true
+     },rushStart+i*.027);
+    });
+    // Keep the vectors opaque while enlarging; the splash is revealed by
+    // their scale, not by a small circle expanding from a dot.
+   }else{
+    flightTimeline=gsap.timeline({onComplete:()=>{
+     if(!cancelled)close.focus({preventScroll:true});
+    }});
+    if(fallback){
+     const bounds=fallback.getBoundingClientRect();
+     flightTimeline.to(fallback,{
+      x:centerX-(bounds.left+bounds.width/2),
+      y:centerY-(bounds.top+bounds.height/2),
+      scale:Math.max(34,window.innerWidth/Math.max(bounds.width*.3,1)*2),
+      duration:1.28,ease:'power3.in'
+     },0);
+    }
    }
-   flightTimeline.to(splash,{clipPath:'circle(155% at 50% 48%)',duration:.87,ease:'power3.out'},.63)
-    .to(content,{autoAlpha:1,y:0,duration:.66,ease:'power3.out'},1.38)
-    .to(close,{autoAlpha:1,y:0,duration:.43,ease:'power2.out'},1.48);
+   // The purple field appears as the oversized letters engulf the viewer.
+   // It covers the entire viewport at once; there is no circular dot.
+   flightTimeline.to(splash,{autoAlpha:1,duration:.48,ease:'power2.inOut'},1.08)
+    .to(flight,{autoAlpha:0,duration:.22,ease:'power1.out'},1.43)
+    .to(content,{autoAlpha:1,y:0,duration:.64,ease:'power3.out'},1.53)
+    .to(close,{autoAlpha:1,y:0,duration:.4,ease:'power2.out'},1.67);
   }
   launch();
   return()=>{
