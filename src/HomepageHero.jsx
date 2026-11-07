@@ -28,8 +28,8 @@ export default function HomepageHero(){
  useEffect(()=>{
   if(pending===null)return;
   const host=homepageRef.current;
-  const outgoing=host?.querySelectorAll('.jw-live-title[data-phase="out"]');
-  const incoming=host?.querySelectorAll('.jw-live-title[data-phase="in"]');
+  const outgoing=host?.querySelectorAll('.jw-live-title-base[data-phase="out"], .jw-live-title-overlay[data-phase="out"] .jw-art-outline');
+  const incoming=host?.querySelectorAll('.jw-live-title-base[data-phase="in"], .jw-live-title-overlay[data-phase="in"] .jw-art-outline');
   if(!outgoing?.length||!incoming?.length)return;
   const distance=Math.max(host.clientWidth,800);
   gsap.set(incoming,{x:distance,opacity:1});
