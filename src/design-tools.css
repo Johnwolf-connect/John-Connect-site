@@ -164,3 +164,7 @@ main > .design-tools .design-tools-orbit{
 main > .design-tools{height:100svh;min-height:0;max-height:100svh;scroll-margin-top:0;background:transparent}
 main > .design-tools .design-tools-stage{inset:0;background:transparent}
 @media(max-width:720px){main > .design-tools{height:100svh;min-height:0;max-height:100svh}}
+
+/* Lower the orbit as a whole without altering its horizontal placement or icon paths. */
+main > .design-tools .design-tools-orbit{translate:0 clamp(18px,4svh,44px)}
+@media(max-width:720px){main > .design-tools .design-tools-orbit{translate:0 16px}}
