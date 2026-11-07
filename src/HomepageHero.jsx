@@ -100,10 +100,19 @@ export default function HomepageHero(){
  },[]);
  const liveTitle=(phase,which)=><React.Fragment>
   <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-title')}</div>
-  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">{layer(states[which][1],'jw-art-outline')}</div>
+  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-outline')}</div>
  </React.Fragment>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
+   <svg className="jw-outline-filter-defs" aria-hidden="true" width="0" height="0">
+    <defs><filter id="jw-outline-only" x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
+     <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="expanded"/>
+     <feComposite in="expanded" in2="SourceAlpha" operator="out" result="edge"/>
+     <feFlood floodColor="white" result="white"/>
+     <feComposite in="white" in2="edge" operator="in" result="outline"/>
+     <feMerge><feMergeNode in="outline"/></feMerge>
+    </filter></defs>
+   </svg>
    {pending===null&&liveTitle('still',index)}
    {pending!==null&&liveTitle('out',index)}
    {pending!==null&&liveTitle('in',pending)}
