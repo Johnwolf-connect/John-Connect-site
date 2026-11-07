@@ -12,6 +12,23 @@ const states=[
  ['Large Title Solving.svg','Large Title Solving  overlay mask to man.svg']
 ];
 const labels=['Portfolio','Branding','Designer','Creation','Guidelines','Learning','Solving'];
+// Editable copy. Portfolio keeps its original Canva service-line artwork.
+const subtitles=['WELCOME TO THE','THE ART OF','BEHIND THE','THE PROCESS OF','BUILDING','ALWAYS','CREATIVE PROBLEM'];
+const bodyLines=[
+ ['Brand identity, digital experiences, and visuals built to connect.'],
+ ['Distinctive identities built with clarity, character, and purpose.',
+  'Every detail contributes to a recognizable brand.'],
+ ['Design is where thoughtful details meet bold ideas.',
+  'I create visual experiences with personality.'],
+ ['From the first concept to the finishing touch,',
+  'every idea is an opportunity to make something memorable.'],
+ ['Clear creative standards make a brand consistent.',
+  'Strong guidelines give great ideas room to grow.'],
+ ['Curiosity keeps the creative process moving.',
+  'I explore, experiment, and keep refining my craft.'],
+ ['Making complicated challenges feel intuitive.',
+  'Design can turn problems into meaningful solutions.']
+];
 // Exact circle centers from the original Canva Indicators.svg (1440 x 810 viewBox).
 const indicatorXs=[483.425781,517.5,551.574219,585.644531,619.71875,653.789062,687.863281];
 const indicatorY=195.027344;
@@ -51,7 +68,21 @@ export default function HomepageHero(){
   const move=(pair,x,stretch=1)=>{
    gsap.set([pair.purple,pair.white],{x,scaleX:stretch,transformOrigin:'50% 50%',force3D:true});
   };
+  // Body retracts vertically into the title's lower edge; subtitle only shifts a letter-width.
+  const stage=(type,which)=>host.querySelector('.jw-'+type+'-stage[data-'+type+'-index="'+which+'"] .jw-'+type+'-motion');
+  const bodyOut=stage('body',indexRef.current),bodyIn=stage('body',pending);
+  const subtitleOut=stage('subtitle',indexRef.current),subtitleIn=stage('subtitle',pending);
+  if(!bodyOut||!bodyIn||!subtitleOut||!subtitleIn)return;
+  const artworkHeight=Math.min(host.clientHeight,host.clientWidth*9/16);
+  const bodyShift=artworkHeight*.235;
+  const shortSlide=artworkHeight*.034;
+  const titleLowerEdge=(host.clientHeight-artworkHeight)/2+artworkHeight*.515;
+  host.style.setProperty('--jw-body-reveal-top',titleLowerEdge.toFixed(2)+'px');
   move(outgoing,0);move(incoming,distance*direction);
+  gsap.set(bodyOut,{y:0,autoAlpha:1});
+  gsap.set(bodyIn,{y:-bodyShift,autoAlpha:0});
+  gsap.set(subtitleOut,{x:0,autoAlpha:1});
+  gsap.set(subtitleIn,{x:shortSlide*direction,autoAlpha:0});
   let cancelled=false;
   let timeline=null;
   const leaving={x:0,stretch:1},arriving={x:distance*direction,stretch:1};
@@ -62,12 +93,20 @@ export default function HomepageHero(){
     indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
    }});
    titleRunRef.current=timeline;
-   timeline.to(leaving,{x:-distance*direction,duration:.82,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
-    .to(leaving,{stretch:1.018,duration:.25,ease:'power2.out',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},0)
-    .to(leaving,{stretch:1,duration:.32,ease:'power2.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.25)
-    .to(arriving,{x:0,duration:.88,ease:'power3.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
-    .to(arriving,{stretch:1.022,duration:.3,ease:'power2.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.34)
-    .to(arriving,{stretch:1,duration:.44,ease:'power2.inOut',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.66);
+   // Exit order: body retracts, title begins moving, then the short subtitle shift.
+   timeline.to(bodyOut,{y:-bodyShift,duration:.29,ease:'power2.in'},0)
+    .to(bodyOut,{autoAlpha:0,duration:.13,ease:'power1.in'},.16)
+    .to(leaving,{x:-distance*direction,duration:.72,ease:'power3.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.27)
+    .to(leaving,{stretch:1.018,duration:.22,ease:'power2.out',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.27)
+    .to(leaving,{stretch:1,duration:.3,ease:'power2.inOut',onUpdate:()=>move(outgoing,leaving.x,leaving.stretch)},.49)
+    .to(subtitleOut,{x:-shortSlide*direction,autoAlpha:0,duration:.22,ease:'power2.inOut'},.42)
+    // Arrival order: subtitle reveals within its fixed area, then title settles,
+    // and body emerges downward from beneath the title, last.
+    .to(arriving,{x:0,duration:.78,ease:'power3.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.52)
+    .to(arriving,{stretch:1.022,duration:.25,ease:'power2.out',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.52)
+    .to(arriving,{stretch:1,duration:.38,ease:'power2.inOut',onUpdate:()=>move(incoming,arriving.x,arriving.stretch)},.77)
+    .to(subtitleIn,{x:0,autoAlpha:1,duration:.26,ease:'power2.out'},.97)
+    .to(bodyIn,{y:0,autoAlpha:1,duration:.38,ease:'power3.out'},1.35);
   };
   // Both images of the incoming title must be decoded before its first frame.
   // The outgoing title remains in place until that is true.
@@ -135,6 +174,29 @@ export default function HomepageHero(){
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
  const activeIndicator=pending===null?index:pending;
+ const visibleDuringSwipe=which=>which===index||which===pending;
+ const liveSubtitle=which=><div key={'subtitle-'+which}
+   className="jw-subtitle-stage" data-subtitle-index={which}
+   style={{visibility:visibleDuringSwipe(which)?'visible':'hidden'}}>
+   <div className="jw-subtitle-motion">
+    {which===0?layer('Subtitle.svg','jw-art-subtitle'):
+     <svg className="jw-art jw-subtitle-svg" viewBox="0 0 1440 810" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <text x="87" y="204" fill="#181818" fontFamily="Arial, Helvetica, sans-serif" fontSize="24" fontWeight="700">{subtitles[which]}</text>
+     </svg>}
+   </div>
+  </div>;
+ const liveBody=which=><div key={'body-'+which}
+   className="jw-body-stage" data-body-index={which}
+   style={{visibility:visibleDuringSwipe(which)?'visible':'hidden'}}>
+   <div className="jw-body-motion">
+    {which===0&&layer('Portfolio sub-body.svg','jw-art-subbody')}
+    <svg className="jw-art jw-body-svg" viewBox="0 0 1440 810" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+     <text x="65" y={which===0?565:486} fill="#161616" fontFamily="Arial, Helvetica, sans-serif" fontSize="24">
+      {bodyLines[which].map((line,i)=><tspan key={i} x="65" dy={i===0?0:34}>{line}</tspan>)}
+     </text>
+    </svg>
+   </div>
+  </div>;
  const liveTitle=which=><React.Fragment key={which}>
   <div className={'jw-live-title jw-live-title-base'+(which===index||which===pending?' jw-live-title-visible':'')} data-title-index={which}
        style={{visibility:which===index||which===pending?'visible':'hidden'}} aria-hidden="true">
@@ -151,9 +213,8 @@ export default function HomepageHero(){
    {layer('Man.svg','jw-art-man')}
    
    {layer('Subtitle dot.svg','jw-art-subtitle-dot')}
-   {layer(index===0?'Subtitle.svg':'subtitle for all other Large Titles.svg','jw-art-subtitle')}
-   {index===0&&layer('Portfolio sub-body.svg','jw-art-subbody')}
-   {index===0&&layer('Portfolio body.svg','jw-art-body')}
+   {states.map((_,which)=>liveSubtitle(which))}
+   {states.map((_,which)=>liveBody(which))}
    {layer('More about me.svg','jw-art-more')}
    {layer('underline for more about me.svg','jw-art-underline')}
    {layer('More about me (arrow).svg','jw-art-more-arrow')}
