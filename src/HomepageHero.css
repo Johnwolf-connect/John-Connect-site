@@ -154,8 +154,3 @@
   -webkit-mask-image:none!important;mask-image:none!important;
 }
 
-/* The full title—not the pre-cropped Canva overlay—creates the white silhouette.
-   The fixed portrait mask reveals it continuously as letters pass underneath. */
-.jw-live-title-overlay .jw-art-outline{
-  filter:brightness(0) invert(1);
-}
