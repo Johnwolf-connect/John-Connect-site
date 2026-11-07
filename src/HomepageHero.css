@@ -43,3 +43,24 @@
  .jw-art-more,.jw-art-underline,.jw-art-more-arrow{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .30),145px))}
  .jw-art-swipe{transform:translateY(clamp(0px,calc((100svh - 100vw * 0.5625) * .36),175px))}
 }
+
+/* Horizontal responsiveness: the Canva artwork has a fixed 16:9 viewBox.
+   On wide viewports, object-fit:contain centers it and creates side gutters.
+   Shift left-hand artwork into the available left gutter and the portrait
+   into the right gutter without changing any SVG's aspect ratio. */
+@media (min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-homepage{
+  --jw-side-gutter:max(0px,calc((100vw - 100svh * 16 / 9) / 2));
+  --jw-left-shift:calc(-1 * var(--jw-side-gutter) * .78);
+  --jw-right-shift:calc(var(--jw-side-gutter) * .78);
+ }
+ .jw-art-subtitle-dot,.jw-art-subtitle,.jw-art-indicator-visual,
+ .jw-art-subbody,.jw-art-body,.jw-art-more,.jw-art-underline,
+ .jw-art-more-arrow,.jw-art-swipe{translate:var(--jw-left-shift) 0}
+ .jw-art-title{translate:var(--jw-left-shift) 0}
+ .jw-art-man{translate:var(--jw-right-shift) 0}
+ /* The title outline stays in title coordinates, with the portrait silhouette
+    translated separately by the existing mask-position rule. */
+ .jw-art-outline{translate:var(--jw-left-shift) 0}
+ .jw-hit-indicators,.jw-hit-more,.jw-hit-swipe{translate:var(--jw-left-shift) 0}
+}
