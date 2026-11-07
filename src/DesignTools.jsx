@@ -54,8 +54,8 @@ export default function DesignTools(){
    id:'design-tools-lock',trigger:host,start:'top top',end:'+=115%',
    pin:true,pinSpacing:true,scrub:true,anticipatePin:1,
    invalidateOnRefresh:true,
-   onEnter:()=>{if(start===null){entranceRequested=true;reverseEntry=false}},
-   onEnterBack:()=>{entranceRequested=true;reverseEntry=true},
+   onEnter:()=>{if(!active){active=true;start=null;last=null;phase=0;reverseEntry=false;entranceRequested=true;frame.current=requestAnimationFrame(animate)}},
+   onEnterBack:()=>{if(!active){active=true;start=null;last=null;phase=0;reverseEntry=true;entranceRequested=true;frame.current=requestAnimationFrame(animate)}},
    onUpdate:self=>{exitProgress.current=self.progress},
    onRefresh:self=>{exitProgress.current=self.progress}
   });
@@ -132,12 +132,15 @@ export default function DesignTools(){
     [bottom,{x:bottom.x,y:bottom.y+(end.y-bottom.y)*.65},
      {x:end.x-(end.x-bottom.x)*.55,y:end.y},end]
    ]);
-   const departure=clamp01(exitProgress.current);
+   // Do not let scroll progress bypass the entrance before it has played.
+   // Previously any nonzero progress skipped the entire intro branch.
+   const introDuration=3.15;
+   const entering=elapsed<introDuration&&!reverseEntry;
+   const departure=entering?0:clamp01(exitProgress.current);
    // Freeze the orbit phase on the FIRST intentional departure; reverse
    // scrolling reuses the exact same phase and geometry.
    if(departure>0&&frozenPhase===null)frozenPhase=phase;
    if(departure===0)frozenPhase=null;
-   const introDuration=3.15;
    const introTravel=incoming.length+(count-1)*gap;
    const introDistance=introTravel*clamp01(elapsed/introDuration);
    const introEndPhase=(count-1)*gap/radius;
@@ -156,7 +159,7 @@ export default function DesignTools(){
     }
     let x,y,visible=true,onRing=false;
     const offset=i*gap;
-    if(elapsed<introDuration&&departure===0){
+    if(entering){
      const distance=introDistance-offset;
      if(distance<0){visible=false;({x,y}=origin)}
      else if(distance<incoming.length){({x,y}=incoming.pointAt(distance))}
@@ -219,11 +222,11 @@ export default function DesignTools(){
   // an empty first visit and works whether entering from above or below.
   const checkVisibility=()=>{
    const bounds=host.getBoundingClientRect();
-   const near=bounds.top<window.innerHeight*.78&&bounds.bottom>0;
+   const near=pin.isActive||(bounds.top<window.innerHeight*.9&&bounds.bottom>0);
    if(near&&!active){
     active=true;start=null;last=null;phase=0;frozenPhase=null;
     entranceRequested=true;
-    reverseEntry=window.scrollY>pin.start+8;
+    reverseEntry=window.scrollY>pin.end-8;
     frame.current=requestAnimationFrame(animate);
    }else if(!near&&active){stop()}
   };
