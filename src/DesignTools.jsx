@@ -1,5 +1,4 @@
-import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {gsap} from 'gsap';
+import React,{useState} from 'react';
 import './design-tools.css';
 
 const tools=[
@@ -16,153 +15,29 @@ const tools=[
  {name:'Adobe Firefly',slug:'firefly',detail:'Generative visual exploration and concept development.'}
 ];
 const intro='Software applications used to conceptualize, plan, and create visual content. They help shape everything from visual identities to interactive websites and digital experiences.';
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const smooth=v=>v*v*(3-2*v);
-function ToolIcon({tool}){
- return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>;
-}
+function ToolIcon({tool}){return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>}
 export default function DesignTools(){
- const root=useRef(null),orbit=useRef(null),buttons=useRef({}),frame=useRef(0),chosen=useRef(null),travel=useRef(null),travelName=useRef(null),busy=useRef(false),feature=useRef(null),flightTween=useRef(null);
- const [selected,setSelected]=useState(null),[reduced,setReduced]=useState(false);
- chosen.current=selected;
- useEffect(()=>{
-  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const sync=()=>setReduced(mq.matches);
-  sync();mq.addEventListener?.('change',sync);
-  return()=>mq.removeEventListener?.('change',sync);
- },[]);
-
- useEffect(()=>{
-  const host=root.current,field=orbit.current;
-  if(!host||!field)return;
-  const count=tools.length;
-  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const pointer={x:null,y:null,inside:false};
-  let running=true,last=null,angle=0,hovered=null;
-  const onPointer=e=>{if(e.pointerType!=='touch'){pointer.x=e.clientX;pointer.y=e.clientY;pointer.inside=true}};
-  const clearPointer=()=>{pointer.inside=false};
-  const draw=now=>{
-   if(!running)return;
-   const dt=last===null?0:Math.min(.05,(now-last)/1000);
-   last=now;
-   if(!reducedMotion)angle+=dt*.19;
-   const width=field.clientWidth,height=field.clientHeight;
-   const radius=Math.min(width,height)*.4;
-   const cx=width/2,cy=height/2;
-   const rect=field.getBoundingClientRect();
-   let closest=null,best=Infinity;
-   tools.forEach((tool,i)=>{
-    const node=buttons.current[tool.name];
-    if(!node)return;
-    const a=-Math.PI/2+angle-i*Math.PI*2/count;
-    const x=cx+Math.cos(a)*radius,y=cy+Math.sin(a)*radius;
-    const chosenTool=chosen.current===tool.name;
-    node.style.left=x+'px';node.style.top=y+'px';
-    node.style.transform='translate(-50%,-50%)';
-    node.style.opacity=chosenTool?'0':'1';
-    node.style.pointerEvents=chosenTool?'none':'auto';
-    node.tabIndex=chosenTool?-1:0;
-    if(!chosenTool&&pointer.inside){
-     const dx=pointer.x-rect.left-x,dy=pointer.y-rect.top-y;
-     if(Math.abs(dx)<node.offsetWidth*.48&&Math.abs(dy)<node.offsetHeight*.48){
-      const d=dx*dx+dy*dy;
-      if(d<best){best=d;closest=tool.name}
-     }
-    }
-   });
-   if(hovered!==closest){
-    hovered=closest;
-    Object.entries(buttons.current).forEach(([name,node])=>node.classList.toggle('is-pointer-magnified',name===hovered));
-   }
-   frame.current=requestAnimationFrame(draw);
-  };
-  host.style.setProperty('--tool-panel-opacity','1');
-  const prompt=host.querySelector('.design-tools-center');
-  if(prompt)prompt.style.opacity='1';
-  window.addEventListener('pointermove',onPointer,{passive:true});
-  window.addEventListener('blur',clearPointer);
-  frame.current=requestAnimationFrame(draw);
-  return()=>{
-   running=false;cancelAnimationFrame(frame.current);
-   window.removeEventListener('pointermove',onPointer);
-   window.removeEventListener('blur',clearPointer);
-   Object.values(buttons.current).forEach(node=>node.classList.remove('is-pointer-magnified'));
-  };
- },[reduced]);
- useEffect(()=>()=>{flightTween.current?.kill();if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
-
- useLayoutEffect(()=>{
-  const element=feature.current;if(!element)return;
-  const height=selected?(window.innerWidth<=720?68:155):0;
-  const tween=gsap.to(element,{height,duration:reduced?0:.65,ease:'power3.inOut',overwrite:true});
-  return()=>tween.kill();
- },[selected,reduced]);
- const fly=(tool,source,target,returning=false)=>new Promise(resolve=>{
-  if(!source){resolve();return}
-  const from=source.getBoundingClientRect(),ghost=source.cloneNode(true);
-  ghost.setAttribute('aria-hidden','true');
-  Object.assign(ghost.style,{position:'fixed',left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px',maxWidth:'none',maxHeight:'none',objectFit:'contain',margin:'0',transform:'none',transformOrigin:'0 0',opacity:'1',pointerEvents:'none',zIndex:'9999'});
-  document.body.appendChild(ghost);travel.current=ghost;travelName.current=tool.name;
-  const state={progress:0};
-  // Re-measure on every frame: the returning icon meets its live orbit slot.
-  flightTween.current=gsap.to(state,{progress:1,duration:reduced?0:.85,ease:'power2.inOut',onUpdate:()=>{
-   const node=target();if(!node)return;
-   const to=node.getBoundingClientRect(),p=state.progress;
-   gsap.set(ghost,{x:(to.left-from.left)*p,y:(to.top-from.top)*p-Math.sin(p*Math.PI)*30,scaleX:1+(to.width/from.width-1)*p,scaleY:1+(to.height/from.height-1)*p});
-  },onComplete:()=>{
-   ghost.remove();travel.current=null;travelName.current=null;resolve();
-  }});
- });
- const returnTool=async()=>{
-  const name=chosen.current;if(!name)return;
-  const tool=tools.find(item=>item.name===name);
-  const source=feature.current?.querySelector('img');
-  // Restore its orbit slot before flying back; only the traveling copy is visible.
-  travelName.current=name;
-  const image=source?.cloneNode(true);
-  const rect=source?.getBoundingClientRect();
-  setSelected(null);chosen.current=null;
-  if(reduced||!image||!rect){travelName.current=null;return}
-  // The source detaches during React's update, so preserve its measured geometry.
-  image.getBoundingClientRect=()=>rect;
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  await fly(tool,image,()=>buttons.current[name]?.querySelector('img'),true);
- };
- const choose=async tool=>{
-  if(busy.current)return;
-  busy.current=true;
-  const same=chosen.current===tool?.name;
-  await returnTool();
-  if(tool&&!same&&reduced){
-   setSelected(tool.name);
-  }else if(tool&&!same){
-   const source=buttons.current[tool.name]?.querySelector('img');
-   travelName.current=tool.name;
-   setSelected(tool.name);chosen.current=tool.name;
-   if(feature.current)feature.current.style.visibility='hidden';
-   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-   await fly(tool,source,()=>feature.current?.querySelector('img'));
-   if(feature.current)feature.current.style.visibility='';
-  }
-  busy.current=false;
- };
- const current=tools.find(t=>t.name===selected);
- return <section id="design-tools" ref={root} className="design-tools" aria-label="Interactive design tools">
+ const [selected,setSelected]=useState(null);
+ const current=tools.find(tool=>tool.name===selected);
+ return <section id="design-tools" className="design-tools" aria-label="Design tools">
   <div className="design-tools-stage">
    <div className="design-tools-layout">
     <div className="design-tools-information">
      <span className="design-tools-eyebrow">TOOLS / CREATIVE PRACTICE</span>
-     <h2 id="design-tools-heading" key={selected||'intro'}>{current?current.name:'Design Tools'}</h2>
-     <div ref={feature} className={'design-tool-feature-icon'+(current?' is-visible':'')} aria-hidden="true">{current&&<ToolIcon tool={current}/>}</div>
+     <h2 id="design-tools-heading">{current?current.name:'Design Tools'}</h2>
+     {current&&<div className="design-tool-feature-icon is-visible"><ToolIcon tool={current}/></div>}
      <p>{current?current.detail:intro}</p>
-     {current&&<button className="design-tools-reset" type="button" onClick={()=>choose(null)}>Back to all tools <span aria-hidden="true">↗</span></button>}
+     {current&&<button className="design-tools-reset" type="button" onClick={()=>setSelected(null)}>Back to all tools</button>}
     </div>
-    <div className="design-tools-orbit" ref={orbit} aria-label="Select a design tool">
+    <div className="design-tools-orbit" aria-label="Select a design tool">
      <span className="design-tools-center" aria-hidden="true">{current?'Design Tools':'Select a tool'}</span>
-     {tools.map((tool,i)=><button style={{left:(50+40*Math.cos(-Math.PI/2-i*Math.PI*2/tools.length))+'%',top:(50+40*Math.sin(-Math.PI/2-i*Math.PI*2/tools.length))+'%',opacity:1,transform:'translate(-50%,-50%)',pointerEvents:'auto'}} key={tool.name} ref={el=>{if(el)buttons.current[tool.name]=el;else delete buttons.current[tool.name]}} className="design-tool-orbit-item" type="button" aria-label={'Explore '+tool.name} title={tool.name} tabIndex={reduced?0:-1} aria-pressed={selected===tool.name} onClick={()=>choose(tool)}>
-      <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
-      <span className="design-tool-orbit-label">{tool.name}</span>
-     </button>)}
+     {tools.map((tool,i)=>{
+      const a=-Math.PI/2-i*2*Math.PI/tools.length;
+      return <button key={tool.name} className="design-tool-orbit-item" style={{left:(50+40*Math.cos(a))+'%',top:(50+40*Math.sin(a))+'%',transform:'translate(-50%,-50%)',opacity:1,pointerEvents:'auto'}} type="button" aria-label={'Explore '+tool.name} aria-pressed={selected===tool.name} onClick={()=>setSelected(tool.name)}>
+       <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
+       <span className="design-tool-orbit-label">{tool.name}</span>
+      </button>
+     })}
     </div>
    </div>
   </div>
