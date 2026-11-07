@@ -21,12 +21,17 @@ export default function HomepageHero(){
  const homepageRef=useRef(null);
  const [pending,setPending]=useState(null);
  const titleRunRef=useRef(null);
- const pendingRef=useRef(null),indexRef=useRef(0),touchRef=useRef(null);
+ const pendingRef=useRef(null),indexRef=useRef(0),touchRef=useRef(null),directionRef=useRef(1);
  indexRef.current=index;
- const changeTitle=(next)=>{
-  if(pendingRef.current!==null||next===indexRef.current||next<0||next>=states.length)return;
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){setIndex(next);return}
-  pendingRef.current=next;setPending(next);
+ const changeTitle=(next,swipeDirection)=>{
+  // Wrap the first and last titles without losing the direction of the gesture.
+  const wrapped=((next%states.length)+states.length)%states.length;
+  if(pendingRef.current!==null||wrapped===indexRef.current)return;
+  directionRef.current=swipeDirection??(wrapped>indexRef.current?1:-1);
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+   indexRef.current=wrapped;setIndex(wrapped);return;
+  }
+  pendingRef.current=wrapped;setPending(wrapped);
  };
  useLayoutEffect(()=>{
   if(pending===null)return;
@@ -34,8 +39,8 @@ export default function HomepageHero(){
   // Each original Canva title is a single vector drawing, never vertical slices.
   // Purple and outline are paired and transformed by the same progress value.
   const distance=Math.max(host.clientWidth,800);
-  // Mirror the same motion for previous titles so backward gestures feel natural.
-  const direction=pending>indexRef.current?1:-1;
+  // Explicit gesture direction also applies at the first/last title boundary.
+  const direction=directionRef.current;
   const getPair=titleIndex=>({
    purple:host.querySelector('.jw-live-title-base[data-title-index="'+titleIndex+'"] .jw-title-whole'),
    white:host.querySelector('.jw-live-title-overlay[data-title-index="'+titleIndex+'"] .jw-title-whole')
@@ -77,14 +82,16 @@ export default function HomepageHero(){
    if(Math.abs(e.deltaX)<24||Math.abs(e.deltaX)<=Math.abs(e.deltaY)*1.25)return;
    e.preventDefault();
    if(pendingRef.current!==null)return;
-   changeTitle(indexRef.current+(e.deltaX>0?1:-1));
+   const step=e.deltaX>0?1:-1;
+   changeTitle(indexRef.current+step,step);
   };
   const onTouchStart=e=>{touchRef.current={x:e.touches[0].clientX,y:e.touches[0].clientY}};
   const onTouchEnd=e=>{
    const start=touchRef.current;touchRef.current=null;if(!start)return;
    const dx=e.changedTouches[0].clientX-start.x,dy=e.changedTouches[0].clientY-start.y;
    if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.25)return;
-   changeTitle(indexRef.current+(dx<0?1:-1));
+   const step=dx<0?1:-1;
+   changeTitle(indexRef.current+step,step);
   };
   host.addEventListener('wheel',onWheel,{passive:false});
   host.addEventListener('touchstart',onTouchStart,{passive:true});
