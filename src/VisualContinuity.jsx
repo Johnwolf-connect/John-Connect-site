@@ -9,7 +9,7 @@ export default function VisualContinuity(){
   const [primary,secondary]=node.children;
   let frame=0,last=0,x=50,y=55,intensity=.75;
   let targetX=50,targetY=55,targetIntensity=.6;
-  const anchors=[['.hero-reference',36,62,.7],['.scroll-gallery',68,48,.64],['.brand-gallery',48,58,.52],['.about',28,50,.5]]
+  const anchors=[['.hero-reference',36,62,.7],['main > .design-tools',56,54,.64],['.scroll-gallery',68,48,.64],['.brand-gallery',48,58,.52],['.about',28,50,.5]]
    .map(([selector,...values])=>[document.querySelector(selector),...values]);
   const render=time=>{
    frame=0;
