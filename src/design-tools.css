@@ -25,10 +25,15 @@
 #root main > #design-tools .design-tool-orbit-item{transition:none;animation:none}
 #root main > #design-tools .design-tool-orbit-icon{transition:transform .22s ease,box-shadow .22s ease,background .22s ease}
 #root main > #design-tools .design-tool-orbit-item:hover .design-tool-orbit-icon,
-#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:scale(1.3);background:#8045db12;box-shadow:0 0 26px 8px #8045db30}
+#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:scale(1.75);background:#8045db12;box-shadow:0 0 34px 12px #8045db30}
 #root main > #design-tools .design-tool-orbit-item:hover{z-index:5}
 #root main > #design-tools .design-tool-orbit-item.is-selected{visibility:hidden;pointer-events:none}
 #root main > #design-tools .design-tool-feature-icon.is-visible{height:clamp(90px,15vh,155px);margin:12px 0;animation:tool-reveal .35s ease-out both}
 #root main > #design-tools .design-tools-information p{transition:none}
 @keyframes tool-reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){#root main > #design-tools .design-tool-feature-icon.is-visible{animation:none}#root main > #design-tools .design-tool-orbit-icon{transition:none}}
+
+/* Enlarged hover is intentionally prominent, while the orbit's icon centers keep their spacing. */
+#root main > #design-tools .design-tool-orbit-item:hover .design-tool-orbit-icon,
+#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:scale(1.75);transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease;}
+#root main > #design-tools .design-tool-orbit-item.is-selected{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
