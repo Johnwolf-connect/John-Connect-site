@@ -57,7 +57,8 @@ export default function DesignTools(){
     const a=-Math.PI/2+angle-i*Math.PI*2/count;
     const x=cx+Math.cos(a)*radius,y=cy+Math.sin(a)*radius;
     const chosenTool=chosen.current===tool.name;
-    node.style.transform='translate3d('+x+'px,'+y+'px,0) translate(-50%,-50%)';
+    node.style.left=x+'px';node.style.top=y+'px';
+    node.style.transform='translate(-50%,-50%)';
     node.style.opacity=chosenTool?'0':'1';
     node.style.pointerEvents=chosenTool?'none':'auto';
     node.tabIndex=chosenTool?-1:0;
@@ -158,7 +159,7 @@ export default function DesignTools(){
     </div>
     <div className="design-tools-orbit" ref={orbit} aria-label="Select a design tool">
      <span className="design-tools-center" aria-hidden="true">{current?'Design Tools':'Select a tool'}</span>
-     {tools.map(tool=><button key={tool.name} ref={el=>{if(el)buttons.current[tool.name]=el;else delete buttons.current[tool.name]}} className="design-tool-orbit-item" type="button" aria-label={'Explore '+tool.name} title={tool.name} tabIndex={reduced?0:-1} aria-pressed={selected===tool.name} onClick={()=>choose(tool)}>
+     {tools.map((tool,i)=><button style={{left:(50+40*Math.cos(-Math.PI/2-i*Math.PI*2/tools.length))+'%',top:(50+40*Math.sin(-Math.PI/2-i*Math.PI*2/tools.length))+'%',opacity:1,transform:'translate(-50%,-50%)',pointerEvents:'auto'}} key={tool.name} ref={el=>{if(el)buttons.current[tool.name]=el;else delete buttons.current[tool.name]}} className="design-tool-orbit-item" type="button" aria-label={'Explore '+tool.name} title={tool.name} tabIndex={reduced?0:-1} aria-pressed={selected===tool.name} onClick={()=>choose(tool)}>
       <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
       <span className="design-tool-orbit-label">{tool.name}</span>
      </button>)}
