@@ -48,10 +48,14 @@ export default function DesignTools(){
   }
   // Pin only during deliberate scrolling. The pinned section remains a full
   // viewport; wheel/touch scroll controls departure and naturally reverses it.
+  let entranceRequested=false;
+  let reverseEntry=false;
   const pin=ScrollTrigger.create({
    id:'design-tools-lock',trigger:host,start:'top top',end:'+=115%',
    pin:true,pinSpacing:true,scrub:true,anticipatePin:1,
    invalidateOnRefresh:true,
+   onEnter:()=>{entranceRequested=true;reverseEntry=false},
+   onEnterBack:()=>{entranceRequested=true;reverseEntry=true},
    onUpdate:self=>{exitProgress.current=self.progress},
    onRefresh:self=>{exitProgress.current=self.progress}
   });
@@ -92,6 +96,11 @@ export default function DesignTools(){
   let active=false,start=null,last=null,phase=0,frozenPhase=null,hovered=null;
   const animate=now=>{
    if(!active)return;
+   if(entranceRequested){
+    entranceRequested=false;
+    start=reverseEntry?now-3150:now;
+    last=now;phase=0;frozenPhase=null;
+   }
    if(start===null)start=now;
    const dt=last===null?0:Math.min(.06,(now-last)/1000);
    last=now;
@@ -129,9 +138,10 @@ export default function DesignTools(){
    if(departure>0&&frozenPhase===null)frozenPhase=phase;
    if(departure===0)frozenPhase=null;
    const introDuration=3.15;
-   const introTravel=incoming.length+circumference;
+   const introTravel=incoming.length+(count-1)*gap;
    const introDistance=introTravel*clamp01(elapsed/introDuration);
    if(departure===0&&elapsed>=introDuration)phase+=dt*.19;
+   // Match the last arrival's angular position at the intro/orbit boundary.
    const ringPhase=frozenPhase===null?phase:frozenPhase;
    const travelOut=departure*(circumference+outgoing.length+gap);
    const centers=[];
@@ -203,6 +213,8 @@ export default function DesignTools(){
   const observer=new IntersectionObserver(([entry])=>{
    if(entry.isIntersecting&&!active){
     active=true;start=null;last=null;phase=0;frozenPhase=null;
+    if(pin.isActive&&pin.direction>=0){entranceRequested=true;reverseEntry=false}
+    else if(pin.isActive){entranceRequested=true;reverseEntry=true}
     frame.current=requestAnimationFrame(animate);
    }else if(!entry.isIntersecting&&active)stop();
   },{threshold:0});
