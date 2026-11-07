@@ -28,9 +28,9 @@ export default function HomepageHero(){
  useEffect(()=>{
   if(pending===null)return;
   const host=homepageRef.current;
-  const outgoing=host?.querySelector('.jw-live-title[data-phase="out"]');
-  const incoming=host?.querySelector('.jw-live-title[data-phase="in"]');
-  if(!outgoing||!incoming)return;
+  const outgoing=host?.querySelectorAll('.jw-live-title[data-phase="out"]');
+  const incoming=host?.querySelectorAll('.jw-live-title[data-phase="in"]');
+  if(!outgoing?.length||!incoming?.length)return;
   const distance=Math.max(host.clientWidth,800);
   gsap.set(incoming,{x:distance,opacity:1});
   const timeline=gsap.timeline({onComplete:()=>{
@@ -98,10 +98,10 @@ export default function HomepageHero(){
   portrait.addEventListener('load',align);
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
- const liveTitle=(phase,which)=><div className="jw-live-title" data-phase={phase} aria-hidden="true">
-  {layer(states[which][0],'jw-art-title')}
-  {layer(states[which][1],'jw-art-outline')}
- </div>;
+ const liveTitle=(phase,which)=><React.Fragment>
+  <div className="jw-live-title jw-live-title-base" data-phase={phase} aria-hidden="true">{layer(states[which][0],'jw-art-title')}</div>
+  <div className="jw-live-title jw-live-title-overlay" data-phase={phase} aria-hidden="true">{layer(states[which][1],'jw-art-outline')}</div>
+ </React.Fragment>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
    {pending===null&&liveTitle('still',index)}
