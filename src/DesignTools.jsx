@@ -140,9 +140,12 @@ export default function DesignTools(){
    const introDuration=3.15;
    const introTravel=incoming.length+(count-1)*gap;
    const introDistance=introTravel*clamp01(elapsed/introDuration);
+   const introEndPhase=(count-1)*gap/radius;
    if(departure===0&&elapsed>=introDuration)phase+=dt*.19;
    // Match the last arrival's angular position at the intro/orbit boundary.
-   const ringPhase=frozenPhase===null?phase:frozenPhase;
+   const ringPhase=introEndPhase+(frozenPhase===null?phase:frozenPhase);
+   // The train advances a single shared distance; each follower is exactly
+   // one gap behind its predecessor, even across the ring/exit boundary.
    const travelOut=departure*(circumference+outgoing.length+gap);
    const centers=[];
    tools.forEach((tool,i)=>{
@@ -164,7 +167,8 @@ export default function DesignTools(){
      }
     }else{
      const angle=-Math.PI/2+ringPhase-i*TAU/count;
-     // Clockwise distance from the current position to the 3 o'clock exit.
+     // Give each icon a unique, ordered departure distance from the same
+     // 3-o'clock tangent. A shared travel distance preserves their gaps.
      const toGate=mod(Math.PI/2-angle,TAU)*radius;
      const along=travelOut-toGate;
      if(departure>0&&along>=0){
