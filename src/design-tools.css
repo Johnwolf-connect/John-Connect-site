@@ -14,8 +14,12 @@
 #root main > #design-tools .design-tool-orbit-item{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:clamp(52px,5.6vw,84px);min-height:76px;padding:6px 2px;border:0;background:transparent;color:#333;opacity:1;visibility:visible;cursor:pointer;will-change:left,top}
 .design-tool-orbit-icon{height:clamp(36px,3.5vw,53px);width:clamp(36px,3.5vw,53px);border-radius:16px;display:flex;align-items:center;justify-content:center;transition:box-shadow .28s,transform .28s,background .28s}
 .design-tool-orbit-icon img{max-height:83%;max-width:83%;object-fit:contain}
-.design-tool-orbit-item.is-pointer-magnified .design-tool-orbit-icon,.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:scale(1.24)}
+.design-tool-orbit-item:focus-visible .design-tool-orbit-icon{background:#8045db0d;box-shadow:0 0 28px 9px #8045db32;transform:scale(1.24)}
 .design-tool-orbit-label{font-size:clamp(9px,.8vw,12px);font-weight:600;line-height:1.25;text-align:center;max-width:110px;text-shadow:0 1px 8px #fff}
 #root main > #design-tools .design-tools-stage::before{content:"";display:block;position:absolute;inset:-12%;z-index:0;pointer-events:none;background:radial-gradient(ellipse 40% 45% at 55% 50%,#9900ff4d,transparent 75%);filter:blur(26px)}
 @media(max-width:720px){#root main > #design-tools .design-tools-layout{grid-template-columns:1fr;grid-template-rows:38% 62%;padding:88px 20px 24px}#root main > #design-tools .design-tools-information{align-self:start;padding:0 6px;max-width:none}#root main > #design-tools .design-tools-information h2{font-size:32px;margin:9px 0 10px}#root main > #design-tools .design-tools-information p{font-size:12px;line-height:1.5;margin:10px 0}#root main > #design-tools .design-tools-orbit{height:100%;translate:0 16px}#root main > #design-tools .design-tool-orbit-item{width:50px;min-height:54px;gap:2px}.design-tool-orbit-icon{width:30px;height:30px}.design-tool-orbit-label{font-size:8px}.design-tool-feature-icon img{max-height:65px;max-width:70px}}
 @media(prefers-reduced-motion:reduce){.design-tool-orbit-icon{transition:none}}
+
+/* Section 2 is completely static: no transitions, transforms in motion, or animations. */
+#root main > #design-tools,#root main > #design-tools *,#root main > #design-tools *::before,#root main > #design-tools *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:none!important;box-shadow:none!important}
