@@ -159,3 +159,8 @@ main > .design-tools .design-tools-orbit{
  }
  .design-tool-orbit-icon{transition:none}
 }
+
+/* Section 2 occupies exactly one viewport; its bottom edge meets the screen edge. */
+main > .design-tools{height:100svh;min-height:0;max-height:100svh;scroll-margin-top:0;background:transparent}
+main > .design-tools .design-tools-stage{inset:0;background:transparent}
+@media(max-width:720px){main > .design-tools{height:100svh;min-height:0;max-height:100svh}}
