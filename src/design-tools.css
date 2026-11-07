@@ -20,6 +20,15 @@
 @media(max-width:720px){#root main > #design-tools .design-tools-layout{grid-template-columns:1fr;grid-template-rows:38% 62%;padding:88px 20px 24px}#root main > #design-tools .design-tools-information{align-self:start;padding:0 6px;max-width:none}#root main > #design-tools .design-tools-information h2{font-size:32px;margin:9px 0 10px}#root main > #design-tools .design-tools-information p{font-size:12px;line-height:1.5;margin:10px 0}#root main > #design-tools .design-tools-orbit{height:100%;translate:0 16px}#root main > #design-tools .design-tool-orbit-item{width:50px;min-height:54px;gap:2px}.design-tool-orbit-icon{width:30px;height:30px}.design-tool-orbit-label{font-size:8px}.design-tool-feature-icon img{max-height:65px;max-width:70px}}
 @media(prefers-reduced-motion:reduce){.design-tool-orbit-icon{transition:none}}
 
-/* Section 2 is completely static: no transitions, transforms in motion, or animations. */
-#root main > #design-tools,#root main > #design-tools *,#root main > #design-tools *::before,#root main > #design-tools *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:none!important;box-shadow:none!important}
+
+/* Orbit only moves while pointer is over the orbit (or keyboard focus is inside). */
+#root main > #design-tools .design-tool-orbit-item{transition:none;animation:none}
+#root main > #design-tools .design-tool-orbit-icon{transition:transform .22s ease,box-shadow .22s ease,background .22s ease}
+#root main > #design-tools .design-tool-orbit-item:hover .design-tool-orbit-icon,
+#root main > #design-tools .design-tool-orbit-item:focus-visible .design-tool-orbit-icon{transform:scale(1.3);background:#8045db12;box-shadow:0 0 26px 8px #8045db30}
+#root main > #design-tools .design-tool-orbit-item:hover{z-index:5}
+#root main > #design-tools .design-tool-orbit-item.is-selected{visibility:hidden;pointer-events:none}
+#root main > #design-tools .design-tool-feature-icon.is-visible{height:clamp(90px,15vh,155px);margin:12px 0;animation:tool-reveal .35s ease-out both}
+#root main > #design-tools .design-tools-information p{transition:none}
+@keyframes tool-reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#root main > #design-tools .design-tool-feature-icon.is-visible{animation:none}#root main > #design-tools .design-tool-orbit-icon{transition:none}}
