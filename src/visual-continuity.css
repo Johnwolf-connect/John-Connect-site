@@ -26,3 +26,7 @@
 @media(prefers-reduced-motion:reduce){
  .project-info-morph .project-info-layer{will-change:auto;filter:none!important;transform:none!important}
 }
+
+/* Let the same persistent purple glow show through Design Tools as Logo Creations. */
+#root main > .design-tools,#root main > .design-tools .design-tools-stage{background:transparent}
+#root main > .design-tools .design-tools-stage::before{display:none}
