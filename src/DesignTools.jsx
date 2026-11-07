@@ -15,6 +15,7 @@ const tools=[
  {name:'Adobe Firefly',slug:'firefly',detail:'Generative visual exploration and concept development.'}
 ];
 
+const toolNames=tools.map(tool=>tool.name);
 const intro='Software applications used to conceptualize, plan, and create visual content. They help shape everything from visual identities to interactive websites and digital experiences.';
 const TAU=Math.PI*2;
 const ROTATION_SPEED=.28;
@@ -25,6 +26,9 @@ const PANEL_PREP_MS=190;
 const RETURN_PREP_MS=230;
 const OUTBOUND_MS=900;
 const RETURN_MS=940;
+const SWITCH_OUT_MS=820;
+const SWITCH_RETURN_MS=860;
+const SWITCH_STAGGER_MS=110;
 
 function ToolIcon({tool}){return <img src={'/tools/'+tool.slug+'.webp'} alt="" draggable="false"/>}
 const wait=ms=>new Promise(resolve=>window.setTimeout(resolve,ms));
@@ -63,15 +67,24 @@ function resamplePath(points,count=120){
  });
 }
 
-function safeOutboundRoute(start,end,orbit){
+function safeOutboundRoute(start,end,orbit,alternate=false){
  const cx=orbit.left+orbit.width/2,cy=orbit.top+orbit.height/2;
  const dx=start[0]-cx,dy=start[1]-cy,len=Math.hypot(dx,dy)||1;
  const clearance=Math.max(96,Math.min(132,Math.min(orbit.width,orbit.height)*.18));
  const radial=[start[0]+dx/len*clearance,start[1]+dy/len*clearance];
+
+ if(alternate){
+  const upper=start[1]<=cy;
+  const corridorY=upper?orbit.bottom+clearance:orbit.top-clearance;
+  const approachX=Math.max(orbit.left-clearance*.65,end[0]+clearance*.9);
+  return [start,radial,[radial[0],corridorY],[approachX,corridorY],[approachX,end[1]],end];
+ }
+
  if(start[0]<cx-orbit.width*.08){
   const corridorX=orbit.left-clearance;
   return [start,radial,[corridorX,radial[1]],[corridorX,end[1]],end];
  }
+
  const upper=start[1]<=cy;
  const corridorY=upper?orbit.top-clearance:orbit.bottom+clearance;
  const approachX=Math.max(orbit.left-clearance*.65,end[0]+clearance*.9);
@@ -104,11 +117,13 @@ function createGhost(source){
  return {node,rect};
 }
 
-async function flyGhost(pack,targetRect,orbit,reverse=false,duration=OUTBOUND_MS){
+async function flyGhost(pack,targetRect,orbit,{reverse=false,duration=OUTBOUND_MS,alternate=false}={}){
  if(!pack||!targetRect||!orbit)return;
  const start=[pack.rect.left+pack.rect.width/2,pack.rect.top+pack.rect.height/2];
  const end=[targetRect.left+targetRect.width/2,targetRect.top+targetRect.height/2];
- const raw=reverse?safeOutboundRoute(end,start,orbit).reverse():safeOutboundRoute(start,end,orbit);
+ const raw=reverse
+  ?safeOutboundRoute(end,start,orbit,alternate).reverse()
+  :safeOutboundRoute(start,end,orbit,alternate);
  const path=resamplePath(smoothPolyline(raw,3),140);
  const scaleX=targetRect.width/pack.rect.width;
  const scaleY=targetRect.height/pack.rect.height;
@@ -136,6 +151,7 @@ export default function DesignTools(){
  const [selected,setSelected]=useState(null);
  const [departing,setDeparting]=useState(null);
  const [returning,setReturning]=useState(false);
+ const [switching,setSwitching]=useState(false);
 
  const orbitRef=useRef(null);
  const infoRef=useRef(null);
@@ -148,10 +164,12 @@ export default function DesignTools(){
  const last=useRef(0);
  const pointer=useRef({inside:false,x:0,y:0});
  const busy=useRef(false);
- const ghostRef=useRef(null);
  const selectedRef=useRef(null);
  const departingRef=useRef(null);
  const returningRef=useRef(false);
+ const orbitOrderRef=useRef([...toolNames]);
+ const hiddenOrbitRef=useRef(new Set());
+ const ghostsRef=useRef(new Set());
 
  selectedRef.current=selected;
  departingRef.current=departing;
@@ -159,66 +177,66 @@ export default function DesignTools(){
 
  const reduced=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+ const trackGhost=pack=>{
+  if(pack?.node)ghostsRef.current.add(pack.node);
+  return pack;
+ };
+ const removeGhost=pack=>{
+  if(!pack?.node)return;
+  pack.node.remove();
+  ghostsRef.current.delete(pack.node);
+ };
+
  const position=dt=>{
   const host=orbitRef.current;
   if(!host)return;
   const rect=host.getBoundingClientRect();
-  const hiddenName=departingRef.current||selectedRef.current;
-  const openingGap=Boolean(hiddenName&&returningRef.current);
-  const slotCount=hiddenName&&!openingGap?tools.length-1:tools.length;
-  let visibleSlot=0;
+  const order=orbitOrderRef.current;
+  const slotCount=Math.max(1,order.length);
   let nearest=-1;
   let minimum=Infinity;
   const alpha=reduced()?1:1-Math.exp(-SLOT_EASE*Math.max(0,dt));
 
   buttons.current.forEach((node,index)=>{
    if(!node)return;
-   const tool=tools[index];
-   const hidden=Boolean(hiddenName&&tool.name===hiddenName);
+   const name=tools[index].name;
+   const slot=order.indexOf(name);
+   const hidden=slot<0||hiddenOrbitRef.current.has(name);
 
-   if(hidden&&!openingGap){
-    node.style.opacity='0';
-    node.style.visibility='hidden';
-    node.style.pointerEvents='none';
-    node.classList.remove('is-proximity');
-    return;
+   if(slot>=0){
+    const targetBase=slotAngle(slot,slotCount);
+    if(baseAngles.current[index]===undefined)baseAngles.current[index]=targetBase;
+    baseAngles.current[index]+=angleDelta(baseAngles.current[index],targetBase)*alpha;
+
+    const angle=baseAngles.current[index]+phase.current;
+    const offsetX=rect.width*ORBIT_X*Math.cos(angle);
+    const offsetY=rect.height*ORBIT_Y*Math.sin(angle);
+    node.style.transform='translate3d('+offsetX+'px,'+offsetY+'px,0) translate(-50%,-50%)';
+
+    if(!hidden&&pointer.current.inside){
+     const centerX=rect.left+rect.width/2+offsetX;
+     const centerY=rect.top+rect.height/2+offsetY;
+     const d=Math.hypot(centerX-pointer.current.x,centerY-pointer.current.y);
+     if(d<minimum){minimum=d;nearest=index}
+    }
    }
-
-   const slot=hiddenName&&!openingGap?visibleSlot++:index;
-   const targetBase=slotAngle(slot,slotCount);
-   if(baseAngles.current[index]===undefined)baseAngles.current[index]=targetBase;
-   baseAngles.current[index]+=angleDelta(baseAngles.current[index],targetBase)*alpha;
-
-   const angle=baseAngles.current[index]+phase.current;
-   const offsetX=rect.width*ORBIT_X*Math.cos(angle);
-   const offsetY=rect.height*ORBIT_Y*Math.sin(angle);
-   node.style.transform='translate3d('+offsetX+'px,'+offsetY+'px,0) translate(-50%,-50%)';
 
    if(hidden){
     node.style.opacity='0';
     node.style.visibility='hidden';
     node.style.pointerEvents='none';
     node.classList.remove('is-proximity');
-    return;
-   }
-
-   node.style.opacity='1';
-   node.style.visibility='visible';
-   node.style.pointerEvents=selectedRef.current?'none':'auto';
-
-   if(pointer.current.inside){
-    const centerX=rect.left+rect.width/2+offsetX;
-    const centerY=rect.top+rect.height/2+offsetY;
-    const d=Math.hypot(centerX-pointer.current.x,centerY-pointer.current.y);
-    if(d<minimum){minimum=d;nearest=index}
+   }else{
+    node.style.opacity='1';
+    node.style.visibility='visible';
+    node.style.pointerEvents=busy.current?'none':'auto';
    }
   });
 
   const threshold=Math.max(84,Math.min(112,rect.width*.105));
   buttons.current.forEach((node,index)=>{
    if(!node)return;
-   const active=index===nearest&&minimum<threshold;
-   node.classList.toggle('is-proximity',active);
+   node.classList.toggle('is-proximity',index===nearest&&minimum<threshold);
   });
  };
 
@@ -236,15 +254,30 @@ export default function DesignTools(){
   frame.current=requestAnimationFrame(animate);
   return()=>{
    cancelAnimationFrame(frame.current);
-   ghostRef.current?.node?.remove();
+   ghostsRef.current.forEach(node=>node.remove());
+   ghostsRef.current.clear();
   };
  },[]);
 
- const selectTool=async(tool,index)=>{
-  if(busy.current||selectedRef.current)return;
+ const targetRectForSlot=(slot,count,visual,duration)=>{
+  const orbit=orbitRef.current?.getBoundingClientRect();
+  if(!orbit||!visual)return null;
+  const futureAngle=slotAngle(slot,count)+phase.current+ROTATION_SPEED*(duration/1000);
+  const centerX=orbit.left+orbit.width/2+orbit.width*ORBIT_X*Math.cos(futureAngle);
+  const centerY=orbit.top+orbit.height/2+orbit.height*ORBIT_Y*Math.sin(futureAngle);
+  return {
+   left:centerX-visual.width/2,
+   top:centerY-visual.height/2,
+   width:visual.width,
+   height:visual.height
+  };
+ };
+
+ const firstSelect=async(tool,index)=>{
   busy.current=true;
 
   if(reduced()){
+   orbitOrderRef.current=orbitOrderRef.current.filter(name=>name!==tool.name);
    selectedRef.current=tool.name;
    setSelected(tool.name);
    busy.current=false;
@@ -252,31 +285,122 @@ export default function DesignTools(){
   }
 
   const source=buttons.current[index]?.querySelector('.design-tool-orbit-icon img');
-  const ghost=createGhost(source);
+  const ghost=trackGhost(createGhost(source));
   if(!ghost){
+   orbitOrderRef.current=orbitOrderRef.current.filter(name=>name!==tool.name);
    selectedRef.current=tool.name;
    setSelected(tool.name);
    busy.current=false;
    return;
   }
 
-  ghostRef.current=ghost;
+  hiddenOrbitRef.current.add(tool.name);
+  orbitOrderRef.current=orbitOrderRef.current.filter(name=>name!==tool.name);
   departingRef.current=tool.name;
   setDeparting(tool.name);
 
   await wait(PANEL_PREP_MS);
   const target=featureIconRef.current?.getBoundingClientRect();
   const orbit=orbitRef.current?.getBoundingClientRect();
-  if(target&&orbit)await flyGhost(ghost,target,orbit,false,OUTBOUND_MS);
+  if(target&&orbit)await flyGhost(ghost,target,orbit,{duration:OUTBOUND_MS});
 
   selectedRef.current=tool.name;
   departingRef.current=null;
   setSelected(tool.name);
   setDeparting(null);
+  hiddenOrbitRef.current.delete(tool.name);
   await nextPaint();
-  ghost.node.remove();
-  ghostRef.current=null;
+  removeGhost(ghost);
   busy.current=false;
+ };
+
+ const switchTool=async(tool,index)=>{
+  const oldName=selectedRef.current;
+  if(!oldName||oldName===tool.name)return;
+  busy.current=true;
+
+  const oldIndex=tools.findIndex(item=>item.name===oldName);
+  const order=[...orbitOrderRef.current];
+  const newSlot=order.indexOf(tool.name);
+  if(newSlot<0){
+   busy.current=false;
+   return;
+  }
+
+  if(reduced()){
+   order[newSlot]=oldName;
+   orbitOrderRef.current=order;
+   baseAngles.current[oldIndex]=baseAngles.current[index]??slotAngle(newSlot,order.length);
+   selectedRef.current=tool.name;
+   setSelected(tool.name);
+   busy.current=false;
+   return;
+  }
+
+  const newSource=buttons.current[index]?.querySelector('.design-tool-orbit-icon img');
+  const oldSource=featureIconRef.current?.querySelector('img');
+  const newGhost=trackGhost(createGhost(newSource));
+  const oldGhost=trackGhost(createGhost(oldSource));
+
+  if(!newGhost||!oldGhost){
+   removeGhost(newGhost);
+   removeGhost(oldGhost);
+   order[newSlot]=oldName;
+   orbitOrderRef.current=order;
+   baseAngles.current[oldIndex]=baseAngles.current[index]??slotAngle(newSlot,order.length);
+   selectedRef.current=tool.name;
+   setSelected(tool.name);
+   busy.current=false;
+   return;
+  }
+
+  const orbit=orbitRef.current?.getBoundingClientRect();
+  const featureTarget=featureIconRef.current?.getBoundingClientRect();
+  const targetVisual=newSource?.getBoundingClientRect();
+
+  hiddenOrbitRef.current.add(tool.name);
+  hiddenOrbitRef.current.add(oldName);
+  order[newSlot]=oldName;
+  orbitOrderRef.current=order;
+  baseAngles.current[oldIndex]=baseAngles.current[index]??slotAngle(newSlot,order.length);
+  departingRef.current=tool.name;
+  setDeparting(tool.name);
+  setSwitching(true);
+  await nextPaint();
+
+  const oldTarget=targetRectForSlot(newSlot,order.length,targetVisual,SWITCH_RETURN_MS+SWITCH_STAGGER_MS);
+
+  const outbound=orbit&&featureTarget
+   ?flyGhost(newGhost,featureTarget,orbit,{duration:SWITCH_OUT_MS})
+   :Promise.resolve();
+
+  const inbound=(async()=>{
+   await wait(SWITCH_STAGGER_MS);
+   if(orbit&&oldTarget)await flyGhost(oldGhost,oldTarget,orbit,{reverse:true,duration:SWITCH_RETURN_MS,alternate:true});
+  })();
+
+  await Promise.all([outbound,inbound]);
+
+  selectedRef.current=tool.name;
+  departingRef.current=null;
+  setSelected(tool.name);
+  setDeparting(null);
+  hiddenOrbitRef.current.delete(oldName);
+  hiddenOrbitRef.current.delete(tool.name);
+  setSwitching(false);
+  await nextPaint();
+  removeGhost(newGhost);
+  removeGhost(oldGhost);
+  busy.current=false;
+ };
+
+ const selectTool=async(tool,index)=>{
+  if(busy.current||selectedRef.current===tool.name)return;
+  if(selectedRef.current){
+   await switchTool(tool,index);
+   return;
+  }
+  await firstSelect(tool,index);
  };
 
  const reset=async()=>{
@@ -286,6 +410,8 @@ export default function DesignTools(){
   const index=tools.findIndex(tool=>tool.name===name);
 
   if(reduced()){
+   orbitOrderRef.current=[...toolNames];
+   hiddenOrbitRef.current.clear();
    selectedRef.current=null;
    returningRef.current=false;
    setSelected(null);
@@ -295,15 +421,18 @@ export default function DesignTools(){
   }
 
   const source=featureIconRef.current?.querySelector('img');
-  const ghost=createGhost(source);
+  const ghost=trackGhost(createGhost(source));
   if(!ghost){
+   orbitOrderRef.current=[...toolNames];
+   hiddenOrbitRef.current.clear();
    selectedRef.current=null;
    setSelected(null);
    busy.current=false;
    return;
   }
 
-  ghostRef.current=ghost;
+  orbitOrderRef.current=[...toolNames];
+  hiddenOrbitRef.current.add(name);
   baseAngles.current[index]=slotAngle(index,tools.length);
   returningRef.current=true;
   setReturning(true);
@@ -313,27 +442,17 @@ export default function DesignTools(){
   const orbit=orbitRef.current?.getBoundingClientRect();
   const targetImage=buttons.current[index]?.querySelector('.design-tool-orbit-icon img');
   const targetVisual=targetImage?.getBoundingClientRect();
+  const targetRect=targetRectForSlot(index,tools.length,targetVisual,RETURN_MS);
 
-  if(orbit&&targetVisual){
-   const futureAngle=slotAngle(index,tools.length)+phase.current+ROTATION_SPEED*(RETURN_MS/1000);
-   const centerX=orbit.left+orbit.width/2+orbit.width*ORBIT_X*Math.cos(futureAngle);
-   const centerY=orbit.top+orbit.height/2+orbit.height*ORBIT_Y*Math.sin(futureAngle);
-   const targetRect={
-    left:centerX-targetVisual.width/2,
-    top:centerY-targetVisual.height/2,
-    width:targetVisual.width,
-    height:targetVisual.height
-   };
-   await flyGhost(ghost,targetRect,orbit,true,RETURN_MS);
-  }
+  if(orbit&&targetRect)await flyGhost(ghost,targetRect,orbit,{reverse:true,duration:RETURN_MS});
 
   selectedRef.current=null;
   returningRef.current=false;
   setSelected(null);
   setReturning(false);
+  hiddenOrbitRef.current.delete(name);
   await nextPaint();
-  ghost.node.remove();
-  ghostRef.current=null;
+  removeGhost(ghost);
   busy.current=false;
  };
 
@@ -343,7 +462,7 @@ export default function DesignTools(){
  return <section id="design-tools" className="design-tools" aria-label="Design tools" onKeyDown={event=>{if(event.key==='Escape'&&selected&&!busy.current){event.preventDefault();reset()}}}>
   <div className="design-tools-stage">
    <div className="design-tools-layout">
-    <div className={'design-tools-information'+(panelActive?' has-tool-space':'')+(returning?' is-returning':'')} ref={infoRef} aria-live="polite">
+    <div className={'design-tools-information'+(panelActive?' has-tool-space':'')+(returning?' is-returning':'')+(switching?' is-switching':'')} ref={infoRef} aria-live="polite">
      <span className="design-tools-eyebrow">TOOLS / CREATIVE PRACTICE</span>
      <h2 key={'heading-'+(current?.name||'all')} id="design-tools-heading" className="design-tools-heading-copy">{current?current.name:'Design Tools'}</h2>
      <div className="design-tool-feature-slot" ref={featureSlotRef} aria-hidden="true">
@@ -370,8 +489,7 @@ export default function DesignTools(){
       type="button"
       aria-label={'Explore '+tool.name}
       aria-pressed={selected===tool.name}
-      aria-disabled={Boolean(selected&&selected!==tool.name)}
-      tabIndex={selected&&selected!==tool.name?-1:0}
+      tabIndex={selected===tool.name||departing===tool.name?-1:0}
       onClick={()=>selectTool(tool,index)}>
       <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
       <span className="design-tool-orbit-label">{tool.name}</span>
