@@ -20,7 +20,7 @@ export default function DesignTools(){
  const [selected,setSelected]=useState(null);
  const [departing,setDeparting]=useState(null);
  const orbitRef=useRef(null),infoRef=useRef(null),featureRef=useRef(null);
- const buttons=useRef([]),phase=useRef(0),frame=useRef(0),last=useRef(0);
+ const buttons=useRef([]),phase=useRef(0),frame=useRef(0),last=useRef(0),angles=useRef([]);
  const pointer=useRef({inside:false,x:0,y:0}),busy=useRef(false),ghostRef=useRef(null);
  const selectedRef=useRef(null),departingRef=useRef(null);
  selectedRef.current=selected;departingRef.current=departing;
@@ -32,7 +32,11 @@ export default function DesignTools(){
   buttons.current.forEach((node,i)=>{
    if(!node)return;
    if(tools[i].name===selectedRef.current||tools[i].name===departingRef.current){node.style.opacity='0';node.style.pointerEvents='none';return;}
-   const a=-Math.PI/2-2*Math.PI*slot++/count+phase.current;
+   const target=-Math.PI/2-2*Math.PI*slot++/count+phase.current;
+   if(angles.current[i]===undefined)angles.current[i]=target;
+   const delta=Math.atan2(Math.sin(target-angles.current[i]),Math.cos(target-angles.current[i]));
+   angles.current[i]+=delta*.13;
+   const a=angles.current[i];
    const x=50+40*Math.cos(a),y=50+40*Math.sin(a);
    node.style.left=x+'%';node.style.top=y+'%';node.style.opacity='1';node.style.pointerEvents='auto';
    if(pointer.current.inside){
@@ -58,7 +62,7 @@ export default function DesignTools(){
   const size=Math.max(40,a.width,a.height),sx=a.left+a.width/2,sy=a.top+a.height/2,ex=b.left+b.width/2,ey=b.top+b.height/2;
   const orbit=orbitRef.current.getBoundingClientRect();
   // Sweep outside the orbit on the upper side, avoiding the other orbit positions.
-  const top=Math.max(82,orbit.top-65);
+  const top=Math.max(78,orbit.top-85);
   const outX=Math.min(window.innerWidth-48,Math.max(orbit.left+orbit.width*.2,sx+(sx-(orbit.left+orbit.width/2))*.35));
   const p0=[sx,sy],p1=[outX,top],p2=[ex,top],p3=[ex,ey];
   const ghost=source.cloneNode(true);ghostRef.current=ghost;
@@ -78,7 +82,7 @@ export default function DesignTools(){
   busy.current=true;
   const source=buttons.current[i]?.querySelector('img');
   setDeparting(tool.name);departingRef.current=tool.name;position();
-  const target=infoRef.current?.querySelector('.design-tools-eyebrow');
+  const target=infoRef.current?.querySelector('#design-tools-heading');
   await flight(tool,source,target);
   selectedRef.current=tool.name;departingRef.current=null;setSelected(tool.name);setDeparting(null);busy.current=false;position();
  };
