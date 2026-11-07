@@ -152,6 +152,7 @@ export default function DesignTools(){
  const [departing,setDeparting]=useState(null);
  const [returning,setReturning]=useState(false);
  const [switching,setSwitching]=useState(false);
+ const [highlighted,setHighlighted]=useState(null);
 
  const orbitRef=useRef(null);
  const infoRef=useRef(null);
@@ -163,6 +164,8 @@ export default function DesignTools(){
  const frame=useRef(0);
  const last=useRef(0);
  const pointer=useRef({inside:false,x:0,y:0});
+ const highlightedRef=useRef(null);
+ const focusedRef=useRef(null);
  const busy=useRef(false);
  const selectedRef=useRef(null);
  const departingRef=useRef(null);
@@ -174,6 +177,7 @@ export default function DesignTools(){
  selectedRef.current=selected;
  departingRef.current=departing;
  returningRef.current=returning;
+ highlightedRef.current=highlighted;
 
  const reduced=()=>window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -185,6 +189,13 @@ export default function DesignTools(){
   if(!pack?.node)return;
   pack.node.remove();
   ghostsRef.current.delete(pack.node);
+ };
+
+ const updateHighlight=name=>{
+  const next=name||null;
+  if(highlightedRef.current===next)return;
+  highlightedRef.current=next;
+  setHighlighted(next);
  };
 
  const position=dt=>{
@@ -234,10 +245,15 @@ export default function DesignTools(){
   });
 
   const threshold=Math.max(84,Math.min(112,rect.width*.105));
+  const proximityIndex=minimum<threshold?nearest:-1;
   buttons.current.forEach((node,index)=>{
    if(!node)return;
-   node.classList.toggle('is-proximity',index===nearest&&minimum<threshold);
+   node.classList.toggle('is-proximity',index===proximityIndex);
   });
+
+  const proximityName=proximityIndex>=0?tools[proximityIndex].name:null;
+  const focusName=focusedRef.current;
+  updateHighlight(focusName||proximityName);
  };
 
  const animate=time=>{
@@ -275,6 +291,8 @@ export default function DesignTools(){
 
  const firstSelect=async(tool,index)=>{
   busy.current=true;
+  focusedRef.current=null;
+  updateHighlight(null);
 
   if(reduced()){
    orbitOrderRef.current=orbitOrderRef.current.filter(name=>name!==tool.name);
@@ -318,6 +336,8 @@ export default function DesignTools(){
   const oldName=selectedRef.current;
   if(!oldName||oldName===tool.name)return;
   busy.current=true;
+  focusedRef.current=null;
+  updateHighlight(null);
 
   const oldIndex=tools.findIndex(item=>item.name===oldName);
   const order=[...orbitOrderRef.current];
@@ -479,9 +499,11 @@ export default function DesignTools(){
     <div className="design-tools-orbit" ref={orbitRef}
      onPointerEnter={event=>{pointer.current.inside=true;pointer.current.x=event.clientX;pointer.current.y=event.clientY}}
      onPointerMove={event=>{pointer.current.inside=true;pointer.current.x=event.clientX;pointer.current.y=event.clientY}}
-     onPointerLeave={()=>{pointer.current.inside=false}}
+     onPointerLeave={()=>{pointer.current.inside=false;if(!focusedRef.current)updateHighlight(null)}}
      aria-label="Select a design tool">
-     <span className="design-tools-center" aria-hidden="true">{current?'Design Tools':'Select a tool'}</span>
+     <span className={'design-tools-center'+(highlighted?' has-highlight':'')} aria-live="polite" aria-atomic="true">
+      <span key={highlighted||'select'} className="design-tools-center-copy">{highlighted||'Select a tool'}</span>
+     </span>
      {tools.map((tool,index)=><button
       key={tool.name}
       ref={node=>{buttons.current[index]=node}}
@@ -490,9 +512,10 @@ export default function DesignTools(){
       aria-label={'Explore '+tool.name}
       aria-pressed={selected===tool.name}
       tabIndex={selected===tool.name||departing===tool.name?-1:0}
+      onFocus={()=>{focusedRef.current=tool.name;updateHighlight(tool.name)}}
+      onBlur={()=>{if(focusedRef.current===tool.name)focusedRef.current=null;if(!pointer.current.inside)updateHighlight(null)}}
       onClick={()=>selectTool(tool,index)}>
       <span className="design-tool-orbit-icon"><ToolIcon tool={tool}/></span>
-      <span className="design-tool-orbit-label">{tool.name}</span>
      </button>)}
     </div>
    </div>
