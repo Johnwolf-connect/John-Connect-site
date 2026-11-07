@@ -268,30 +268,12 @@
 .jw-about-splash{
  position:absolute;inset:0;z-index:0;
  overflow:hidden;pointer-events:none;
- background:
-  radial-gradient(ellipse at 70% 18%,rgba(210,166,255,.8),transparent 32%),
-  radial-gradient(ellipse at 15% 77%,rgba(72,19,174,.75),transparent 52%),
-  linear-gradient(137deg,#6b2acc 0%,#8a4cf3 49%,#6630c0 100%);
+ background:#873cf2;
  clip-path:none;opacity:0;visibility:hidden;
 }
-.jw-about-splash::before{
- content:"";position:absolute;left:-18%;top:-45%;
- width:74%;aspect-ratio:1;border-radius:47% 53% 67% 33%/62% 37% 63% 38%;
- background:radial-gradient(circle,rgba(228,196,255,.33),rgba(200,132,255,.03) 72%);
- transform:rotate(-28deg);filter:blur(11px);
-}
-.jw-about-splash-glow{
- position:absolute;right:-18%;bottom:-48%;
- width:72%;aspect-ratio:1;border-radius:60% 40% 38% 62%/44% 69% 31% 56%;
- background:radial-gradient(circle at 45% 42%,rgba(240,220,255,.4),rgba(137,63,245,.07) 64%);
- transform:rotate(26deg);filter:blur(9px);
-}
-.jw-about-splash-orbit{
- position:absolute;left:51%;top:51%;width:min(85vw,900px);aspect-ratio:1;
- border:1px solid rgba(255,255,255,.19);border-radius:43% 57% 61% 39%/51% 32% 68% 49%;
- transform:translate(-50%,-50%) rotate(-25deg);
- box-shadow:0 0 0 55px rgba(255,255,255,.025),0 0 0 128px rgba(255,255,255,.018);
-}
+.jw-about-splash::before{display:none}
+.jw-about-splash-glow{display:none}
+.jw-about-splash-orbit{display:none}
 .jw-about-flight{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:visible;perspective:850px}
 .jw-about-fly-svg,.jw-about-fly-fallback{
  position:absolute;display:block;max-width:none;pointer-events:none;
