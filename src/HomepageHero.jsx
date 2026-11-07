@@ -28,18 +28,17 @@ export default function HomepageHero(){
  useEffect(()=>{
   if(pending===null)return;
   const host=homepageRef.current;
-  const outgoing=host?.querySelectorAll('.jw-live-title[data-phase="out"] .jw-letter');
-  const incoming=host?.querySelectorAll('.jw-live-title[data-phase="in"] .jw-letter');
-  if(!outgoing?.length||!incoming?.length)return;
+  const outgoing=host?.querySelector('.jw-live-title[data-phase="out"]');
+  const incoming=host?.querySelector('.jw-live-title[data-phase="in"]');
+  if(!outgoing||!incoming)return;
   const distance=Math.max(host.clientWidth,800);
   gsap.set(incoming,{x:distance,opacity:1});
   const timeline=gsap.timeline({onComplete:()=>{
    indexRef.current=pending;setIndex(pending);pendingRef.current=null;setPending(null);
   }});
   titleRunRef.current=timeline;
-  // Complete the outgoing word before bringing the new word onstage.
-  timeline.to(outgoing,{x:-distance,stagger:.038,duration:.46,ease:'power2.in'},0);
-  timeline.to(incoming,{x:0,stagger:.038,duration:.60,ease:'back.out(1.08)'},.62);
+  timeline.to(outgoing,{x:-distance,duration:.52,ease:'power3.in'},0);
+  timeline.to(incoming,{x:0,duration:.65,ease:'power3.out'},.55);
   return()=>{timeline.kill();titleRunRef.current=null};
  },[pending]);
  useEffect(()=>{
@@ -100,8 +99,8 @@ export default function HomepageHero(){
   return()=>{cancelled=true;observer.disconnect();portrait.removeEventListener('load',align)};
  },[]);
  const liveTitle=(phase,which)=><div className="jw-live-title" data-phase={phase} aria-hidden="true">
-  <div className="jw-live-title-letters">{labels[which].toUpperCase().split('').map((letter,i)=><span className="jw-letter" key={i}>{letter}</span>)}</div>
-  <div className="jw-live-title-letters jw-live-outline">{labels[which].toUpperCase().split('').map((letter,i)=><span className="jw-letter" key={i}>{letter}</span>)}</div>
+  {layer(states[which][0],'jw-art-title')}
+  {layer(states[which][1],'jw-art-outline')}
  </div>;
  return <div ref={homepageRef} className="jw-homepage" aria-label="John Wolf portfolio homepage">
   <div className="jw-artboard">
