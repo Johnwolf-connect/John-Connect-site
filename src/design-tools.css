@@ -118,7 +118,8 @@
  object-fit:contain;
 }
 
-.design-tools-information.is-returning .design-tool-feature-icon{
+.design-tools-information.is-returning .design-tool-feature-icon,
+.design-tools-information.is-switching .design-tool-feature-icon{
  opacity:0;
 }
 
