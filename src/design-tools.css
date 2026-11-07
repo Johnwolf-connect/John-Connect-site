@@ -121,11 +121,27 @@
  .hero-reference{grid-template-rows:auto auto auto}
 }
 
-/* Standalone Section 2: no hero clipping or scroll-trigger dependency. */
-main > .design-tools{position:relative;display:block;width:100%;height:100svh;min-height:650px;overflow:hidden;scroll-margin-top:0;--tool-panel-opacity:1}
-main > .design-tools .design-tools-stage{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+/* Standalone Section 2 fills exactly one visible screen, like the hero.
+   No forced snapping or extra scroll-distance: its bottom and the viewport
+   bottom coincide whenever the section is aligned to the viewport top. */
+main > .design-tools{
+ position:relative;display:block;width:100%;
+ height:100svh;min-height:0;max-height:100svh;
+ overflow:hidden;scroll-margin-top:0;--tool-panel-opacity:1;
+}
+main > .design-tools .design-tools-stage{
+ position:absolute;inset:0;width:100%;height:100%;
+ overflow:hidden;
+}
 main > .design-tools .design-tools-information{opacity:1}
-@media(max-width:720px){main > .design-tools{min-height:760px}}
+/* Keep the revolving selector inside the available screen on short displays. */
+main > .design-tools .design-tools-orbit{
+ height:min(70svh,680px,calc(100svh - 125px));
+}
+@media(max-width:720px){
+ main > .design-tools{height:100svh;min-height:0;max-height:100svh}
+ main > .design-tools .design-tools-orbit{height:100%}
+}
 
 /* The orbit itself never pauses. Pointer magnification follows the moving
    icon under the stationary cursor, and resets as each icon moves away. */
