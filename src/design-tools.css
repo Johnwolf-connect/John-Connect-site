@@ -182,3 +182,43 @@ main > .design-tools .design-tools-orbit{translate:0 clamp(18px,4svh,44px)}
  opacity:1!important;visibility:visible!important;animation:none!important;
 }
 #root main > #design-tools .design-tools-center{visibility:visible;opacity:1}
+
+/* Restoration: layout and icon visibility do not depend on scroll, GSAP, or RAF. */
+#root main > section#design-tools{
+ display:block!important;position:relative!important;
+ width:100%!important;height:100svh!important;
+ min-height:620px!important;overflow:hidden!important;
+ clip-path:none!important;opacity:1!important;visibility:visible!important;
+ background:#fff!important;
+}
+#root main > section#design-tools > .design-tools-stage{
+ position:absolute!important;inset:0!important;display:block!important;
+ opacity:1!important;visibility:visible!important;overflow:hidden!important;
+}
+#root main > section#design-tools .design-tools-layout{
+ display:grid!important;grid-template-columns:40% 60%!important;
+ position:relative!important;width:100%!important;height:100%!important;
+ opacity:1!important;visibility:visible!important;
+}
+#root main > section#design-tools .design-tools-information{
+ display:block!important;position:relative!important;z-index:3!important;
+ opacity:1!important;visibility:visible!important;color:#141414!important;
+}
+#root main > section#design-tools .design-tools-orbit{
+ display:block!important;position:relative!important;z-index:3!important;
+ opacity:1!important;visibility:visible!important;
+}
+#root main > section#design-tools .design-tool-orbit-item{
+ display:flex!important;visibility:visible!important;
+ opacity:1;pointer-events:auto;
+}
+#root main > section#design-tools .design-tools-stage::before{
+ display:block!important;opacity:.35!important;
+ background:radial-gradient(ellipse 45% 55% at 60% 50%,#a56aff80,transparent 75%)!important;
+}
+@media(max-width:720px){
+ #root main > section#design-tools{min-height:620px!important}
+ #root main > section#design-tools .design-tools-layout{
+  grid-template-columns:1fr!important;grid-template-rows:38% 62%!important;
+ }
+}
