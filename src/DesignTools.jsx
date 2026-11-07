@@ -54,8 +54,8 @@ export default function DesignTools(){
    id:'design-tools-lock',trigger:host,start:'top top',end:'+=115%',
    pin:true,pinSpacing:true,scrub:true,anticipatePin:1,
    invalidateOnRefresh:true,
-   onEnter:()=>{if(!active){active=true;start=null;last=null;phase=0;reverseEntry=false;entranceRequested=true;frame.current=requestAnimationFrame(animate)}},
-   onEnterBack:()=>{if(!active){active=true;start=null;last=null;phase=0;reverseEntry=true;entranceRequested=true;frame.current=requestAnimationFrame(animate)}},
+   onEnter:()=>{reverseEntry=false;if(!active){active=true;start=null;last=null;phase=0;introStarted=false;frame.current=requestAnimationFrame(animate)}},
+   onEnterBack:()=>{reverseEntry=true;if(!active){active=true;start=null;last=null;phase=0;introStarted=false;frame.current=requestAnimationFrame(animate)}},
    onUpdate:self=>{exitProgress.current=self.progress},
    onRefresh:self=>{exitProgress.current=self.progress}
   });
@@ -94,9 +94,13 @@ export default function DesignTools(){
   const movePointer=e=>{if(e.pointerType!=='touch'){pointer.x=e.clientX;pointer.y=e.clientY;pointer.inside=true}};
   const clearPointer=()=>{pointer.inside=false};
   let active=false,start=null,last=null,phase=0,frozenPhase=null,hovered=null;
+  let introStarted=false;
   const animate=now=>{
    if(!active)return;
-   if(entranceRequested){
+   // Never spend the entrance clock while Section 2 is still below the viewport.
+   // The pin's actual active state, not intersection proximity, starts it.
+   if(!introStarted&&pin.isActive){
+    introStarted=true;
     entranceRequested=false;
     start=reverseEntry?now-3150:now;
     last=now;phase=0;frozenPhase=null;
@@ -104,7 +108,7 @@ export default function DesignTools(){
    if(start===null)start=now;
    const dt=last===null?0:Math.min(.06,(now-last)/1000);
    last=now;
-   const elapsed=(now-start)/1000;
+   const elapsed=introStarted?(now-start)/1000:0;
    const rect=field.getBoundingClientRect();
    const section=host.getBoundingClientRect();
    const width=field.clientWidth,height=field.clientHeight;
@@ -135,14 +139,15 @@ export default function DesignTools(){
    // Do not let scroll progress bypass the entrance before it has played.
    // Previously any nonzero progress skipped the entire intro branch.
    const introDuration=3.15;
-   const entering=elapsed<introDuration&&!reverseEntry;
+   const entering=(!introStarted||elapsed<introDuration)&&!reverseEntry;
    const departure=entering?0:clamp01(exitProgress.current);
    // Freeze the orbit phase on the FIRST intentional departure; reverse
    // scrolling reuses the exact same phase and geometry.
    if(departure>0&&frozenPhase===null)frozenPhase=phase;
    if(departure===0)frozenPhase=null;
    const introTravel=incoming.length+(count-1)*gap;
-   const introDistance=introTravel*clamp01(elapsed/introDuration);
+   // Show the leading icon at the launch point immediately on arrival.
+   const introDistance=1+introTravel*clamp01(elapsed/introDuration);
    const introEndPhase=(count-1)*gap/radius;
    if(departure===0&&elapsed>=introDuration)phase+=dt*.19;
    // Match the last arrival's angular position at the intro/orbit boundary.
@@ -211,7 +216,7 @@ export default function DesignTools(){
   };
   const stop=()=>{
    active=false;cancelAnimationFrame(frame.current);frame.current=0;
-   hovered=null;frozenPhase=null;
+   hovered=null;frozenPhase=null;introStarted=false;
    Object.values(buttons.current).forEach(node=>{
     node.classList.remove('is-pointer-magnified');
     node.style.opacity='0';node.style.pointerEvents='none';node.tabIndex=-1;
@@ -224,7 +229,7 @@ export default function DesignTools(){
    const bounds=host.getBoundingClientRect();
    const near=pin.isActive||(bounds.top<window.innerHeight*.9&&bounds.bottom>0);
    if(near&&!active){
-    active=true;start=null;last=null;phase=0;frozenPhase=null;
+    active=true;start=null;last=null;phase=0;frozenPhase=null;introStarted=false;
     entranceRequested=true;
     reverseEntry=window.scrollY>pin.end-8;
     frame.current=requestAnimationFrame(animate);
