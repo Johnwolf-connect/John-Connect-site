@@ -123,3 +123,13 @@
 @media(min-width:761px) and (min-aspect-ratio:16/9){
  .jw-live-title{translate:var(--jw-left-shift) 0}
 }
+
+/* Canva-accurate title restoration: full artboard SVGs, not substitute text. */
+.jw-live-title{inset:0;padding:0;display:block;overflow:visible;translate:none}
+.jw-live-title .jw-art-title{z-index:1}
+.jw-live-title .jw-art-outline{z-index:3}
+.jw-live-title .jw-art-title,.jw-live-title .jw-art-outline{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+@media(min-width:761px) and (min-aspect-ratio:16/9){
+ .jw-live-title{translate:none}
+ .jw-live-title .jw-art-title,.jw-live-title .jw-art-outline{translate:var(--jw-left-shift) 0}
+}
