@@ -39,7 +39,7 @@
 #root main > #design-tools .design-tool-orbit-item.is-selected{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 
 /* Coordinated carousel: smoothly close/open gaps, and magnify whichever icon passes the pointer. */
-#root main > #design-tools .design-tool-orbit-item{transition:left .55s cubic-bezier(.2,.7,.2,1),top .55s cubic-bezier(.2,.7,.2,1)!important}
+#root main > #design-tools .design-tool-orbit-item{transition:none!important}
 #root main > #design-tools .design-tool-orbit-item.is-proximity .design-tool-orbit-icon{transform:scale(1.9);background:#8045db12;box-shadow:0 0 34px 12px #8045db30}
 #root main > #design-tools .design-tool-orbit-item.is-proximity{z-index:6}
 @media(prefers-reduced-motion:reduce){#root main > #design-tools .design-tool-orbit-item{transition:none!important}#root main > #design-tools .design-tool-orbit-item.is-proximity .design-tool-orbit-icon{transform:none}}
