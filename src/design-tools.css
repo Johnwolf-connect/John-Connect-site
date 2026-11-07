@@ -120,3 +120,9 @@
 @media(prefers-reduced-motion:reduce) and (max-width:720px){
  .hero-reference{grid-template-rows:auto auto auto}
 }
+
+/* Standalone Section 2: no hero clipping or scroll-trigger dependency. */
+main > .design-tools{position:relative;display:block;width:100%;height:100svh;min-height:650px;overflow:hidden;scroll-margin-top:0;--tool-panel-opacity:1}
+main > .design-tools .design-tools-stage{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+main > .design-tools .design-tools-information{opacity:1}
+@media(max-width:720px){main > .design-tools{min-height:760px}}
