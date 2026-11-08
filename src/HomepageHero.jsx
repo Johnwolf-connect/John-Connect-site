@@ -36,7 +36,7 @@ const aboutPrinciples=[
  {name:'BUILD',detail:'Identity systems, logos, digital experiences, and visual direction built to work as one clear system.'},
  {name:'REFINE',detail:'I keep pushing the work until every decision feels intentional rather than merely finished.'}
 ];
-const aboutCapabilities=['Brand identity','Logo systems','Digital experiences','Art direction','Interactive design','Creative problem solving'];
+const aboutCapabilities=['Brand identity','Logo systems','UX / UI + web','Art direction','Motion + interaction','AI-assisted creative workflows'];
 const aboutProof=[
  ['20+ years','Designing brands, identities, visual communication, and digital experiences.'],
  ['Independent by nature','Working directly with businesses, founders, and ideas from concept through execution.'],
@@ -495,18 +495,39 @@ export default function HomepageHero(){
      <div className="jw-about-splash-orbit"/>
     </div>
     <div ref={aboutFlightRef} className="jw-about-flight" aria-hidden="true"/>
+    <nav className="jw-about-chapter-nav" aria-label="About page sections">
+     <a href="#jw-about-top" aria-label="About introduction"><span>01</span></a>
+     <a href="#jw-about-process" aria-label="How I work"><span>02</span></a>
+     <a href="#jw-about-capabilities-heading" aria-label="What I do"><span>03</span></a>
+     <a href="#jw-about-proof-heading" aria-label="Experience"><span>04</span></a>
+     <a href="#jw-about-closeout-heading" aria-label="Next"><span>05</span></a>
+    </nav>
     <main ref={aboutContentRef} className="jw-about-content" tabIndex={-1}>
-     <section className="jw-about-hero" aria-labelledby="jw-about-heading">
-      <span className="jw-about-kicker">JOHN WOLF / CREATIVE DESIGNER</span>
-      <h2 id="jw-about-heading">I make ideas<br/><strong>clear enough to understand,</strong><br/><em>distinct enough to remember.</em></h2>
-      <p className="jw-about-lede">I’m John Wolf, a multidisciplinary designer working across brand identity, visual systems, digital experiences, and creative direction. I’m interested in the point where strategy becomes something people can actually see, use, and feel.</p>
-      <a className="jw-about-explore" href="#jw-about-process">Explore how I work <span aria-hidden="true">↓</span></a>
+     <section id="jw-about-top" className="jw-about-hero" aria-labelledby="jw-about-heading">
+      <div className="jw-about-hero-watermark" aria-hidden="true">ABOUT</div>
+      <div className="jw-about-hero-grid">
+       <div className="jw-about-hero-copy">
+        <span className="jw-about-kicker">JOHN WOLF / MULTIDISCIPLINARY DESIGNER</span>
+        <h2 id="jw-about-heading">Good design gives an idea<br/><em>a point of view.</em></h2>
+        <p className="jw-about-lede">I’m John Wolf. I build brand identities, visual systems, and digital experiences that make ideas easier to understand—and harder to forget.</p>
+        <a className="jw-about-explore" href="#jw-about-process">Explore how I work <span aria-hidden="true">↓</span></a>
+       </div>
+       <aside className="jw-about-hero-aside" aria-label="Creative profile">
+        <div className="jw-about-orbit-badge" aria-hidden="true"><span>JW</span><i/></div>
+        <dl>
+         <div><dt>20+</dt><dd>Years designing</dd></div>
+         <div><dt>04</dt><dd>Core disciplines</dd></div>
+         <div><dt>01</dt><dd>Point of view</dd></div>
+        </dl>
+       </aside>
+      </div>
+      <div className="jw-about-marquee" aria-hidden="true"><div>BRAND IDENTITY&nbsp;&nbsp;•&nbsp;&nbsp;DIGITAL EXPERIENCES&nbsp;&nbsp;•&nbsp;&nbsp;ART DIRECTION&nbsp;&nbsp;•&nbsp;&nbsp;INTERACTION&nbsp;&nbsp;•&nbsp;&nbsp;</div></div>
      </section>
 
      <section id="jw-about-process" className="jw-about-process" aria-labelledby="jw-about-process-heading">
       <div className="jw-about-section-intro">
        <span className="jw-about-kicker">HOW I WORK</span>
-       <h3 id="jw-about-process-heading">Three moves.<br/>One connected process.</h3>
+       <h3 id="jw-about-process-heading">One idea.<br/>Three moves.</h3>
       </div>
       <div className="jw-about-principles">
        <div className="jw-about-principle-list" role="tablist" aria-label="How I work">
@@ -529,7 +550,7 @@ export default function HomepageHero(){
 
      <section className="jw-about-capabilities" aria-labelledby="jw-about-capabilities-heading">
       <span className="jw-about-kicker">WHAT I DO</span>
-      <h3 id="jw-about-capabilities-heading">Ideas need systems,<br/>not isolated pieces.</h3>
+      <h3 id="jw-about-capabilities-heading">I connect the pieces<br/>until they feel inevitable.</h3>
       <div className="jw-about-capability-list">
        {aboutCapabilities.map((item,i)=><span key={item}><small>{String(i+1).padStart(2,'0')}</small>{item}</span>)}
       </div>
@@ -538,7 +559,7 @@ export default function HomepageHero(){
      <section className="jw-about-proof" aria-labelledby="jw-about-proof-heading">
       <div className="jw-about-section-intro">
        <span className="jw-about-kicker">EXPERIENCE</span>
-       <h3 id="jw-about-proof-heading">Built through doing.</h3>
+       <h3 id="jw-about-proof-heading">Experience without the résumé wall.</h3>
       </div>
       <div className="jw-about-proof-grid">
        {aboutProof.map(([title,copy])=><article key={title}><h4>{title}</h4><p>{copy}</p></article>)}
@@ -547,8 +568,8 @@ export default function HomepageHero(){
 
      <section className="jw-about-closeout" aria-labelledby="jw-about-closeout-heading">
       <span className="jw-about-kicker">NEXT</span>
-      <h3 id="jw-about-closeout-heading">Seen enough?</h3>
-      <p>I don’t just make things look different. I figure out what they need to communicate, then build the visual system that makes the idea unmistakable.</p>
+      <h3 id="jw-about-closeout-heading">Make it<br/><em>memorable.</em></h3>
+      <p>I don’t design decoration. I find what the idea needs to communicate, then build the visual language that makes it unmistakable.</p>
       <div className="jw-about-actions">
        <a href="#work" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>View my work <span aria-hidden="true">→</span></a>
        <a href="#contact" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>Start a project <span aria-hidden="true">→</span></a>
