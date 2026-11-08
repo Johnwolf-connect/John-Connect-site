@@ -2,6 +2,7 @@ import React,{useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {gsap} from 'gsap';
 import {createPortal} from 'react-dom';
 import './HomepageHero.css';
+import aboutPortrait from './assets/john-wolf-portrait.webp';
 const root='/homepage-canva/';
 const states=[
  ['Large title.svg','Large title overlay mask to man.svg'],
@@ -549,7 +550,7 @@ export default function HomepageHero(){
       <div className="jw-about-kinetic-stage">
        <div className="jw-about-kinetic-meter" aria-hidden="true"><span/></div>
        <div className="jw-about-kinetic-head" aria-hidden="true">
-        <img src="/john-wolf-portrait.webp" alt=""/>
+        <img src={aboutPortrait} alt=""/>
        </div>
 
        <div className="jw-about-kinetic-scene jw-scene-arrival">
