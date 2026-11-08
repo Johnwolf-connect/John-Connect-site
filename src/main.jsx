@@ -2,66 +2,12 @@ import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
 import DesignTools from './DesignTools.jsx';
+import HomepageHero from './HomepageHero.jsx';
 import BrandGallery from './BrandGallery.jsx';
 import VisualContinuity from './VisualContinuity.jsx';
 import {gsap} from 'gsap';
 import {ScrollTrigger} from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
-// A full-width, scroll-driven sheet. Polygon points stay within the viewport,
-// avoiding SVG objectBoundingBox clipping artifacts on Safari and Chromium.
-function sheetClip(progress){
- const p=Math.max(0,Math.min(1,progress));
- if(p>=.34)return 'inset(0)';
- const phase=p/.34;
- const edge=100*(1-phase);
- const arch=Math.sin(Math.PI*phase)*64;
- const points=[];
- for(let i=0;i<=40;i++){
-  const x=i/40;
-  const dome=1-Math.pow(2*x-1,2);
-  const y=Math.max(0,Math.min(100,edge-arch*dome));
-  points.push(`${(x*100).toFixed(2)}% ${y.toFixed(3)}%`);
- }
- points.push('100% 100%','0% 100%');
- return `polygon(${points.join(',')})`;
-}
-function openDesignTools(event){
- if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
- const transition=ScrollTrigger.getById('design-tools-reveal');
- if(!transition)return;
- event.preventDefault();
- window.scrollTo({top:transition.start+(transition.end-transition.start)*.65,behavior:'smooth'});
-}
-
-function CurvedSwipe(){
- const marker=useRef(null);
- useEffect(()=>{
-  const hero=marker.current?.closest('.hero');
-  const sheet=hero?.querySelector('.design-tools');
-  if(!hero||!sheet||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  const ctx=gsap.context(()=>{
-   const render=scrollProgress=>{
-    const progress=scrollProgress<.45
-     ? scrollProgress/.45*.62
-     : scrollProgress<.85
-      ? .62+(scrollProgress-.45)/.40*.16
-      : .78+(scrollProgress-.85)/.15*.22;
-    hero.style.setProperty('--tools-progress',String(progress));
-    sheet.style.clipPath=sheetClip(progress);
-   };
-   render(0);
-   ScrollTrigger.create({
-    id:'design-tools-reveal',trigger:hero,start:'top top',end:'+=260%',pin:true,pinSpacing:true,
-    scrub:true,anticipatePin:1,invalidateOnRefresh:true,
-    onUpdate:self=>render(self.progress),
-    onRefresh:self=>render(self.progress)
-   });
-  },hero);
-  return()=>{ctx.revert();sheet.style.removeProperty('clip-path');hero.style.removeProperty('--tools-progress')};
- },[]);
- return <span ref={marker} aria-hidden="true" style={{display:'none'}}/>;
-}
-
 const projects=[
  ['Lander','Home grown nursery','lander'],['MotivX','Brand identity','motivx'],
  ['Hasty Movers','Moving & logistics','hasty-movers'],['Coffeeology','Coffee culture','coffeeology'],
@@ -206,26 +152,10 @@ function App(){
  return <div>
   <VisualContinuity/>
   <PurpleCursor/>
-  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
+  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools">Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
-   <section className="hero hero-reference">
-    <div className="hero-copy">
-     <div className="hero-lockup">
-      <h1><span>JOHN</span><span>WOLF</span></h1>
-      <div className="hero-services" aria-label="Creative disciplines"><span>VISUAL DESIGN</span><span>BRAND DEVELOPMENT</span><span>WEB DESIGN</span></div>
-     </div>
-     <p className="hero-description">I build visual identities and digital experiences that make ideas impossible to overlook.</p>
-     <a className="hero-cta" href="#work">VIEW PORTFOLIO <span aria-hidden="true">↗</span></a>
-    </div>
-    <div className="hero-visual" aria-label="Portrait area">
-     <div className="hero-purple-shape" aria-hidden="true"/>
-     <img className="hero-portrait" src="/john-wolf-portrait.webp" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
-     <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
-    </div>
-    <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
-    <CurvedSwipe/>
-    <DesignTools/>
-   </section>
+   <section className="hero hero-reference"><HomepageHero/></section>
+   <DesignTools/>
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <BrandGallery/>
    <section id="about" className="about"><span className="kicker">CREATIVE PRACTICE</span><h2>Design is how<br/>I make ideas <i>felt.</i></h2><p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p><a href="#contact" className="contact-note">Let’s work together ↗</a></section>
