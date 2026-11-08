@@ -295,13 +295,14 @@ export default function HomepageHero(){
   const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
   const finish=()=>{originalLayers.forEach(node=>node.style.removeProperty('opacity'));setAboutOpen(false);};
   // Respond to the click immediately; build the reverse artwork while the About UI is already receding.
-  gsap.to([content,close],{autoAlpha:0,y:12,duration:.18,ease:'power1.out'});
+  gsap.set([content,close],{autoAlpha:0});
   let glyphs=[],fallback=null;
   flight.innerHTML='';
   try{
    let markup=titleSvgCacheRef.current.get(states[activeTitle][0]);
    if(!markup){const res=await fetch(root+encodeURIComponent(states[activeTitle][0]),{cache:'force-cache'});if(!res.ok)throw new Error();markup=await res.text();titleSvgCacheRef.current.set(states[activeTitle][0],markup);}
    const vector=buildFlyThroughArtwork(markup);if(!vector)throw new Error();
+   await new Promise(resolve=>requestAnimationFrame(resolve));
    const box=originalTitle?.getBoundingClientRect(),stageBox=stage.getBoundingClientRect(),p=vector.svg.style;
    p.left=((box?.left??stageBox.left)-stageBox.left)+'px';p.top=((box?.top??stageBox.top)-stageBox.top)+'px';p.width=(box?.width??stageBox.width)+'px';p.height=(box?.height??stageBox.height)+'px';
    flight.appendChild(vector.svg);glyphs=makeScreenAlignedGlyphs(vector,flight,stage);if(!glyphs.length)throw new Error();
