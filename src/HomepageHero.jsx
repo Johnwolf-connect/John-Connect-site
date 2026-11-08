@@ -312,8 +312,8 @@ export default function HomepageHero(){
   const tl=gsap.timeline({onComplete:finish});
   tl.to([content,close],{autoAlpha:0,y:20,duration:.28,ease:'power2.in'},0)
     .to(splash,{autoAlpha:0,duration:.46,ease:'power2.inOut'},.22);
-  if(glyphs.length)tl.to(glyphs,{x:0,y:0,scale:1,duration:1.2,ease:'power3.out',force3D:true,stagger:{each:.027,from:'end'}},.22);
-  else if(fallback)tl.to(fallback,{x:0,y:0,scale:1,duration:1.28,ease:'power3.out',force3D:true},.22);
+  if(glyphs.length)tl.to(glyphs,{x:0,y:0,scale:1,duration:1.45,ease:'power2.out',force3D:true,stagger:{each:.008,from:'end'}},.18);
+  else if(fallback)tl.to(fallback,{x:0,y:0,scale:1,duration:1.45,ease:'power2.out',force3D:true},.18);
  };
  useLayoutEffect(()=>{
   if(!aboutOpen)return;
