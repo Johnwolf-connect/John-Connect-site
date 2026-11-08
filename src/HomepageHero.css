@@ -357,7 +357,7 @@
 
 /* About experience — editorial, interactive, and intentionally minimal. */
 .jw-about-transition{
- background:#873cf2;
+ background:transparent;
  scroll-behavior:smooth;
  scroll-padding-top:110px;
 }
