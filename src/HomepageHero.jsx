@@ -515,7 +515,7 @@ export default function HomepageHero(){
        <p>Good design gives an idea <em>a point of view.</em></p>
       </div>
       <div className="jw-about-head-anchor" aria-hidden="true">
-       <img src={root+'Man.svg'} alt=""/>
+       <img src="/john-wolf-portrait.webp" alt=""/>
       </div>
      </section>
 
