@@ -283,38 +283,37 @@ export default function HomepageHero(){
   if(pendingRef.current!==null){aboutLaunchQueuedRef.current=true;return;}
   setAboutOpen(true);
  };
- const closeAbout=()=>{
+ const closeAbout=async()=>{
   if(aboutClosingRef.current)return;
   aboutClosingRef.current=true;
-  const stage=aboutStageRef.current;
-  const flight=aboutFlightRef.current;
-  const splash=aboutSplashRef.current;
-  const content=aboutContentRef.current;
-  const close=aboutCloseRef.current;
-  const hero=homepageRef.current;
+  const stage=aboutStageRef.current,flight=aboutFlightRef.current,splash=aboutSplashRef.current;
+  const content=aboutContentRef.current,close=aboutCloseRef.current,hero=homepageRef.current;
   if(!stage||!flight||!splash||!content||!close||!hero){setAboutOpen(false);return;}
-  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduced){setAboutOpen(false);return;}
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){setAboutOpen(false);return;}
   const activeTitle=indexRef.current;
   const originalTitle=hero.querySelector('.jw-live-title-base[data-title-index="'+activeTitle+'"] img');
   const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
   const finish=()=>{originalLayers.forEach(node=>node.style.removeProperty('opacity'));setAboutOpen(false);};
-  gsap.timeline({onComplete:finish})
-   .to([content,close],{autoAlpha:0,y:20,duration:.3,ease:'power2.in'},0)
-   .to(splash,{autoAlpha:0,duration:.34,ease:'power2.inOut'},.18)
-   .call(()=>{
-    flight.innerHTML='';
-    if(!originalTitle)return;
-    const clone=originalTitle.cloneNode(true);
-    clone.className='jw-about-fly-fallback';
-    const box=originalTitle.getBoundingClientRect(),stageBox=stage.getBoundingClientRect();
-    Object.assign(clone.style,{left:(box.left-stageBox.left)+'px',top:(box.top-stageBox.top)+'px',width:box.width+'px',height:box.height+'px'});
-    flight.appendChild(clone);
-    const centerX=window.innerWidth/2,centerY=window.innerHeight/2;
-    const scale=Math.max(34,window.innerWidth/Math.max(box.width*.3,1)*2);
-    gsap.set(clone,{x:centerX-(box.left+box.width/2),y:centerY-(box.top+box.height/2),scale,transformOrigin:'50% 50%',force3D:true});
-    gsap.to(clone,{x:0,y:0,scale:1,duration:1.2,ease:'power3.out',force3D:true,onComplete:finish});
-   },[],.28);
+  let glyphs=[],fallback=null;
+  flight.innerHTML='';
+  try{
+   let markup=titleSvgCacheRef.current.get(states[activeTitle][0]);
+   if(!markup){const res=await fetch(root+encodeURIComponent(states[activeTitle][0]),{cache:'force-cache'});if(!res.ok)throw new Error();markup=await res.text();titleSvgCacheRef.current.set(states[activeTitle][0],markup);}
+   const vector=buildFlyThroughArtwork(markup);if(!vector)throw new Error();
+   const box=originalTitle?.getBoundingClientRect(),stageBox=stage.getBoundingClientRect(),p=vector.svg.style;
+   p.left=((box?.left??stageBox.left)-stageBox.left)+'px';p.top=((box?.top??stageBox.top)-stageBox.top)+'px';p.width=(box?.width??stageBox.width)+'px';p.height=(box?.height??stageBox.height)+'px';
+   flight.appendChild(vector.svg);glyphs=makeScreenAlignedGlyphs(vector,flight,stage);if(!glyphs.length)throw new Error();
+  }catch(e){if(originalTitle){fallback=originalTitle.cloneNode(true);fallback.className='jw-about-fly-fallback';const b=originalTitle.getBoundingClientRect(),sb=stage.getBoundingClientRect();Object.assign(fallback.style,{left:(b.left-sb.left)+'px',top:(b.top-sb.top)+'px',width:b.width+'px',height:b.height+'px'});flight.appendChild(fallback);}}
+  gsap.set(flight,{autoAlpha:1});
+  const cx=window.innerWidth/2,cy=window.innerHeight/2;
+  if(glyphs.length){
+   glyphs.forEach(g=>{const r=g.getBoundingClientRect();const scale=Math.max(36,Math.min(100,Math.max(window.innerWidth/Math.max(r.width,1),window.innerHeight/Math.max(r.height,1))*2.1));gsap.set(g,{x:cx-(r.left+r.width/2),y:cy-(r.top+r.height/2),scale,transformOrigin:'50% 50%',force3D:true});});
+  }else if(fallback){const r=fallback.getBoundingClientRect();gsap.set(fallback,{x:cx-(r.left+r.width/2),y:cy-(r.top+r.height/2),scale:Math.max(34,window.innerWidth/Math.max(r.width*.3,1)*2),transformOrigin:'50% 50%',force3D:true});}
+  const tl=gsap.timeline({onComplete:finish});
+  tl.to([content,close],{autoAlpha:0,y:20,duration:.28,ease:'power2.in'},0)
+    .to(splash,{autoAlpha:0,duration:.46,ease:'power2.inOut'},.22);
+  if(glyphs.length)tl.to(glyphs,{x:0,y:0,scale:1,duration:1.2,ease:'power3.out',force3D:true,stagger:{each:.027,from:'end'}},.22);
+  else if(fallback)tl.to(fallback,{x:0,y:0,scale:1,duration:1.28,ease:'power3.out',force3D:true},.22);
  };
  useLayoutEffect(()=>{
   if(!aboutOpen)return;
