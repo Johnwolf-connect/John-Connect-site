@@ -289,6 +289,9 @@ export default function HomepageHero(){
   if(!timeline){setAboutOpen(false);return;}
   aboutClosingRef.current=true;
   aboutReturnFocusRef.current=true;
+  // The opaque About shell is only needed while the page owns the viewport.
+  // Remove it before reversing so the locked fly-through can reveal the homepage exactly as before.
+  aboutStageRef.current?.classList.remove('is-settled');
   timeline.eventCallback('onReverseComplete',()=>setAboutOpen(false));
   timeline.reverse();
  };
@@ -317,6 +320,7 @@ export default function HomepageHero(){
   if(reduced){
    gsap.set(splash,{autoAlpha:1,clipPath:'none'});
    gsap.set([content,close],{autoAlpha:1,y:0});
+   stage.classList.add('is-settled');
    close.focus({preventScroll:true});
    return()=>{document.body.style.overflow=savedOverflow;aboutClosingRef.current=false;};
   }
@@ -376,7 +380,10 @@ export default function HomepageHero(){
      return {x:centerX-midX,y:centerY-midY,scale};
     });
     flightTimeline=gsap.timeline({paused:false,onComplete:()=>{
-     if(!cancelled)close.focus({preventScroll:true});
+     if(!cancelled){
+      stage.classList.add('is-settled');
+      close.focus({preventScroll:true});
+     }
     }});
     aboutFlightTimelineRef.current=flightTimeline;
     // A short cinematic anticipation is followed by a rapid depth rush.
@@ -392,7 +399,10 @@ export default function HomepageHero(){
     // their scale, not by a small circle expanding from a dot.
    }else{
     flightTimeline=gsap.timeline({paused:false,onComplete:()=>{
-     if(!cancelled)close.focus({preventScroll:true});
+     if(!cancelled){
+      stage.classList.add('is-settled');
+      close.focus({preventScroll:true});
+     }
     }});
     aboutFlightTimelineRef.current=flightTimeline;
     if(fallback){
