@@ -123,7 +123,7 @@ export default function HomepageHero(){
  const aboutStageRef=useRef(null),aboutSplashRef=useRef(null),aboutFlightRef=useRef(null);
  const aboutContentRef=useRef(null),aboutCloseRef=useRef(null);
  const aboutLaunchQueuedRef=useRef(false),aboutClosingRef=useRef(false);
- const aboutReturnFocusRef=useRef(true),titleSvgCacheRef=useRef(new Map());
+ const aboutReturnFocusRef=useRef(true),titleSvgCacheRef=useRef(new Map()),aboutFlightTimelineRef=useRef(null);
  useEffect(()=>{
   // Warm the exact Canva vector paths so the camera rush starts immediately.
   let live=true;
@@ -283,39 +283,14 @@ export default function HomepageHero(){
   if(pendingRef.current!==null){aboutLaunchQueuedRef.current=true;return;}
   setAboutOpen(true);
  };
- const closeAbout=async()=>{
+ const closeAbout=()=>{
   if(aboutClosingRef.current)return;
+  const timeline=aboutFlightTimelineRef.current;
+  if(!timeline){setAboutOpen(false);return;}
   aboutClosingRef.current=true;
-  const stage=aboutStageRef.current,flight=aboutFlightRef.current,splash=aboutSplashRef.current;
-  const content=aboutContentRef.current,close=aboutCloseRef.current,hero=homepageRef.current;
-  if(!stage||!flight||!splash||!content||!close||!hero){setAboutOpen(false);return;}
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){setAboutOpen(false);return;}
-  const activeTitle=indexRef.current;
-  const originalTitle=hero.querySelector('.jw-live-title-base[data-title-index="'+activeTitle+'"] img');
-  const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
-  const finish=()=>{originalLayers.forEach(node=>node.style.removeProperty('opacity'));setAboutOpen(false);};
-  // Respond to the click immediately; build the reverse artwork while the About UI is already receding.
-  gsap.set([content,close],{autoAlpha:0});
-  let glyphs=[],fallback=null;
-  flight.innerHTML='';
-  try{
-   let markup=titleSvgCacheRef.current.get(states[activeTitle][0]);
-   if(!markup){const res=await fetch(root+encodeURIComponent(states[activeTitle][0]),{cache:'force-cache'});if(!res.ok)throw new Error();markup=await res.text();titleSvgCacheRef.current.set(states[activeTitle][0],markup);}
-   const vector=buildFlyThroughArtwork(markup);if(!vector)throw new Error();
-   await new Promise(resolve=>requestAnimationFrame(resolve));
-   const box=originalTitle?.getBoundingClientRect(),stageBox=stage.getBoundingClientRect(),p=vector.svg.style;
-   p.left=((box?.left??stageBox.left)-stageBox.left)+'px';p.top=((box?.top??stageBox.top)-stageBox.top)+'px';p.width=(box?.width??stageBox.width)+'px';p.height=(box?.height??stageBox.height)+'px';
-   flight.appendChild(vector.svg);glyphs=makeScreenAlignedGlyphs(vector,flight,stage);if(!glyphs.length)throw new Error();
-  }catch(e){if(originalTitle){fallback=originalTitle.cloneNode(true);fallback.className='jw-about-fly-fallback';const b=originalTitle.getBoundingClientRect(),sb=stage.getBoundingClientRect();Object.assign(fallback.style,{left:(b.left-sb.left)+'px',top:(b.top-sb.top)+'px',width:b.width+'px',height:b.height+'px'});flight.appendChild(fallback);}}
-  gsap.set(flight,{autoAlpha:1});
-  const cx=window.innerWidth/2,cy=window.innerHeight/2;
-  if(glyphs.length){
-   glyphs.forEach(g=>{const r=g.getBoundingClientRect();const scale=Math.max(36,Math.min(100,Math.max(window.innerWidth/Math.max(r.width,1),window.innerHeight/Math.max(r.height,1))*2.1));gsap.set(g,{x:cx-(r.left+r.width/2),y:cy-(r.top+r.height/2),scale,transformOrigin:'50% 50%',force3D:true});});
-  }else if(fallback){const r=fallback.getBoundingClientRect();gsap.set(fallback,{x:cx-(r.left+r.width/2),y:cy-(r.top+r.height/2),scale:Math.max(34,window.innerWidth/Math.max(r.width*.3,1)*2),transformOrigin:'50% 50%',force3D:true});}
-  const tl=gsap.timeline({onComplete:finish});
-  tl.to(splash,{autoAlpha:0,duration:.32,ease:'power1.out'},0);
-  if(glyphs.length)tl.to(glyphs,{x:0,y:0,scale:1,duration:1.32,ease:'power2.out',force3D:true,stagger:{each:.004,from:'end'}},0);
-  else if(fallback)tl.to(fallback,{x:0,y:0,scale:1,duration:1.32,ease:'power2.out',force3D:true},0);
+  aboutReturnFocusRef.current=true;
+  timeline.eventCallback('onReverseComplete',()=>setAboutOpen(false));
+  timeline.reverse();
  };
  useLayoutEffect(()=>{
   if(!aboutOpen)return;
@@ -400,9 +375,10 @@ export default function HomepageHero(){
                window.innerHeight/Math.max(rect.height,1))*2.1));
      return {x:centerX-midX,y:centerY-midY,scale};
     });
-    flightTimeline=gsap.timeline({onComplete:()=>{
+    flightTimeline=gsap.timeline({paused:false,onComplete:()=>{
      if(!cancelled)close.focus({preventScroll:true});
     }});
+    aboutFlightTimelineRef.current=flightTimeline;
     // A short cinematic anticipation is followed by a rapid depth rush.
     flightTimeline.to(glyphs,{scale:1.1,duration:.18,ease:'power1.out'},0);
     glyphs.forEach((glyph,i)=>{
@@ -415,9 +391,10 @@ export default function HomepageHero(){
     // Keep the vectors opaque while enlarging; the splash is revealed by
     // their scale, not by a small circle expanding from a dot.
    }else{
-    flightTimeline=gsap.timeline({onComplete:()=>{
+    flightTimeline=gsap.timeline({paused:false,onComplete:()=>{
      if(!cancelled)close.focus({preventScroll:true});
     }});
+    aboutFlightTimelineRef.current=flightTimeline;
     if(fallback){
      const bounds=fallback.getBoundingClientRect();
      flightTimeline.to(fallback,{
@@ -438,7 +415,8 @@ export default function HomepageHero(){
   launch();
   return()=>{
    cancelled=true;
-   flightTimeline?.kill();
+   if(!aboutClosingRef.current)flightTimeline?.kill();
+   aboutFlightTimelineRef.current=null;
    restoreOriginal();
    document.body.style.overflow=savedOverflow;
    aboutClosingRef.current=false;
