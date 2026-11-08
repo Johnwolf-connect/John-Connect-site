@@ -1287,3 +1287,16 @@ html.purple-native-cursor .jw-about-transition .jw-about-closeout *{
  .jw-about-transition .jw-silhouette-copy-right .jw-silhouette-float{height:68vh}
  .jw-about-transition .jw-about-story-closeout{height:100svh;min-height:100svh;padding:90px 24px 56px}
 }
+
+
+/* Robust silhouette clipping for browsers that treat grayscale PNG masks as alpha-only. */
+.jw-about-transition .jw-about-kinetic-head{
+ mask-mode:luminance;
+ clip-path:polygon(
+ 45.7% 0%,27.8% 5%,19.4% 10%,13.8% 15%,9.8% 20%,6.9% 25%,2.5% 30%,0.8% 35%,0.4% 40%,0.1% 45%,
+ 0.1% 50%,1.6% 55%,5.0% 60%,6.3% 65%,14.3% 70%,15.0% 75%,16.6% 80%,20.3% 85%,26.4% 90%,33.0% 95%,
+ 46.2% 100%,55.4% 100%,65.9% 95%,72.9% 90%,79.5% 85%,83.3% 80%,85.0% 75%,85.7% 70%,93.3% 65%,
+ 94.7% 60%,98.0% 55%,99.4% 50%,99.4% 45%,99.1% 40%,98.6% 35%,96.9% 30%,92.6% 25%,89.9% 20%,
+ 86.0% 15%,80.6% 10%,72.5% 5%,54.0% 0%
+ );
+}
