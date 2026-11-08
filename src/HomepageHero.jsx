@@ -507,13 +507,6 @@ export default function HomepageHero(){
      <div className="jw-about-splash-orbit"/>
     </div>
     <div ref={aboutFlightRef} className="jw-about-flight" aria-hidden="true"/>
-    <nav className="jw-about-chapter-nav" aria-label="About page sections">
-     <a href="#jw-about-top" aria-label="About introduction"><span>01</span></a>
-     <a href="#jw-about-process" aria-label="How I work"><span>02</span></a>
-     <a href="#jw-about-capabilities-heading" aria-label="What I do"><span>03</span></a>
-     <a href="#jw-about-proof-heading" aria-label="Experience"><span>04</span></a>
-     <a href="#jw-about-closeout-heading" aria-label="Next"><span>05</span></a>
-    </nav>
     <main ref={aboutContentRef} className="jw-about-content jw-about-story" tabIndex={-1}>
      <section id="jw-about-top" className="jw-about-story-panel jw-about-story-intro">
       <div className="jw-about-story-copy">
