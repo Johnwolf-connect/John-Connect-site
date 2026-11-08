@@ -262,7 +262,9 @@
  position:fixed;inset:0;z-index:250;isolation:isolate;
  display:grid;place-items:center;
  overflow-x:hidden;overflow-y:auto;
- color:#fff;overscroll-behavior:contain;
+ color:#fff;
+ overscroll-behavior-x:none;
+ overscroll-behavior-y:none;
  background:transparent;
 }
 .jw-about-splash{
@@ -974,4 +976,12 @@ html.purple-native-cursor .jw-about-transition .jw-about-closeout *{
   padding-left:24px;
   padding-right:24px;
  }
+}
+
+
+/* Once the entrance finishes, About owns the viewport completely.
+   The opaque shell prevents scroll-boundary bounce/overscroll from exposing
+   the portfolio underneath. It is removed before the locked reverse transition. */
+.jw-about-transition.is-settled{
+ background:#fff;
 }
