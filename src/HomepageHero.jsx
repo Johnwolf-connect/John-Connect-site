@@ -440,6 +440,43 @@ export default function HomepageHero(){
   window.addEventListener('keydown',onEscape);
   return()=>window.removeEventListener('keydown',onEscape);
  },[aboutOpen]);
+ useEffect(()=>{
+  if(!aboutOpen)return;
+  const scroller=aboutStageRef.current;
+  const track=scroller?.querySelector('.jw-about-kinetic');
+  const sticky=track?.querySelector('.jw-about-kinetic-stage');
+  if(!scroller||!track||!sticky)return;
+  const scenes=[...sticky.querySelectorAll('.jw-about-kinetic-scene')];
+  const head=sticky.querySelector('.jw-about-kinetic-head');
+  const meter=sticky.querySelector('.jw-about-kinetic-meter span');
+  let raf=0;
+  const clamp=n=>Math.max(0,Math.min(1,n));
+  const update=()=>{
+   raf=0;
+   const max=Math.max(1,track.offsetHeight-scroller.clientHeight);
+   const p=clamp((scroller.scrollTop-track.offsetTop)/max);
+   const scenePos=p*Math.max(1,scenes.length-1);
+   scenes.forEach((scene,i)=>{
+    const d=Math.abs(scenePos-i);
+    const opacity=clamp(1-d*1.45);
+    const direction=i<scenePos?-1:1;
+    gsap.set(scene,{autoAlpha:opacity,y:direction*d*22,scale:.985+opacity*.015,pointerEvents:opacity>.72?'auto':'none'});
+   });
+   if(head){
+    const drift=Math.sin(p*Math.PI*4.2)*3.2;
+    const lift=18-(p*23);
+    const scale=.80+Math.sin(Math.min(1,p*1.18)*Math.PI/2)*.28;
+    gsap.set(head,{xPercent:-50+drift,yPercent:lift,scale,rotation:Math.sin(p*Math.PI*3)*.65,force3D:true});
+   }
+   if(meter)meter.style.transform='scaleX('+p+')';
+  };
+  const onScroll=()=>{if(!raf)raf=requestAnimationFrame(update)};
+  const resize=new ResizeObserver(onScroll);
+  resize.observe(track);resize.observe(scroller);
+  scroller.addEventListener('scroll',onScroll,{passive:true});
+  update();
+  return()=>{cancelAnimationFrame(raf);resize.disconnect();scroller.removeEventListener('scroll',onScroll)};
+ },[aboutOpen]);
  const activeIndicator=pending===null?index:pending;
  const visibleDuringSwipe=which=>which===index||which===pending;
  const liveSubtitle=which=><div key={'subtitle-'+which}
@@ -508,52 +545,76 @@ export default function HomepageHero(){
     </div>
     <div ref={aboutFlightRef} className="jw-about-flight" aria-hidden="true"/>
     <main ref={aboutContentRef} className="jw-about-content jw-about-story" tabIndex={-1}>
-     <section id="jw-about-top" className="jw-about-story-panel jw-about-story-intro">
-      <div className="jw-about-story-copy">
-       <span className="jw-about-kicker">JOHN WOLF / MULTIDISCIPLINARY DESIGNER</span>
-       <h2 id="jw-about-heading"><span className="jw-outline">ABOUT</span> ME.</h2>
-       <p>Good design gives an idea <em>a point of view.</em></p>
-      </div>
-      <div className="jw-about-head-anchor" aria-hidden="true">
-       <img src="/john-wolf-portrait.webp" alt=""/>
+     <section id="jw-about-top" className="jw-about-kinetic" aria-label="About John Wolf">
+      <div className="jw-about-kinetic-stage">
+       <div className="jw-about-kinetic-meter" aria-hidden="true"><span/></div>
+       <div className="jw-about-kinetic-head" aria-hidden="true">
+        <img src="/john-wolf-portrait.webp" alt=""/>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-arrival">
+        <span className="jw-about-kicker">JOHN WOLF / MULTIDISCIPLINARY DESIGNER</span>
+        <h2 id="jw-about-heading"><span>ABOUT</span> ME.</h2>
+        <p>Good design gives an idea <em>a point of view.</em></p>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-separate" aria-hidden="true">
+        <strong>ONE IDEA.</strong>
+        <strong>THREE MOVES.</strong>
+        <p>Clarity first. Character second. Then I keep pushing until the idea feels unmistakably its own.</p>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-wrap">
+        <div className="jw-silhouette-copy jw-silhouette-copy-left">
+         <span className="jw-silhouette-float" aria-hidden="true"/>
+         <p>I’m John Wolf. I build brand identities, visual systems, and digital experiences that make ideas easier to understand—and harder to forget.</p>
+        </div>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-interrupt" aria-hidden="true">
+        <span>IDEAS NEED</span><span>A POINT</span><span>OF VIEW.</span>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-think">
+        <strong>THINK</strong>
+        <div className="jw-silhouette-copy jw-silhouette-copy-right">
+         <span className="jw-silhouette-float" aria-hidden="true"/>
+         <p>I look for the idea underneath the design—the part that gives everything else a reason to exist.</p>
+        </div>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-build">
+        <strong>BUILD</strong>
+        <div className="jw-silhouette-copy jw-silhouette-copy-left">
+         <span className="jw-silhouette-float" aria-hidden="true"/>
+         <p>Identity systems, logos, digital experiences, and visual direction built to work as one clear system.</p>
+        </div>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-refine">
+        <strong>REFINE</strong>
+        <div className="jw-silhouette-copy jw-silhouette-copy-right">
+         <span className="jw-silhouette-float" aria-hidden="true"/>
+         <p>I keep pushing the work until every decision feels intentional rather than merely finished.</p>
+        </div>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-proof">
+        <span className="jw-proof-number">20+</span>
+        <p>years designing brands, identities, visual communication, and digital experiences.</p>
+        <div className="jw-proof-rail" aria-label="Capabilities">
+         {aboutCapabilities.map(item=><span key={item}>{item}</span>)}
+        </div>
+       </div>
+
+       <div className="jw-about-kinetic-scene jw-scene-resolution">
+        <div className="jw-resolution-words"><span>ONE</span><span>IDEA.</span><span>THREE</span><span>MOVES.</span></div>
+        <p>Independent by nature. Design + technology by practice. Every decision should make the idea clearer, stronger, and easier to remember.</p>
+       </div>
       </div>
      </section>
 
-     <section id="jw-about-process" className="jw-about-story-panel jw-about-story-move jw-about-story-refine">
-      <div className="jw-about-wrap-copy">
-       <span className="jw-about-float-shape" aria-hidden="true"/>
-       <h3>One idea.<br/>Three moves.</h3>
-       <strong>REFINE</strong>
-       <p>I keep pushing the work until every decision feels intentional rather than merely finished.</p>
-      </div>
-     </section>
-
-     <section className="jw-about-story-panel jw-about-story-move jw-about-story-build">
-      <div className="jw-about-wrap-copy">
-       <span className="jw-about-float-shape" aria-hidden="true"/>
-       <h3>One idea.<br/>Three moves.</h3>
-       <strong>BUILD</strong>
-       <p>Identity systems, logos, digital experiences, and visual direction built to work as one clear system.</p>
-      </div>
-     </section>
-
-     <section className="jw-about-story-panel jw-about-story-move jw-about-story-think">
-      <div className="jw-about-wrap-copy">
-       <span className="jw-about-float-shape" aria-hidden="true"/>
-       <h3>One idea.<br/>Three moves.</h3>
-       <strong>THINK</strong>
-       <p>I look for the idea underneath the design—the part that gives everything else a reason to exist.</p>
-      </div>
-     </section>
-
-     <section className="jw-about-story-panel jw-about-story-resolve">
-      <div className="jw-about-resolve-copy">
-       <span>One</span><span>idea.</span><span>Three</span><span>moves.</span>
-      </div>
-      <p>I’m John Wolf. I build brand identities, visual systems, and digital experiences that make ideas easier to understand—and harder to forget.</p>
-     </section>
-
-     <section className="jw-about-story-panel jw-about-story-closeout">
+     <section className="jw-about-story-closeout">
       <span className="jw-about-kicker">NEXT</span>
       <h3>Make it<br/><em>memorable.</em></h3>
       <p>I don’t design decoration. I find what the idea needs to communicate, then build the visual language that makes it unmistakable.</p>
