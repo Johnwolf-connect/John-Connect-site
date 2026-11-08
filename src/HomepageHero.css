@@ -1008,9 +1008,9 @@ html.purple-native-cursor .jw-about-transition .jw-about-closeout *{
 .jw-about-transition .jw-about-float-shape{
  float:left;width:clamp(260px,34vw,500px);height:clamp(360px,52vw,650px);
  margin:0 clamp(28px,5vw,74px) 20px 0;
- shape-outside:url('/homepage-canva/Man.svg');
+ shape-outside:url('/john-wolf-portrait.webp');
  shape-image-threshold:.08;shape-margin:clamp(16px,2vw,34px);
- background:url('/homepage-canva/Man.svg') center top/contain no-repeat;
+ background:url('/john-wolf-portrait.webp') center top/contain no-repeat;
 }
 .jw-about-transition .jw-about-story-build .jw-about-float-shape{float:right;margin:0 0 20px clamp(28px,5vw,74px)}
 .jw-about-transition .jw-about-wrap-copy h3{font-size:clamp(38px,5.2vw,78px);line-height:.93;letter-spacing:-.06em;margin:0 0 clamp(36px,7vh,84px)}
