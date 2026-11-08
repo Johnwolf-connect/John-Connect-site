@@ -1034,3 +1034,200 @@ html.purple-native-cursor .jw-about-transition .jw-about-closeout *{
  .jw-about-transition .jw-about-story-build .jw-about-float-shape{margin-left:20px}
  .jw-about-transition .jw-about-resolve-copy{gap:0 12vw}
 }
+
+
+/* =========================================================
+   ABOUT / SECOND PASS — continuous 10→2 kinetic composition
+   The portrait contour below is sampled from the supplied SVG.
+   ========================================================= */
+.jw-about-transition.is-settled{background:#000}
+.jw-about-transition .jw-about-story{
+ width:100%;max-width:none;padding:0;margin:0;background:#000;color:#fff;
+}
+.jw-about-transition .jw-about-kinetic{
+ position:relative;height:760svh;background:#000;color:#fff;
+}
+.jw-about-transition .jw-about-kinetic-stage{
+ position:sticky;top:0;width:100%;height:100svh;overflow:hidden;background:#000;
+ isolation:isolate;
+}
+.jw-about-transition .jw-about-kinetic-stage::after{
+ content:"";position:absolute;inset:0;z-index:10;pointer-events:none;
+ background:radial-gradient(circle at 50% 47%,transparent 0 38%,rgba(0,0,0,.08) 72%,rgba(0,0,0,.34) 100%);
+}
+.jw-about-transition .jw-about-kinetic-meter{
+ position:absolute;left:clamp(22px,4vw,58px);right:clamp(22px,4vw,58px);bottom:28px;
+ height:1px;background:rgba(255,255,255,.18);z-index:12;overflow:hidden;
+}
+.jw-about-transition .jw-about-kinetic-meter span{
+ display:block;width:100%;height:100%;background:#fff;transform:scaleX(0);transform-origin:0 50%;
+ will-change:transform;
+}
+.jw-about-transition .jw-about-kinetic-head{
+ position:absolute;z-index:3;left:50%;top:9vh;width:min(40vw,560px);height:82vh;
+ transform:translate3d(-50%,18%,0) scale(.8);transform-origin:50% 52%;
+ pointer-events:none;will-change:transform;
+}
+.jw-about-transition .jw-about-kinetic-head img{
+ width:100%;height:100%;display:block;object-fit:contain;object-position:50% 50%;
+ filter:drop-shadow(0 28px 42px rgba(0,0,0,.26));
+}
+.jw-about-transition .jw-about-kinetic-scene{
+ position:absolute;inset:0;z-index:2;padding:clamp(88px,10vh,124px) clamp(28px,5.5vw,88px) 72px;
+ opacity:0;visibility:hidden;color:#fff;will-change:transform,opacity;
+}
+.jw-about-transition .jw-about-kinetic-scene:first-of-type{opacity:1;visibility:visible}
+.jw-about-transition .jw-about-kinetic-scene :is(h2,strong,span,p){position:relative}
+.jw-about-transition .jw-about-kinetic-scene p{
+ color:#fff;margin:0;font-family:'DM Sans',Arial,sans-serif;
+}
+.jw-about-transition .jw-scene-arrival{text-align:center}
+.jw-about-transition .jw-scene-arrival .jw-about-kicker{
+ display:block;margin:0 0 4vh;font-size:clamp(9px,.8vw,12px);letter-spacing:.22em;color:rgba(255,255,255,.72)
+}
+.jw-about-transition .jw-scene-arrival h2{
+ margin:0 auto;font:800 clamp(76px,13.5vw,210px)/.78 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.09em;white-space:nowrap;color:#fff;
+}
+.jw-about-transition .jw-scene-arrival h2>span{
+ color:transparent;-webkit-text-stroke:clamp(1px,.14vw,2.5px) #fff;
+}
+.jw-about-transition .jw-scene-arrival>p{
+ margin:4vh auto 0;font-size:clamp(16px,1.55vw,24px);letter-spacing:-.02em;
+}
+.jw-about-transition .jw-scene-arrival>p em{font-family:'Playfair Display',Georgia,serif;font-weight:600}
+
+.jw-about-transition .jw-scene-separate strong{
+ position:absolute;display:block;font:800 clamp(62px,10.5vw,166px)/.8 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.085em;white-space:nowrap;
+}
+.jw-about-transition .jw-scene-separate strong:first-child{left:5vw;top:15vh}
+.jw-about-transition .jw-scene-separate strong:nth-child(2){right:4vw;bottom:13vh;text-align:right}
+.jw-about-transition .jw-scene-separate>p{
+ position:absolute;right:6vw;top:19vh;width:min(28vw,390px);font-size:clamp(15px,1.35vw,20px);
+ line-height:1.5;text-align:right;color:rgba(255,255,255,.78);
+}
+
+.jw-about-transition .jw-silhouette-copy{
+ position:absolute;inset:0;z-index:4;padding:13vh 5vw 8vh;
+ font:650 clamp(30px,4.5vw,70px)/1.02 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.055em;
+}
+.jw-about-transition .jw-silhouette-copy p{font:inherit;letter-spacing:inherit;line-height:inherit}
+.jw-about-transition .jw-silhouette-float{
+ width:min(40vw,560px);height:78vh;
+ shape-outside:polygon(
+ 48.0% 0%,28.0% 5%,19.6% 10%,13.9% 15%,9.8% 20%,7.0% 25%,2.6% 30%,0.9% 35%,0.4% 40%,0.2% 45%,
+ 0.2% 50%,1.7% 55%,4.9% 60%,6.4% 65%,14.2% 70%,15.0% 75%,16.6% 80%,20.4% 85%,26.6% 90%,33.1% 95%,
+ 46.4% 100%,53.1% 100%,64.9% 95%,72.7% 90%,79.4% 85%,83.3% 80%,85.1% 75%,85.8% 70%,93.3% 65%,
+ 94.7% 60%,98.0% 55%,99.5% 50%,99.5% 45%,99.2% 40%,98.6% 35%,97.0% 30%,92.5% 25%,89.8% 20%,
+ 86.0% 15%,80.4% 10%,72.2% 5%,52.6% 0%
+ );
+ shape-margin:clamp(14px,1.8vw,30px);
+}
+.jw-about-transition .jw-silhouette-copy-left .jw-silhouette-float{
+ float:right;margin:0 clamp(24vw,32vw,34vw) 0 2vw;
+}
+.jw-about-transition .jw-silhouette-copy-right .jw-silhouette-float{
+ float:left;margin:0 2vw 0 clamp(24vw,32vw,34vw);
+}
+
+.jw-about-transition .jw-scene-interrupt{z-index:2}
+.jw-about-transition .jw-scene-interrupt>span{
+ position:absolute;display:block;font:800 clamp(70px,11vw,178px)/.76 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.09em;white-space:nowrap;
+}
+.jw-about-transition .jw-scene-interrupt>span:nth-child(1){left:3vw;top:10vh}
+.jw-about-transition .jw-scene-interrupt>span:nth-child(2){right:3vw;top:39vh}
+.jw-about-transition .jw-scene-interrupt>span:nth-child(3){left:8vw;bottom:8vh}
+
+.jw-about-transition :is(.jw-scene-think,.jw-scene-build,.jw-scene-refine)>strong{
+ position:absolute;z-index:2;display:block;font:850 clamp(92px,16vw,250px)/.72 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.1em;white-space:nowrap;color:#fff;
+}
+.jw-about-transition .jw-scene-think>strong{left:-1vw;top:14vh}
+.jw-about-transition .jw-scene-build>strong{right:-1vw;bottom:10vh}
+.jw-about-transition .jw-scene-refine>strong{left:-1vw;bottom:12vh}
+.jw-about-transition :is(.jw-scene-think,.jw-scene-build,.jw-scene-refine) .jw-silhouette-copy{
+ font-size:clamp(24px,3vw,48px);line-height:1.08;padding-top:28vh;
+}
+.jw-about-transition .jw-scene-build .jw-silhouette-copy{padding-top:16vh}
+.jw-about-transition .jw-scene-refine .jw-silhouette-copy{padding-top:19vh}
+
+.jw-about-transition .jw-scene-proof{
+ display:grid;grid-template-columns:.7fr 1fr;align-content:center;gap:2vw 7vw;
+}
+.jw-about-transition .jw-proof-number{
+ align-self:end;font:850 clamp(120px,20vw,320px)/.72 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.11em;color:#fff;
+}
+.jw-about-transition .jw-scene-proof>p{
+ align-self:end;max-width:520px;font-size:clamp(20px,2.25vw,34px);line-height:1.25;letter-spacing:-.035em;
+}
+.jw-about-transition .jw-proof-rail{
+ grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 24px;margin-top:5vh;padding-top:22px;
+ border-top:1px solid rgba(255,255,255,.3);
+}
+.jw-about-transition .jw-proof-rail span{
+ font:700 clamp(10px,.9vw,13px)/1 'DM Sans',Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+ color:rgba(255,255,255,.72);
+}
+
+.jw-about-transition .jw-scene-resolution{
+ display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
+}
+.jw-about-transition .jw-resolution-words{
+ width:min(1180px,92vw);display:grid;grid-template-columns:1fr 1fr;
+ gap:0 clamp(180px,24vw,430px);font:850 clamp(52px,7.7vw,120px)/.82 'DM Sans',Arial,sans-serif;
+ letter-spacing:-.075em;
+}
+.jw-about-transition .jw-scene-resolution>p{
+ margin-top:7vh;max-width:720px;font-size:clamp(17px,1.7vw,25px);line-height:1.55;color:rgba(255,255,255,.82);
+}
+
+/* The closeout is deliberately outside the sticky choreography. */
+.jw-about-transition .jw-about-story-closeout{
+ position:relative;z-index:5;min-height:100svh;padding:clamp(110px,14vh,170px) clamp(28px,7vw,112px);
+ background:#000;color:#fff;border-top:1px solid rgba(255,255,255,.14);
+}
+.jw-about-transition .jw-about-story-closeout .jw-about-kicker{color:rgba(255,255,255,.58)}
+.jw-about-transition .jw-about-story-closeout h3{color:#fff}
+.jw-about-transition .jw-about-story-closeout>p{color:rgba(255,255,255,.82)}
+.jw-about-transition .jw-about-story-closeout .jw-about-actions a{color:#fff;border-color:rgba(255,255,255,.38)}
+.jw-about-transition .jw-about-story-closeout .jw-about-actions a:hover,
+.jw-about-transition .jw-about-story-closeout .jw-about-actions a:focus-visible{border-color:#fff}
+.jw-about-transition .jw-about-close{
+ background:rgba(0,0,0,.56);color:#fff;border-color:rgba(255,255,255,.42);
+}
+.jw-about-transition .jw-about-close:hover,
+.jw-about-transition .jw-about-close:focus-visible{background:#fff;color:#000;border-color:#fff}
+
+@media(max-width:820px){
+ .jw-about-transition .jw-about-kinetic{height:700svh}
+ .jw-about-transition .jw-about-kinetic-head{top:16vh;width:min(66vw,460px);height:68vh}
+ .jw-about-transition .jw-about-kinetic-scene{padding:96px 20px 64px}
+ .jw-about-transition .jw-scene-arrival h2{font-size:clamp(62px,18vw,116px);white-space:normal}
+ .jw-about-transition .jw-scene-separate strong{font-size:clamp(48px,15vw,94px)}
+ .jw-about-transition .jw-scene-separate strong:first-child{left:18px;top:14vh}
+ .jw-about-transition .jw-scene-separate strong:nth-child(2){right:18px;bottom:12vh}
+ .jw-about-transition .jw-scene-separate>p{right:20px;top:28vh;width:42vw;font-size:13px}
+ .jw-about-transition .jw-silhouette-copy{padding:18vh 20px 8vh;font-size:clamp(23px,7.2vw,40px)}
+ .jw-about-transition .jw-silhouette-float{width:58vw;height:64vh;shape-margin:12px}
+ .jw-about-transition .jw-silhouette-copy-left .jw-silhouette-float{margin-right:24vw}
+ .jw-about-transition .jw-silhouette-copy-right .jw-silhouette-float{margin-left:24vw}
+ .jw-about-transition .jw-scene-interrupt>span{font-size:clamp(58px,17vw,110px)}
+ .jw-about-transition :is(.jw-scene-think,.jw-scene-build,.jw-scene-refine)>strong{font-size:clamp(82px,24vw,150px)}
+ .jw-about-transition :is(.jw-scene-think,.jw-scene-build,.jw-scene-refine) .jw-silhouette-copy{font-size:clamp(20px,5.8vw,34px)}
+ .jw-about-transition .jw-scene-proof{grid-template-columns:1fr;gap:24px}
+ .jw-about-transition .jw-proof-number{font-size:clamp(112px,35vw,190px)}
+ .jw-about-transition .jw-proof-rail{grid-column:1}
+ .jw-about-transition .jw-resolution-words{gap:0 18vw;font-size:clamp(42px,12vw,76px)}
+ .jw-about-transition .jw-about-story-closeout{padding:110px 24px 90px}
+}
+@media(prefers-reduced-motion:reduce){
+ .jw-about-transition .jw-about-kinetic{height:auto}
+ .jw-about-transition .jw-about-kinetic-stage{position:relative;height:auto;min-height:100svh}
+ .jw-about-transition .jw-about-kinetic-head{position:sticky;top:14vh;height:64vh}
+ .jw-about-transition .jw-about-kinetic-scene{position:relative;min-height:100svh;opacity:1!important;visibility:visible!important;transform:none!important}
+ .jw-about-transition .jw-about-kinetic-meter{display:none}
+}
