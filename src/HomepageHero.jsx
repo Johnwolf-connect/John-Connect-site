@@ -294,6 +294,8 @@ export default function HomepageHero(){
   const originalTitle=hero.querySelector('.jw-live-title-base[data-title-index="'+activeTitle+'"] img');
   const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
   const finish=()=>{originalLayers.forEach(node=>node.style.removeProperty('opacity'));setAboutOpen(false);};
+  // Respond to the click immediately; build the reverse artwork while the About UI is already receding.
+  gsap.to([content,close],{autoAlpha:0,y:12,duration:.18,ease:'power1.out'});
   let glyphs=[],fallback=null;
   flight.innerHTML='';
   try{
@@ -310,10 +312,9 @@ export default function HomepageHero(){
    glyphs.forEach(g=>{const r=g.getBoundingClientRect();const scale=Math.max(36,Math.min(100,Math.max(window.innerWidth/Math.max(r.width,1),window.innerHeight/Math.max(r.height,1))*2.1));gsap.set(g,{x:cx-(r.left+r.width/2),y:cy-(r.top+r.height/2),scale,transformOrigin:'50% 50%',force3D:true});});
   }else if(fallback){const r=fallback.getBoundingClientRect();gsap.set(fallback,{x:cx-(r.left+r.width/2),y:cy-(r.top+r.height/2),scale:Math.max(34,window.innerWidth/Math.max(r.width*.3,1)*2),transformOrigin:'50% 50%',force3D:true});}
   const tl=gsap.timeline({onComplete:finish});
-  tl.to([content,close],{autoAlpha:0,y:20,duration:.28,ease:'power2.in'},0)
-    .to(splash,{autoAlpha:0,duration:.46,ease:'power2.inOut'},.22);
-  if(glyphs.length)tl.to(glyphs,{x:0,y:0,scale:1,duration:1.45,ease:'power2.out',force3D:true,stagger:{each:.008,from:'end'}},.18);
-  else if(fallback)tl.to(fallback,{x:0,y:0,scale:1,duration:1.45,ease:'power2.out',force3D:true},.18);
+  tl.to(splash,{autoAlpha:0,duration:.32,ease:'power1.out'},0);
+  if(glyphs.length)tl.to(glyphs,{x:0,y:0,scale:1,duration:1.32,ease:'power2.out',force3D:true,stagger:{each:.004,from:'end'}},0);
+  else if(fallback)tl.to(fallback,{x:0,y:0,scale:1,duration:1.32,ease:'power2.out',force3D:true},0);
  };
  useLayoutEffect(()=>{
   if(!aboutOpen)return;
