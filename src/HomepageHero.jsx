@@ -286,12 +286,35 @@ export default function HomepageHero(){
  const closeAbout=()=>{
   if(aboutClosingRef.current)return;
   aboutClosingRef.current=true;
-  // Restore the live lettering while purple still covers the screen.
-  homepageRef.current?.querySelectorAll('.jw-live-title-visible').forEach(node=>node.style.removeProperty('opacity'));
   const stage=aboutStageRef.current;
-  if(!stage){setAboutOpen(false);return;}
-  gsap.to(stage,{autoAlpha:0,duration:.3,ease:'power2.inOut',
-   onComplete:()=>{setAboutOpen(false);}});
+  const flight=aboutFlightRef.current;
+  const splash=aboutSplashRef.current;
+  const content=aboutContentRef.current;
+  const close=aboutCloseRef.current;
+  const hero=homepageRef.current;
+  if(!stage||!flight||!splash||!content||!close||!hero){setAboutOpen(false);return;}
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced){setAboutOpen(false);return;}
+  const activeTitle=indexRef.current;
+  const originalTitle=hero.querySelector('.jw-live-title-base[data-title-index="'+activeTitle+'"] img');
+  const originalLayers=[...hero.querySelectorAll('.jw-live-title-visible')];
+  const finish=()=>{originalLayers.forEach(node=>node.style.removeProperty('opacity'));setAboutOpen(false);};
+  gsap.timeline({onComplete:finish})
+   .to([content,close],{autoAlpha:0,y:20,duration:.3,ease:'power2.in'},0)
+   .to(splash,{autoAlpha:0,duration:.34,ease:'power2.inOut'},.18)
+   .call(()=>{
+    flight.innerHTML='';
+    if(!originalTitle)return;
+    const clone=originalTitle.cloneNode(true);
+    clone.className='jw-about-fly-fallback';
+    const box=originalTitle.getBoundingClientRect(),stageBox=stage.getBoundingClientRect();
+    Object.assign(clone.style,{left:(box.left-stageBox.left)+'px',top:(box.top-stageBox.top)+'px',width:box.width+'px',height:box.height+'px'});
+    flight.appendChild(clone);
+    const centerX=window.innerWidth/2,centerY=window.innerHeight/2;
+    const scale=Math.max(34,window.innerWidth/Math.max(box.width*.3,1)*2);
+    gsap.set(clone,{x:centerX-(box.left+box.width/2),y:centerY-(box.top+box.height/2),scale,transformOrigin:'50% 50%',force3D:true});
+    gsap.to(clone,{x:0,y:0,scale:1,duration:1.2,ease:'power3.out',force3D:true,onComplete:finish});
+   },[],.28);
  };
  useLayoutEffect(()=>{
   if(!aboutOpen)return;
