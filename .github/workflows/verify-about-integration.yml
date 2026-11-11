@@ -9,8 +9,6 @@ on:
       - 'vite.config.js'
       - 'package*.json'
       - '.github/workflows/verify-about-integration.yml'
-permissions:
-  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,31 +18,15 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - name: Retrieve exact approved head from original public repository
-        if: github.event_name == 'push'
-        run: |
-          mkdir -p public/about
-          curl --fail --location --retry 3 \
-            --output public/about/head-interactive.glb \
-            https://raw.githubusercontent.com/Johnwolf-connect/john-wolf-3d-head/main/web/public/head-interactive.glb
-          test "$(git hash-object public/about/head-interactive.glb)" = '42fa6e31d60018fba35e2d553ae7f67e0b10924f'
-          echo 'Verified exact approved head model and SHA'
       - run: npm ci
       - run: npm run build
-      - name: Verify separate About entry
+      - name: Verify About HTML output
         run: test -f dist/about.html
-      - name: Commit the verified model on the isolated branch
-        if: github.event_name == 'push'
+      - name: Check design and model assets
         run: |
-          git add -f public/about/head-interactive.glb
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m 'Add byte-verified approved 3D head model'
-            git push origin HEAD:feature/standalone-3d-about-page
+          if [ ! -f public/about/head-interactive.glb ]; then
+            echo "::warning::Approved 3D head asset must be copied from private source repo in Codespaces"
           fi
-      - name: Flag missing homepage Canva artwork
-        run: |
           if [ ! -d public/homepage-canva ]; then
-            echo "::warning::Approved homepage SVG artwork still needs restoring"
+            echo "::warning::Original homepage Canva SVG artwork is not committed to GitHub"
           fi
