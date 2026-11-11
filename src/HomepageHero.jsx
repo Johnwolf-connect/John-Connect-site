@@ -319,10 +319,8 @@ export default function HomepageHero(){
   gsap.set(content,{autoAlpha:0,y:34});
   gsap.set(close,{autoAlpha:0,y:-10});
   if(reduced){
-   gsap.set(splash,{autoAlpha:1,clipPath:'none'});
-   gsap.set([content,close],{autoAlpha:1,y:0});
-   stage.classList.add('is-settled');
-   close.focus({preventScroll:true});
+   // Respect reduced motion: move directly to the dedicated About document.
+   window.location.assign('/about.html');
    return()=>{document.body.style.overflow=savedOverflow;aboutClosingRef.current=false;};
   }
   async function launch(){
@@ -420,8 +418,9 @@ export default function HomepageHero(){
    // It covers the entire viewport at once; there is no circular dot.
    flightTimeline.to(splash,{autoAlpha:1,duration:.48,ease:'power2.inOut'},1.08)
     .to(flight,{autoAlpha:0,duration:.22,ease:'power1.out'},1.43)
-    .to(content,{autoAlpha:1,y:0,duration:.64,ease:'power3.out'},1.53)
-    .to(close,{autoAlpha:1,y:0,duration:.4,ease:'power2.out'},1.67);
+    // Hold the opaque purple field until the separate About document opens.
+    // No old About panel is revealed between the letter rush and navigation.
+    .call(()=>{if(!cancelled)window.location.assign('/about.html');},[],1.72);
   }
   launch();
   return()=>{
