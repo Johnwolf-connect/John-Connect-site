@@ -247,3 +247,13 @@ function frame(now){
  opticalRipple.render(controller.time);
 }
 requestAnimationFrame(frame);
+
+// The parent portfolio scrolls; keep this isolated document in sync with it.
+let externalScrollProgress=0;
+window.addEventListener('message',event=>{
+ if(event.origin!==window.location.origin||event.data?.type!=='jw-about-scroll')return;
+ externalScrollProgress=Math.max(0,Math.min(1,Number(event.data.progress)||0));
+ const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+ window.scrollTo({top:externalScrollProgress*maxScroll,behavior:'instant'});
+});
+window.parent?.postMessage({type:'jw-about-ready'},window.location.origin);
