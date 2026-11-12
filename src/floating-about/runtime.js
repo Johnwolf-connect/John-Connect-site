@@ -7,6 +7,8 @@ import {setupFloppyDisk} from './floppy.js';
 import {installFloatingStory} from './floating-story.js';
 import {installOpticalRipple} from './optical-ripple.js';
 import './standalone.css';
+import {installScrollBridge} from './scroll-bridge.js';
+const scrollBridge=installScrollBridge();
 
 const layout=document.querySelector('.layout');
 const about=document.querySelector('.about-journey');
@@ -158,7 +160,7 @@ window.addEventListener('pointerdown',e=>{
  if(contact)triggerHit(contact,e);
 });
 window.addEventListener('keydown',e=>{
- if(e.code==='Space'&&e.target===document.body){
+ if(e.code==='Enter'&&e.target===canvas){
   e.preventDefault();
   const rect=canvas.getBoundingClientRect(),center={clientX:rect.left+rect.width/2,clientY:rect.top+rect.height/2};
   const contact=rayHit({x:0,y:0});
@@ -176,6 +178,7 @@ let last=performance.now(),lastState='';
 function frame(now){
  requestAnimationFrame(frame);
  const dt=Math.min(.05,(now-last)/1000);last=now;
+ if(!scrollBridge.isActive())return;
  const motion=controller.update(dt);
  if(introStart>=0&&!introFinished){
   const elapsed=Math.max(0,now/1000-introStart);
@@ -212,8 +215,8 @@ function frame(now){
    const r=line.getBoundingClientRect();
    // Correct for the preceding frame's transform when finding the rest center.
    // Otherwise measuring already-displaced text feeds jitter back into the wave.
-   const dx=r.left+r.width/2-line._waveX-window.innerWidth*impactOrigin.x/100;
-   const dy=r.top+r.height/2-line._waveY-window.innerHeight*impactOrigin.y/100;
+   const dx=r.left+r.width/2-(line._waveX||0)-window.innerWidth*impactOrigin.x/100;
+   const dy=r.top+r.height/2-(line._waveY||0)-window.innerHeight*impactOrigin.y/100;
    const distance=Math.hypot(dx,dy);
    const arrival=age-distance/480;
    if(arrival>0){
@@ -248,20 +251,3 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
-// The parent portfolio scrolls; keep this isolated document in sync with it.
-let externalScrollProgress=0;
-window.addEventListener('message',event=>{
- if(event.origin!==window.location.origin||event.data?.type!=='jw-about-scroll')return;
- externalScrollProgress=Math.max(0,Math.min(1,Number(event.data.progress)||0));
- const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
- window.scrollTo(0,externalScrollProgress*maxScroll);
-});
-if(window.parent!==window)window.parent.postMessage({type:'jw-about-ready'},window.location.origin);
-
-// Wheel events are captured by an iframe; hand them to the parent document.
-window.addEventListener('wheel',event=>{
- if(window.parent===window)return;
- if(event.ctrlKey)return;
- event.preventDefault();
- window.parent.postMessage({type:'jw-about-wheel',deltaY:event.deltaY},window.location.origin);
-},{passive:false});

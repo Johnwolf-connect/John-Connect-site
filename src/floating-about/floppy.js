@@ -41,7 +41,7 @@ export function setupFloppyDisk(host){
   let disk=fallbackDisk();scene.add(disk);
   let alive=true,visible=false;
   const loader=new GLTFLoader();
-  loader.load('/floppy/scene.gltf',gltf=>{
+  loader.load('/models/about/floppy/scene.gltf',gltf=>{
     if(!alive)return;
     scene.remove(disk);
     disk=gltf.scene;
@@ -64,7 +64,7 @@ export function setupFloppyDisk(host){
     request=requestAnimationFrame(frame);
     if(!visible){previous=now;return}
     const dt=Math.min(.05,(now-previous)/1000||0);previous=now;
-    elapsed+=dt;
+    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)elapsed+=dt;
     // Keep the floppy legible: a gentle three-quarter rocking turn rather
     // than a full 360-degree spin that becomes an unrecognizable black line.
     disk.rotation.y=Math.sin(elapsed*.58)*.47-.16;
