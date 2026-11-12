@@ -25,7 +25,7 @@ export default function FloatingAbout(){
   const onMessage=e=>{
    if(e.source!==frame.current?.contentWindow||e.origin!==window.location.origin)return;
    if(e.data?.type==='jw-about-ready')sync();
-   if(e.data?.type==='jw-about-wheel')window.scrollBy({top:Number(e.data.deltaY)||0,behavior:'instant'});
+   if(e.data?.type==='jw-about-wheel')window.scrollBy(0,Number(e.data.deltaY)||0);
   };
   window.addEventListener('message',onMessage);
   sync();
@@ -33,7 +33,7 @@ export default function FloatingAbout(){
  },[]);
  return <section id="about" className="floating-about-shell" aria-label="About John Wolf — interactive 3D experience">
   <div className="floating-about-sticky">
-   <iframe ref={frame} title="About John Wolf — interactive floating 3D head" src="/about-experience/" loading="lazy" className="floating-about-frame" onLoad={()=>frame.current?.contentWindow?.postMessage({type:'jw-about-scroll',progress:0},window.location.origin)}/>
+   <iframe ref={frame} title="About John Wolf — interactive floating 3D head" src="/about-experience/" loading="lazy" className="floating-about-frame" onLoad={()=>{const section=frame.current?.closest('#about');const max=Math.max(1,(section?.offsetHeight||0)-window.innerHeight);const progress=Math.max(0,Math.min(1,-(section?.getBoundingClientRect().top||0)/max));frame.current?.contentWindow?.postMessage({type:'jw-about-scroll',progress},window.location.origin)}}/>
   </div>
  </section>;
 }
