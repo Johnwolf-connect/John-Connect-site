@@ -1,3 +1,4 @@
+import FloatingAbout from './floating-about/FloatingAbout.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './style.css';
@@ -228,7 +229,7 @@ function App(){
    </section>
    <ScrollGallery projects={projects} onSelect={setActive}/>
    <BrandGallery/>
-   <section id="about" className="about"><span className="kicker">CREATIVE PRACTICE</span><h2>Design is how<br/>I make ideas <i>felt.</i></h2><p>I'm John Wolf. My work connects logo design, brand identity, and digital experiences through clarity and purpose.</p><a href="#contact" className="contact-note">Let’s work together ↗</a></section>
+   <FloatingAbout/>
    <Contact/>
   </main>
   <footer><span>JOHN WOLF © {new Date().getFullYear()}</span><a href="#top">Back to top ↑</a></footer>
