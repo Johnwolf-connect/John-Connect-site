@@ -1,0 +1,32 @@
+name: Check separate About page build
+on:
+  push:
+    branches: [feature/standalone-3d-about-page]
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'about.html'
+      - 'vite.config.js'
+      - 'package*.json'
+      - '.github/workflows/verify-about-integration.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Verify About HTML output
+        run: test -f dist/about.html
+      - name: Check design and model assets
+        run: |
+          if [ ! -f public/about/head-interactive.glb ]; then
+            echo "::warning::Approved 3D head asset must be copied from private source repo in Codespaces"
+          fi
+          if [ ! -d public/homepage-canva ]; then
+            echo "::warning::Original homepage Canva SVG artwork is not committed to GitHub"
+          fi
