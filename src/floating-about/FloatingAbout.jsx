@@ -23,7 +23,9 @@ export default function FloatingAbout(){
   window.addEventListener('scroll',sync,{passive:true});
   window.addEventListener('resize',sync);
   const onMessage=e=>{
-   if(e.source===frame.current?.contentWindow&&e.origin===window.location.origin&&e.data?.type==='jw-about-ready')sync();
+   if(e.source!==frame.current?.contentWindow||e.origin!==window.location.origin)return;
+   if(e.data?.type==='jw-about-ready')sync();
+   if(e.data?.type==='jw-about-wheel')window.scrollBy({top:Number(e.data.deltaY)||0,behavior:'instant'});
   };
   window.addEventListener('message',onMessage);
   sync();
