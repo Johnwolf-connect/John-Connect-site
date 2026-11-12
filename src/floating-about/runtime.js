@@ -257,3 +257,11 @@ window.addEventListener('message',event=>{
  window.scrollTo({top:externalScrollProgress*maxScroll,behavior:'instant'});
 });
 window.parent?.postMessage({type:'jw-about-ready'},window.location.origin);
+
+// Wheel events are captured by an iframe; hand them to the parent document.
+window.addEventListener('wheel',event=>{
+ if(window.parent===window)return;
+ if(event.ctrlKey)return;
+ event.preventDefault();
+ window.parent.postMessage({type:'jw-about-wheel',deltaY:event.deltaY},window.location.origin);
+},{passive:false});
