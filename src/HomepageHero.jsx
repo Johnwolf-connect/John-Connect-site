@@ -544,89 +544,10 @@ export default function HomepageHero(){
      <div className="jw-about-splash-orbit"/>
     </div>
     <div ref={aboutFlightRef} className="jw-about-flight" aria-hidden="true"/>
-    <main ref={aboutContentRef} className="jw-about-content jw-about-story" tabIndex={-1}>
-     <section id="jw-about-top" className="jw-about-kinetic" aria-label="About John Wolf">
-      <div className="jw-about-kinetic-stage">
-       <div className="jw-about-kinetic-meter" aria-hidden="true"><span/></div>
-       <div className="jw-about-kinetic-head" aria-hidden="true">
-        <img src={aboutMan} alt=""/>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-arrival">
-        <span className="jw-about-kicker">JOHN WOLF / MULTIDISCIPLINARY DESIGNER</span>
-        <h2 id="jw-about-heading"><span>ABOUT</span> ME.</h2>
-        <p>Good design gives an idea <em>a point of view.</em></p>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-separate" aria-hidden="true">
-        <strong>ONE IDEA.</strong>
-        <strong>THREE MOVES.</strong>
-        <p>Clarity first. Character second. Then I keep pushing until the idea feels unmistakably its own.</p>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-wrap">
-        <div className="jw-silhouette-copy jw-silhouette-copy-left">
-         <span className="jw-silhouette-float" aria-hidden="true"/>
-         <p>I’m John Wolf. I build brand identities, visual systems, and digital experiences that make ideas easier to understand—and harder to forget.</p>
-        </div>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-interrupt" aria-hidden="true">
-        <span>IDEAS NEED</span><span>A POINT</span><span>OF VIEW.</span>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-think">
-        <strong>THINK</strong>
-        <div className="jw-silhouette-copy jw-silhouette-copy-right">
-         <span className="jw-silhouette-float" aria-hidden="true"/>
-         <p>I look for the idea underneath the design—the part that gives everything else a reason to exist.</p>
-        </div>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-build">
-        <strong>BUILD</strong>
-        <div className="jw-silhouette-copy jw-silhouette-copy-left">
-         <span className="jw-silhouette-float" aria-hidden="true"/>
-         <p>Identity systems, logos, digital experiences, and visual direction built to work as one clear system.</p>
-        </div>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-refine">
-        <strong>REFINE</strong>
-        <div className="jw-silhouette-copy jw-silhouette-copy-right">
-         <span className="jw-silhouette-float" aria-hidden="true"/>
-         <p>I keep pushing the work until every decision feels intentional rather than merely finished.</p>
-        </div>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-proof">
-        <span className="jw-proof-number">20+</span>
-        <p>years designing brands, identities, visual communication, and digital experiences.</p>
-        <div className="jw-proof-rail" aria-label="Capabilities">
-         {aboutCapabilities.map(item=><span key={item}>{item}</span>)}
-        </div>
-       </div>
-
-       <div className="jw-about-kinetic-scene jw-scene-resolution">
-        <div className="jw-resolution-words"><span>ONE</span><span>IDEA.</span><span>THREE</span><span>MOVES.</span></div>
-        <p>Independent by nature. Design + technology by practice. Every decision should make the idea clearer, stronger, and easier to remember.</p>
-       </div>
-      </div>
-     </section>
-
-     <section className="jw-about-story-closeout">
-      <span className="jw-about-kicker">NEXT</span>
-      <h3>Make it<br/><em>memorable.</em></h3>
-      <p>I don’t design decoration. I find what the idea needs to communicate, then build the visual language that makes it unmistakable.</p>
-      <div className="jw-about-actions">
-       <a href="#work" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>View my work <span aria-hidden="true">→</span></a>
-       <a href="#contact" onClick={()=>{aboutReturnFocusRef.current=false;setAboutOpen(false)}}>Start a project <span aria-hidden="true">→</span></a>
-      </div>
-     </section>
-    </main>
-    <button ref={aboutCloseRef} type="button" className="jw-about-close" onClick={closeAbout} aria-label="Return to portfolio">
-     <span aria-hidden="true">←</span> Portfolio
-    </button>
+    {/* A separate document owns the 3D About experience. Never mount the
+        legacy black inline About story under the purple transition. */}
+    <main ref={aboutContentRef} aria-hidden="true" hidden/>
+    <button ref={aboutCloseRef} type="button" hidden aria-hidden="true" onClick={closeAbout}>Return to portfolio</button>
    </div>,document.body)}
  </div>;
 }
