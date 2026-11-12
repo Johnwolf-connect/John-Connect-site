@@ -254,9 +254,9 @@ window.addEventListener('message',event=>{
  if(event.origin!==window.location.origin||event.data?.type!=='jw-about-scroll')return;
  externalScrollProgress=Math.max(0,Math.min(1,Number(event.data.progress)||0));
  const maxScroll=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
- window.scrollTo({top:externalScrollProgress*maxScroll,behavior:'instant'});
+ window.scrollTo(0,externalScrollProgress*maxScroll);
 });
-window.parent?.postMessage({type:'jw-about-ready'},window.location.origin);
+if(window.parent!==window)window.parent.postMessage({type:'jw-about-ready'},window.location.origin);
 
 // Wheel events are captured by an iframe; hand them to the parent document.
 window.addEventListener('wheel',event=>{
