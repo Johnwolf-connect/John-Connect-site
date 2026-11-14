@@ -1,0 +1,27 @@
+name: Portfolio build verification
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [integrate-floating-about]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Test About scrolling and motion
+        run: node --test tests/floating-about.test.js
+      - name: Build portfolio and About experience
+        run: npm run build
+      - name: Verify About entry and head model
+        run: |
+          test -f dist/index.html
+          test -f dist/about-experience/index.html
+          test -s dist/models/about/head-interactive.glb

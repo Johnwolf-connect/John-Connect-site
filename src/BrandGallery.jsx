@@ -148,6 +148,7 @@ export default function BrandGallery(){
   const content=Array.from(page.children).filter(node=>node!==veil);
   const r=origin.current;
   if(!r||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+   gsap.set(content,{autoAlpha:1});
    gsap.set(veil,{autoAlpha:0});return;
   }
   const curved='polygon(1% 3%,25% 1%,50% 0%,75% 1%,97% 3%,100% 48%,98% 96%,74% 100%,48% 99%,1% 94%)';
@@ -176,66 +177,6 @@ export default function BrandGallery(){
   setComparisonPosition(50);
   progressRing.current?.setAttribute('stroke-dashoffset','87.965');
   loopReady.current=true;
- },[opened,current.id]);
- // Load the visible pages first and warm a short buffer in the scroll direction.
- useLayoutEffect(()=>{
-  if(!opened||!reader.current)return;
-  const element=reader.current;
-  const images=Array.from(element.querySelectorAll('img[data-page-src]'));
-  const cycle=element.querySelector('.brand-reader-cycle');
-  const prefetching=new Set();
-  let frame=0,direction=1,lastY=element.scrollTop;
-  const requestPage=(image,priority)=>{
-   if(image.hasAttribute('src')){
-    if(priority==='high')image.fetchPriority='high';
-    return;
-   }
-   image.fetchPriority=priority;
-   image.src=image.dataset.pageSrc;
-   if(priority==='low'&&!image.complete)prefetching.add(image);
-  };
-  const update=()=>{
-   frame=0;
-   const y=element.scrollTop;
-   const cycleHeight=cycle?.offsetHeight||0;
-   let movement=y-lastY;
-   if(cycleHeight)movement-=Math.round(movement/cycleHeight)*cycleHeight;
-   if(movement)direction=Math.sign(movement);
-   lastY=y;
-
-   const viewport=element.getBoundingClientRect();
-   const before=[],after=[];
-   for(const image of images){
-    const page=image.parentElement.getBoundingClientRect();
-    if(page.bottom<=viewport.top)before.push(image);
-    else if(page.top>=viewport.bottom)after.push(image);
-    else requestPage(image,'high');
-   }
-   before.reverse();
-   const ahead=direction>0?after:before;
-   const behind=direction>0?before:after;
-   const buffer=[...ahead.slice(0,3),...behind.slice(0,1)];
-   for(const image of buffer){
-    if(prefetching.size>=2)break;
-    requestPage(image,'low');
-   }
-  };
-  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
-  const onImageSettled=event=>{
-   if(prefetching.delete(event.target))schedule();
-  };
-  element.addEventListener('scroll',schedule,{passive:true});
-  element.addEventListener('load',onImageSettled,true);
-  element.addEventListener('error',onImageSettled,true);
-  window.addEventListener('resize',schedule);
-  update();
-  return()=>{
-   cancelAnimationFrame(frame);
-   element.removeEventListener('scroll',schedule);
-   element.removeEventListener('load',onImageSettled,true);
-   element.removeEventListener('error',onImageSettled,true);
-   window.removeEventListener('resize',schedule);
-  };
  },[opened,current.id]);
  // Ease with scroll speed while keeping space between the page images.
  useEffect(()=>{
@@ -359,7 +300,7 @@ export default function BrandGallery(){
  },[opened]);
 
  const films=current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
-       <video src={film.src} poster={film.poster} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label={film.title}/>
+       <video src={film.src} poster={film.poster} playsInline muted loop autoPlay controls disablePictureInPicture disableRemotePlayback preload="metadata" aria-label={film.title}/>
        <figcaption>{film.title}</figcaption>
       </figure>);
 
@@ -409,7 +350,7 @@ export default function BrandGallery(){
       {current.pages.slice(1).map((page,i)=>{
        const sourceIndex=i+1;
        const size=current.sizes?.[sourceIndex]||[1200,675];
-       const still=<figure><img data-page-src={page} alt={current.alt?.[sourceIndex]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[sourceIndex]||String(i+1).padStart(2,'0')+' / '+(current.pages.length-1)}</figcaption></figure>;
+       const still=<figure><img src={page} loading="lazy" data-page-src={page} alt={current.alt?.[sourceIndex]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[sourceIndex]||String(i+1).padStart(2,'0')+' / '+(current.pages.length-1)}</figcaption></figure>;
        return <React.Fragment key={page}>
         {isDatingApp&&i===0&&films?.[0]}
         {isDatingApp&&i===2&&films?.[1]}
@@ -429,7 +370,7 @@ export default function BrandGallery(){
         </figure>}
        </React.Fragment>;
       })}
-      {isApparel&&<figure className="brand-reader-film"><video src={current.video} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
+      {isApparel&&<figure className="brand-reader-film"><video src={current.video} playsInline muted loop autoPlay controls disablePictureInPicture disableRemotePlayback preload="metadata" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
       {isDatingApp?films?.slice(2):films}
      </div>)}
     </div>
