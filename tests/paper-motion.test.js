@@ -40,7 +40,7 @@ test('scrubbing backward reproduces the same deformed frame',()=>{
  assert.ok(sampleHole(timeline,4.3,motion).some(s=>Math.abs(s.bend)>.01&&s.flutter>0));
 });
 test('preview artwork paths resolve to tracked local files',()=>{
- const source=readFileSync(new URL('../src/paper/preview.jsx',import.meta.url),'utf8');
+ const source=readFileSync(new URL('../src/paper/PaperHome.jsx',import.meta.url),'utf8');
  const paths=[...source.matchAll(/"(\/(?:logos|brands)\/[^"\n]+\.webp)"/g)].map(m=>m[1]);
  assert.equal(paths.length,12);
  for(const path of paths)assert.ok(existsSync(new URL('../public'+path,import.meta.url)),path);

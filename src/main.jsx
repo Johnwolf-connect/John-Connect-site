@@ -1,3 +1,4 @@
+import PaperHome from "./paper/PaperHome.jsx";
 import FloatingAbout from './floating-about/FloatingAbout.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
@@ -39,6 +40,7 @@ function CurvedSwipe(){
  useEffect(()=>{
   const hero=marker.current?.closest('.hero');
   const sheet=hero?.querySelector('.design-tools');
+  const home=hero?.querySelector('.paper-home-shell');
   if(!hero||!sheet||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const ctx=gsap.context(()=>{
    const render=scrollProgress=>{
@@ -49,6 +51,11 @@ function CurvedSwipe(){
       : .78+(scrollProgress-.85)/.15*.22;
     hero.style.setProperty('--tools-progress',String(progress));
     sheet.style.clipPath=sheetClip(progress);
+    if(home){
+     home.style.opacity=String(1-Math.min(1,progress/.34));
+     home.style.visibility=progress>=.34?'hidden':'visible';
+     home.inert=progress>=.34;
+    }
    };
    render(0);
    ScrollTrigger.create({
@@ -58,7 +65,7 @@ function CurvedSwipe(){
     onRefresh:self=>render(self.progress)
    });
   },hero);
-  return()=>{ctx.revert();sheet.style.removeProperty('clip-path');hero.style.removeProperty('--tools-progress')};
+  return()=>{ctx.revert();sheet.style.removeProperty('clip-path');hero.style.removeProperty('--tools-progress');if(home){home.style.removeProperty('opacity');home.style.removeProperty('visibility');home.inert=false}};
  },[]);
  return <span ref={marker} aria-hidden="true" style={{display:'none'}}/>;
 }
@@ -131,21 +138,8 @@ function App(){
   <PurpleCursor/>
   <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#projects">Projects</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
-   <section className="hero hero-reference">
-    <div className="hero-copy">
-     <div className="hero-lockup">
-      <h1><span>JOHN</span><span>WOLF</span></h1>
-      <div className="hero-services" aria-label="Creative disciplines"><span>VISUAL DESIGN</span><span>BRAND DEVELOPMENT</span><span>WEB DESIGN</span></div>
-     </div>
-     <p className="hero-description">I build visual identities and digital experiences that make ideas impossible to overlook.</p>
-     <a className="hero-cta" href="#projects">VIEW PORTFOLIO <span aria-hidden="true">↗</span></a>
-    </div>
-    <div className="hero-visual" aria-label="Portrait area">
-     <div className="hero-purple-shape" aria-hidden="true"/>
-     <img className="hero-portrait" src="/john-wolf-portrait.webp" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
-     <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
-    </div>
-    <a className="hero-scroll" href="#projects">SCROLL <span aria-hidden="true">↓</span></a>
+   <section className="hero hero-reference hero-paper">
+    <PaperHome/>
     <CurvedSwipe/>
     <DesignTools/>
    </section>

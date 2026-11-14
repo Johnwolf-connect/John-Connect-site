@@ -1,19 +1,19 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@800;900&display=swap");
-:root {
+.paper-home-shell {
   font-family: Inter, Arial, sans-serif;
   color: #111;
   background: white;
   font-synthesis: none;
 }
-* {
+.paper-home-shell * {
   box-sizing: border-box;
 }
-body {
+.paper-home-shell {
   margin: 0;
 }
-button,
-a,
-input {
+.paper-home-shell button,
+.paper-home-shell a,
+.paper-home-shell input {
   touch-action: manipulation;
 }
 .review-stage {
@@ -48,7 +48,7 @@ input {
   background: #8648f7;
   border-radius: 50%;
 }
-.composition-title h1 {
+.paper-home-shell .composition-title h1 {
   position: absolute;
   top: 28.7%;
   left: 3.8%;
@@ -155,7 +155,7 @@ input {
   font-variant-numeric: tabular-nums;
   min-width: 70px;
 }
-button {
+.paper-home-shell button {
   border: 1px solid #d9c8ed;
   background: white;
   border-radius: 20px;
@@ -164,9 +164,9 @@ button {
   font: inherit;
   cursor: pointer;
 }
-button:focus-visible,
-a:focus-visible,
-input:focus-visible {
+.paper-home-shell button:focus-visible,
+.paper-home-shell a:focus-visible,
+.paper-home-shell input:focus-visible {
   outline: 2px solid #8648f7;
   outline-offset: 3px;
 }
@@ -184,7 +184,7 @@ input:focus-visible {
     top: 24%;
     left: 5%;
   }
-  .composition-title h1 {
+  .paper-home-shell .composition-title h1 {
     top: 31%;
     font-size: 16.8vw;
   }
@@ -237,3 +237,9 @@ input:focus-visible {
     padding: 8px 10px;
   }
 }
+
+.hero.hero-paper {display:block;padding:0;height:100svh;min-height:100svh;background:#fff;}
+.hero-paper .paper-home-shell.is-home,.is-home .review-stage {height:100svh;min-height:0;width:100%;}
+.paper-home-shell .composition-title h1 {position:absolute;margin:0;font-size:18.3vw;font-weight:900;line-height:.85;letter-spacing:-.035em;}
+.home-load-status {position:absolute;bottom:18px;left:4.5%;z-index:4;color:#625d6c;font-size:12px;max-width:85%;}
+@media(prefers-reduced-motion:reduce){.hero.hero-paper{height:auto}.hero-paper .paper-home-shell.is-home{height:100svh}}
