@@ -207,7 +207,7 @@ function App(){
  return <div>
   <VisualContinuity/>
   <PurpleCursor/>
-  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#work">Work</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#riches">Brand identity</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
+  <header className="header"><a href="#top" className="wordmark">JOHN<span>WOLF</span><b>.</b></a><nav aria-label="Main navigation"><a href="#projects">Projects</a><a href="#design-tools" onClick={openDesignTools}>Design Tools</a><a href="#about">About</a><a href="#contact">Contact</a></nav></header>
   <main id="top">
    <section className="hero hero-reference">
     <div className="hero-copy">
@@ -216,19 +216,29 @@ function App(){
       <div className="hero-services" aria-label="Creative disciplines"><span>VISUAL DESIGN</span><span>BRAND DEVELOPMENT</span><span>WEB DESIGN</span></div>
      </div>
      <p className="hero-description">I build visual identities and digital experiences that make ideas impossible to overlook.</p>
-     <a className="hero-cta" href="#work">VIEW PORTFOLIO <span aria-hidden="true">↗</span></a>
+     <a className="hero-cta" href="#projects">VIEW PORTFOLIO <span aria-hidden="true">↗</span></a>
     </div>
     <div className="hero-visual" aria-label="Portrait area">
      <div className="hero-purple-shape" aria-hidden="true"/>
      <img className="hero-portrait" src="/john-wolf-portrait.webp" alt="Portrait of John Wolf" onError={e=>{e.currentTarget.style.display='none';e.currentTarget.parentElement.classList.add('portrait-missing')}}/>
      <div className="portrait-placeholder" aria-hidden="true"><span>JW<span className="purple">.</span></span></div>
     </div>
-    <a className="hero-scroll" href="#work">SCROLL <span aria-hidden="true">↓</span></a>
+    <a className="hero-scroll" href="#projects">SCROLL <span aria-hidden="true">↓</span></a>
     <CurvedSwipe/>
     <DesignTools/>
    </section>
-   <ScrollGallery projects={projects} onSelect={setActive}/>
-   <BrandGallery/>
+   <section id="projects" aria-labelledby="projects-heading" style={{scrollMarginTop:68}}>
+    <div className="work-intro" style={{paddingBottom:32}}>
+     <span className="kicker">SELECTED WORK</span>
+     <h2 id="projects-heading">Projects.</h2>
+     <nav aria-label="Project categories" style={{display:'flex',flexWrap:'wrap',gap:24}}>
+      <a href="#work" style={{borderBottom:'1px solid #8045db',paddingBottom:8}}>Logo Creations ↗</a>
+      <a href="#riches" style={{borderBottom:'1px solid #8045db',paddingBottom:8}}>Brand Guidelines ↗</a>
+     </nav>
+    </div>
+    <ScrollGallery projects={projects} onSelect={setActive}/>
+    <BrandGallery/>
+   </section>
    <FloatingAbout/>
    <Contact/>
   </main>
