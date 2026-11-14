@@ -63,79 +63,6 @@ function CurvedSwipe(){
  return <span ref={marker} aria-hidden="true" style={{display:'none'}}/>;
 }
 
-const projects=[
- ['Lander','Home grown nursery','lander'],['MotivX','Brand identity','motivx'],
- ['Hasty Movers','Moving & logistics','hasty-movers'],['Coffeeology','Coffee culture','coffeeology'],
- ['Victor Valor','Emblem design','victor-valor'],['Crane Chow','Artisan Asian cuisine','crane-chow'],
- ['The Union Church','Community identity','union-church'],['NURUSH','Wellness & nutrition','nurush'],
- ['InKzilla','Creative identity','inkzilla'],['HopLock','Locksmith identity','hoplock'],
- ['Elite Dominion','Premium identity','elite-dominion'],['Vyra Studios','Creative studio','vyra-studios']
-];
-function Mark({project}){return <img src={'/logos/'+project[2]+'.webp'} alt={project[0]+' logo'} loading="lazy"/>;}
-
-
-function ScrollGallery({projects,onSelect}){
- const galleryRef=useRef(null);
- const [progress,setProgress]=useState(0);
- const [reduced,setReduced]=useState(false);
- useEffect(()=>{
-  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const sync=()=>setReduced(mq.matches);sync();mq.addEventListener?.('change',sync);
-  return()=>mq.removeEventListener?.('change',sync);
- },[]);
- useEffect(()=>{
-  let frame=0;
-  const update=()=>{
-   frame=0;
-   if(!galleryRef.current)return;
-   const rect=galleryRef.current.getBoundingClientRect();
-   const travel=Math.max(1,rect.height-window.innerHeight);
-   setProgress(Math.max(0,Math.min(projects.length-1,(-rect.top/travel)*(projects.length-1))));
-  };
-  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
-  update();window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
-  return()=>{window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(frame)};
- },[projects]);
- const current=Math.max(0,Math.min(projects.length-1,Math.round(progress)));
- return <section id="work" className="scroll-gallery" ref={galleryRef} aria-label="Scroll through selected logo projects">
-  <div className="scroll-gallery-sticky">
-   <aside className="project-info" aria-live="off">
-    <h2 className="logo-creations-title"><strong>Logo</strong> Creations.</h2>
-    <span className="kicker">LOGO SPOTLIGHT / {String(current+1).padStart(2,'0')} — {String(projects.length).padStart(2,'0')}</span>
-    <div className="project-info-morph">
-     {projects.map((project,i)=>{
-      const delta=i-progress,distance=Math.abs(delta);
-      const t=Math.max(0,Math.min(1,(distance-.2)/.6));
-      const blend=1-t*t*(3-2*t);
-      const opacity=reduced?(i===current?1:0):blend;
-      return <div key={project[2]} className="project-info-body project-info-layer" aria-hidden={i!==current}
-       style={{opacity,visibility:opacity>0?'visible':'hidden',transform:reduced?'none':`translateY(${delta*14}px) scale(${1+(1-blend)*.055},${1-(1-blend)*.075}) skewY(${delta*.7}deg)`,filter:reduced?'none':`blur(${(1-blend)*3}px)`}}>
-       <h3>{project[0]}</h3>
-       <p>{project[1]} — original identity design by John Wolf.</p>
-      </div>;
-     })}
-    </div>
-    <button className="project-detail" onClick={()=>onSelect(projects[current])}>View project details ↗</button>
-    <div className="project-progress" aria-hidden="true"><span style={{width:((progress+1)/projects.length*100)+'%'}}/></div>
-   </aside>
-   <div className="logo-stage">
-    {projects.map((project,i)=>{
-     const delta=i-progress;
-     const distance=Math.abs(delta);
-     const scale=reduced?(i===current?1:0.2):Math.max(.12,1-.80*Math.min(1,distance));
-     const y=reduced?(i-current)*130:Math.sign(delta)*(Math.min(1,distance)*22+Math.max(0,distance-1)*11);
-     const opacity=reduced?(i===current?1:0):Math.max(0,(distance<1?1-distance*.68:.32)*Math.min(1,Math.max(0,3.5-distance)));
-     return <button key={project[2]} type="button" className="stage-logo" onClick={()=>onSelect(project)} aria-label={'View '+project[0]} tabIndex={i===current?0:-1} style={{transform:`translate3d(-50%,calc(-50% + ${y}vh),0) scale(${scale})`,opacity,zIndex:100-Math.round(distance*10),pointerEvents:distance<.5?'auto':'none'}}>
-      <Mark project={project}/>
-     </button>;
-    })}
-   </div>
-  </div>
- </section>;
-}
-
-
-
 function PurpleCursor(){
  useEffect(()=>{
   const html=document.documentElement;
@@ -199,11 +126,6 @@ function Contact(){
 }
 
 function App(){
- const [active,setActive]=useState(null);
-
-
- useEffect(()=>{const onKey=e=>{if(e.key==='Escape')setActive(null)};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[]);
- useEffect(()=>{document.body.style.overflow=active?'hidden':'';return()=>document.body.style.overflow=''},[active]);
  return <div>
   <VisualContinuity/>
   <PurpleCursor/>
@@ -231,19 +153,13 @@ function App(){
     <div className="work-intro" style={{paddingBottom:32}}>
      <span className="kicker">SELECTED WORK</span>
      <h2 id="projects-heading">Projects.</h2>
-     <nav aria-label="Project categories" style={{display:'flex',flexWrap:'wrap',gap:24}}>
-      <a href="#work" style={{borderBottom:'1px solid #8045db',paddingBottom:8}}>Logo Creations ↗</a>
-      <a href="#riches" style={{borderBottom:'1px solid #8045db',paddingBottom:8}}>Brand Guidelines ↗</a>
-     </nav>
     </div>
-    <ScrollGallery projects={projects} onSelect={setActive}/>
     <BrandGallery/>
    </section>
    <FloatingAbout/>
    <Contact/>
   </main>
   <footer><span>JOHN WOLF © {new Date().getFullYear()}</span><a href="#top">Back to top ↑</a></footer>
-  {active&&<div className="backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setActive(null)}}><section className="dialog" role="dialog" aria-modal="true" aria-label={active==='riches'?'Riches Cosmetics':active[0]}><button className="close" onClick={()=>setActive(null)} aria-label="Close details">×</button>{active==='riches'?<><span className="kicker">FEATURED CASE STUDY</span><h2>RICHES COSMETICS</h2><blockquote>“Confidence is not an attitude. It is a discipline.”</blockquote><p>From logo and brand personality to a 27-page identity guideline: a visual doctrine built on clarity, restraint, and consistency.</p><p className="muted">Original guideline pages and editorial artwork will be added to this detailed view.</p></>:<><span className="kicker">LOGO DESIGN / SELECTED WORK</span><h2>{active[0]}</h2><div className="dialog-mark"><Mark project={active}/></div><p>{active[1]} — original identity design by John Wolf.</p></>}</section></div>}
  </div>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
