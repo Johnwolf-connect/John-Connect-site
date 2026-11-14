@@ -96,10 +96,11 @@
 .head-layer {
   position: absolute;
   z-index: 3;
-  width: 25%;
-  height: 39%;
-  left: 37.5%;
-  top: 34%;
+  /* Placement measured from the supplied 1920×1080 head-position SVG. */
+  width: 17.3%;
+  height: 34.8%;
+  left: 40.65%;
+  top: 35%;
   outline: none;
 }
 .slide-dots {
