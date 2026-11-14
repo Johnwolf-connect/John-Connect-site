@@ -148,7 +148,7 @@ export default function PaperHome({review=false}) {
         </div>
         {!review && <div className="canva-home-artwork" aria-hidden="true">
           {["subtext.svg","large text.svg","Large text outline.svg","sub body text.svg","body text.svg","identicators.svg","swipe icon.svg"].map(name => (
-            <img key={name} src={`/new-home-canva/${encodeURIComponent(name)}`} alt="" draggable="false" />
+            <img key={name} src={`/homepage-canva/${encodeURIComponent(name)}`} alt="" draggable="false" />
           ))}
         </div>}
         <canvas
