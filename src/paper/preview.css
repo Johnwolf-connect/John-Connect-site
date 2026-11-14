@@ -1,0 +1,239 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=League+Spartan:wght@800;900&display=swap");
+:root {
+  font-family: Inter, Arial, sans-serif;
+  color: #111;
+  background: white;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+a,
+input {
+  touch-action: manipulation;
+}
+.review-stage {
+  height: calc(100svh - 124px);
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #fff;
+}
+.composition-title {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.composition-title p {
+  position: absolute;
+  top: 22.7%;
+  left: 4.4%;
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(14px, 2.05vw, 40px);
+  letter-spacing: 0.025em;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+.composition-title p i {
+  width: 0.6em;
+  height: 0.6em;
+  background: #8648f7;
+  border-radius: 50%;
+}
+.composition-title h1 {
+  position: absolute;
+  top: 28.7%;
+  left: 3.8%;
+  margin: 0;
+  color: #8648f7;
+  font-family: "League Spartan", Arial, sans-serif;
+  font-size: 16.8vw;
+  line-height: 0.85;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}
+.paper-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+.information-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.disciplines {
+  position: absolute;
+  top: 58.5%;
+  left: 4.5%;
+  right: 10%;
+  display: grid;
+  grid-template-columns: 19% 42% 16% 23%;
+  font-size: clamp(12px, 1.65vw, 32px);
+  white-space: nowrap;
+}
+.intro-copy {
+  position: absolute;
+  top: 66.4%;
+  left: 4.5%;
+  font-size: clamp(12px, 1.4vw, 27px);
+  line-height: 1.4;
+  margin: 0;
+  max-width: 35%;
+}
+.head-layer {
+  position: absolute;
+  z-index: 3;
+  width: 25%;
+  height: 39%;
+  left: 37.5%;
+  top: 34%;
+  outline: none;
+}
+.slide-dots {
+  position: absolute;
+  top: 71%;
+  left: 41.5%;
+  display: flex;
+  gap: 1.1vw;
+}
+.slide-dots i,
+.slide-dots b {
+  width: 1.25vw;
+  height: 1.25vw;
+  border-radius: 50%;
+  background: #c6a8fb;
+}
+.slide-dots b {
+  background: #8648f7;
+}
+.cards-only .composition-title,
+.cards-only .information-layer,
+.cards-only .head-layer {
+  visibility: hidden;
+}
+.review-controls {
+  min-height: 124px;
+  padding: 12px 24px;
+  background: #faf9fc;
+  border-top: 1px solid #e8e2f1;
+  font-size: 12px;
+}
+.review-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.review-heading a {
+  color: #5c289f;
+  text-decoration: none;
+}
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.timeline-controls input {
+  flex: 1;
+  min-width: 30px;
+  accent-color: #8648f7;
+}
+.timeline-controls output {
+  font-variant-numeric: tabular-nums;
+  min-width: 70px;
+}
+button {
+  border: 1px solid #d9c8ed;
+  background: white;
+  border-radius: 20px;
+  padding: 7px 15px;
+  color: #452078;
+  font: inherit;
+  cursor: pointer;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #8648f7;
+  outline-offset: 3px;
+}
+.review-controls p {
+  margin: 10px 0 0;
+  color: #625d6c;
+  line-height: 1.4;
+}
+@media (max-width: 600px) {
+  .review-stage {
+    height: calc(100svh - 178px);
+    min-height: 440px;
+  }
+  .composition-title p {
+    top: 24%;
+    left: 5%;
+  }
+  .composition-title h1 {
+    top: 31%;
+    font-size: 16.8vw;
+  }
+  .head-layer {
+    width: 50%;
+    height: 35%;
+    left: 25%;
+    top: 38%;
+  }
+  .disciplines {
+    top: 47%;
+    left: 5%;
+    right: 5%;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 45%;
+    font-size: 10px;
+    white-space: normal;
+  }
+  .intro-copy {
+    top: 79%;
+    left: 5%;
+    max-width: 90%;
+    font-size: 12px;
+  }
+  .slide-dots {
+    top: 74%;
+    left: 36%;
+    gap: 2vw;
+  }
+  .slide-dots i,
+  .slide-dots b {
+    width: 2.5vw;
+    height: 2.5vw;
+  }
+  .review-controls {
+    min-height: 178px;
+    padding: 12px;
+  }
+  .timeline-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .timeline-controls label {
+    display: none;
+  }
+  .timeline-controls input {
+    width: 36%;
+  }
+  .timeline-controls button {
+    padding: 8px 10px;
+  }
+}
