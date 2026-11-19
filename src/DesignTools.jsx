@@ -48,6 +48,12 @@ export default function DesignTools(){
   let previousTime=null,rotation=0,exitAngles=null;
   const positions=new Map();
   const animate=time=>{
+   // Keep one clock alive through GSAP pin/unpin and browser-tab visibility.
+   // IntersectionObserver can report a transformed pinned ancestor as outside
+   // the viewport; cancelling its only RAF there leaves no frame to recover.
+   frame.current=requestAnimationFrame(animate);
+   const bounds=host.getBoundingClientRect();
+   if(document.hidden||bounds.bottom<=0||bounds.top>=window.innerHeight){previousTime=null;return}
    const p=clamp(Number(hero?.style.getPropertyValue('--tools-progress')||0),0,1);
    const elapsed=previousTime===null?0:Math.min(50,Math.max(0,time-previousTime))/1000;
    previousTime=time;
@@ -132,15 +138,9 @@ export default function DesignTools(){
     node.style.pointerEvents=interactive?'auto':'none';
     node.tabIndex=interactive?0:-1;
    });
-   frame.current=requestAnimationFrame(animate);
   };
-  const visibility=new IntersectionObserver(([entry])=>{
-   cancelAnimationFrame(frame.current);
-   previousTime=null;
-   if(entry.isIntersecting)frame.current=requestAnimationFrame(animate);
-  });
-  visibility.observe(hero||host);
-  return()=>{visibility.disconnect();cancelAnimationFrame(frame.current);host.inert=false};
+  frame.current=requestAnimationFrame(animate);
+  return()=>{cancelAnimationFrame(frame.current);host.inert=false};
  },[reduced]);
  useEffect(()=>()=>{flightTween.current?.kill();if(travel.current){gsap.killTweensOf(travel.current);travel.current.remove()}},[]);
 

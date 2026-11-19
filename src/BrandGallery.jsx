@@ -3,6 +3,7 @@ import './brand-gallery.css';
 import {createPortal} from 'react-dom';
 import {gsap} from 'gsap';
 import brands from './brand-guidelines.json';
+import CaseStudyStories from './CaseStudyStories.jsx';
 
 export default function BrandGallery(){
  const [position,setPosition]=useState(0),[opened,setOpened]=useState(false);
@@ -148,6 +149,7 @@ export default function BrandGallery(){
   const content=Array.from(page.children).filter(node=>node!==veil);
   const r=origin.current;
   if(!r||window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+   gsap.set(content,{autoAlpha:1});
    gsap.set(veil,{autoAlpha:0});return;
   }
   const curved='polygon(1% 3%,25% 1%,50% 0%,75% 1%,97% 3%,100% 48%,98% 96%,74% 100%,48% 99%,1% 94%)';
@@ -158,9 +160,9 @@ export default function BrandGallery(){
   gsap.set(page,{x:r.left,y:r.top,scaleX:r.width/window.innerWidth,scaleY:r.height/window.innerHeight,skewY:0,rotationX:0,transformOrigin:'0 0',clipPath:curved});
   // Blank white paper leads the transition; the document is revealed last.
   const animation=gsap.timeline({onComplete:()=>gsap.set(page,{clearProps:'transform,transformOrigin,clipPath'})});
-  animation.to(page,{duration:.16,clipPath:bowed,ease:'power1.inOut'})
-   .to(page,{x:r.left*.28,y:r.top*.2,scaleX:.91,scaleY:.87,skewY:-2.5,rotationX:5,clipPath:bowed,duration:.62,ease:'power2.inOut'})
-   .to(page,{x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:flat,duration:.38,ease:'power2.out'})
+  animation.to(page,{duration:.10,clipPath:bowed,ease:'power1.inOut'})
+   .to(page,{x:r.left*.28,y:r.top*.2,scaleX:.91,scaleY:.87,skewY:-2.5,rotationX:5,clipPath:bowed,duration:.24,ease:'power2.inOut'})
+   .to(page,{x:0,y:0,scaleX:1,scaleY:1,skewY:0,rotationX:0,clipPath:flat,duration:.20,ease:'power2.out'})
    .set(content,{autoAlpha:1})
    .to(veil,{autoAlpha:0,duration:.3,ease:'power1.inOut'});
   readerMotion.current=animation;
@@ -176,66 +178,6 @@ export default function BrandGallery(){
   setComparisonPosition(50);
   progressRing.current?.setAttribute('stroke-dashoffset','87.965');
   loopReady.current=true;
- },[opened,current.id]);
- // Load the visible pages first and warm a short buffer in the scroll direction.
- useLayoutEffect(()=>{
-  if(!opened||!reader.current)return;
-  const element=reader.current;
-  const images=Array.from(element.querySelectorAll('img[data-page-src]'));
-  const cycle=element.querySelector('.brand-reader-cycle');
-  const prefetching=new Set();
-  let frame=0,direction=1,lastY=element.scrollTop;
-  const requestPage=(image,priority)=>{
-   if(image.hasAttribute('src')){
-    if(priority==='high')image.fetchPriority='high';
-    return;
-   }
-   image.fetchPriority=priority;
-   image.src=image.dataset.pageSrc;
-   if(priority==='low'&&!image.complete)prefetching.add(image);
-  };
-  const update=()=>{
-   frame=0;
-   const y=element.scrollTop;
-   const cycleHeight=cycle?.offsetHeight||0;
-   let movement=y-lastY;
-   if(cycleHeight)movement-=Math.round(movement/cycleHeight)*cycleHeight;
-   if(movement)direction=Math.sign(movement);
-   lastY=y;
-
-   const viewport=element.getBoundingClientRect();
-   const before=[],after=[];
-   for(const image of images){
-    const page=image.parentElement.getBoundingClientRect();
-    if(page.bottom<=viewport.top)before.push(image);
-    else if(page.top>=viewport.bottom)after.push(image);
-    else requestPage(image,'high');
-   }
-   before.reverse();
-   const ahead=direction>0?after:before;
-   const behind=direction>0?before:after;
-   const buffer=[...ahead.slice(0,3),...behind.slice(0,1)];
-   for(const image of buffer){
-    if(prefetching.size>=2)break;
-    requestPage(image,'low');
-   }
-  };
-  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update)};
-  const onImageSettled=event=>{
-   if(prefetching.delete(event.target))schedule();
-  };
-  element.addEventListener('scroll',schedule,{passive:true});
-  element.addEventListener('load',onImageSettled,true);
-  element.addEventListener('error',onImageSettled,true);
-  window.addEventListener('resize',schedule);
-  update();
-  return()=>{
-   cancelAnimationFrame(frame);
-   element.removeEventListener('scroll',schedule);
-   element.removeEventListener('load',onImageSettled,true);
-   element.removeEventListener('error',onImageSettled,true);
-   window.removeEventListener('resize',schedule);
-  };
  },[opened,current.id]);
  // Ease with scroll speed while keeping space between the page images.
  useEffect(()=>{
@@ -359,7 +301,7 @@ export default function BrandGallery(){
  },[opened]);
 
  const films=current.films?.map(film=><figure className="brand-reader-film" key={film.src}>
-       <video src={film.src} poster={film.poster} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label={film.title}/>
+       <video src={film.src} poster={film.poster} playsInline muted loop autoPlay controls disablePictureInPicture disableRemotePlayback preload="metadata" aria-label={film.title}/>
        <figcaption>{film.title}</figcaption>
       </figure>);
 
@@ -406,10 +348,11 @@ export default function BrandGallery(){
     {details&&<aside className="brand-reader-details"><h3>{current.name}</h3>{isApparel?<p>A collection of apparel graphics designed by John Wolf for Bring Love Back Clothing.</p>:isDatingApp?<p>A dating app concept by John Wolf, presented through a visual identity, three app screens, and two campaign films.</p>:<><p>Brand identity guidelines by John Wolf.</p><p>{current.pages.length-1} pages covering this brand’s visual system.</p><p>Scroll or drag vertically to explore. The guideline repeats continuously.</p></>}</aside>}
     <div ref={reader} className="brand-reader-pages" key={current.id} onScroll={loopScroll} tabIndex={0} aria-label={readerLabel+' gallery'}>
      {[0,1,2].map(cycle=><div className={isApparel?'brand-reader-cycle brand-reader-apparel':'brand-reader-cycle'} key={cycle}>
+      <CaseStudyStories id={current.id} position="intro"/>
       {current.pages.slice(1).map((page,i)=>{
        const sourceIndex=i+1;
        const size=current.sizes?.[sourceIndex]||[1200,675];
-       const still=<figure><img data-page-src={page} alt={current.alt?.[sourceIndex]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[sourceIndex]||String(i+1).padStart(2,'0')+' / '+(current.pages.length-1)}</figcaption></figure>;
+       const still=<figure><img src={page} loading="lazy" data-page-src={page} alt={current.alt?.[sourceIndex]||current.name+' guideline page '+(i+1)} width={size[0]} height={size[1]} style={{aspectRatio:size[0]+' / '+size[1]}} draggable="false" decoding="async"/><figcaption>{current.captions?.[sourceIndex]||String(i+1).padStart(2,'0')+' / '+(current.pages.length-1)}</figcaption></figure>;
        return <React.Fragment key={page}>
         {isDatingApp&&i===0&&films?.[0]}
         {isDatingApp&&i===2&&films?.[1]}
@@ -429,7 +372,8 @@ export default function BrandGallery(){
         </figure>}
        </React.Fragment>;
       })}
-      {isApparel&&<figure className="brand-reader-film"><video src={current.video} playsInline muted loop disablePictureInPicture disableRemotePlayback preload="none" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
+      <CaseStudyStories id={current.id} position="closing"/>
+      {isApparel&&<figure className="brand-reader-film"><video src={current.video} playsInline muted loop autoPlay controls disablePictureInPicture disableRemotePlayback preload="metadata" aria-label="Bring Love Back Clothing collection film"/><figcaption>Collection film · Silent</figcaption></figure>}
       {isDatingApp?films?.slice(2):films}
      </div>)}
     </div>
