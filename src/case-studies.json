@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "global": {
+    "reader": "existing infinite-scroll brand reader",
+    "opening": "fast pull-forward, not paper-unfold",
+    "video": {
+      "autoplay": true,
+      "muted": true,
+      "loop": true,
+      "playsInline": true
+    },
+    "highlight": "translucent imperfect marker stroke over selected words; preserve existing fonts",
+    "preserveExistingAssets": true
+  },
+  "projects": [
+    {
+      "id": "chick-muy-caliente",
+      "highlight": "#F4D21B",
+      "highlightNote": "match exact yellow from supplied artwork",
+      "intro": "I was challenged to create the identity and voice for a chicken food truck, with the freedom to develop a brand that could stand on its own. My vision was to create something memorable, simple, fun, and highly marketable—an identity with enough personality to be recognized instantly and enough consistency to work across every application. But I didn't want to build a brand that simply sold chicken. I wanted to create an attitude.",
+      "beats": [
+        {
+          "text": "Don't Be Chicken.",
+          "asset": "social-media slogans"
+        },
+        {
+          "text": "That became the defining slogan. A playful challenge to embrace bold flavor, take the heat, and enjoy the experience. I brought that personality to life through an expressive chicken mascot, a bold visual language, and a collection of daring, humorous messages.",
+          "asset": "campaign artwork"
+        },
+        {
+          "text": "The mascot's expressions became a way to communicate different heat levels, giving the identity an additional layer of personality and functionality.",
+          "asset": "logo and mascot"
+        },
+        {
+          "text": "I selected a vibrant palette of red, yellow, black, and white to communicate energy, warmth, confidence, and consistency.",
+          "asset": "color palette"
+        },
+        {
+          "text": "Combined with distinctive typography and a playful icon system, these elements formed a cohesive identity designed to be recognizable, adaptable, and unmistakably Chick Muy Caliente. The lettering is bold and daring, with a second style that feels as if a confident chicken could write.",
+          "asset": "icons and typography"
+        },
+        {
+          "text": "The goal was never just to make the brand look appetizing. It was to give it a personality people could remember."
+        }
+      ]
+    },
+    {
+      "id": "riches",
+      "highlight": "#BFA18B",
+      "intro": "I approached Riches Cosmetics with a vision to create an identity that went beyond traditional beauty branding. I wanted to build something confident, sophisticated, and intentional—a brand that didn't rely on extravagance to communicate its value. Confidence isn't something you put on. It's something you already possess. Riches would serve as a reminder of that confidence, rather than a promise to create it.",
+      "layout": {
+        "type": "grid",
+        "columns": 2,
+        "rows": 2,
+        "asset": "four portraits with gaze directed toward Riches text",
+        "totalFootprint": "one normal-sized card"
+      },
+      "tone": "editorial, restrained, self-assured"
+    },
+    {
+      "id": "bring-love-back",
+      "highlight": null,
+      "intro": "I was challenged to create a unique collection of clothing designs that expressed one simple message: Bring Love Back. My inspiration came from the words themselves. I began exploring the different ways love could be visually represented. Through hearts, relationships, typography, and symbolic imagery, I wanted to discover how a single message could take on different forms while maintaining its meaning. The challenge was to make each design feel unique, fashionable, and expressive, allowing the message to become part of the clothing rather than simply something printed on it.",
+      "sequence": [
+        "intro",
+        "collection overview",
+        "Better Half comparison slider",
+        "lifestyle photos",
+        "production photography",
+        "looping collection video",
+        "One message. Different expressions of love."
+      ],
+      "comparison": {
+        "title": "Better Half",
+        "reuseExisting": true,
+        "initialPosition": 50
+      }
+    },
+    {
+      "id": "inkzilla",
+      "highlight": "#D32F2F",
+      "intro": "Inkzilla was already a name my client identified with. My challenge was to transform it into a distinctive wordmark that represented both the artist and the business behind it. I started with an existing typeface, reshaping its character and introducing custom-drawn details. Subtle hints of an octopus—the king of ink—became part of the design, while a classic, old-school grain gave the lettering a sense of history and personality. I wanted the finished mark to feel bold, recognizable, and unmistakably personal. Not simply a logo, but a signature they could proudly leave behind.",
+      "sequence": [
+        "finished wordmark",
+        "custom letter and octopus details",
+        "grain and applications",
+        "images 5 and 6 in shared comparison slider",
+        "looping Inkzilla video"
+      ]
+    },
+    {
+      "id": "brewty",
+      "highlight": "#2557C8",
+      "highlightNote": "sample blue; use exact dominant brand blue from original artwork",
+      "intro": "I wanted Brewty to feel like more than a coffee brand. My vision was to create an identity that captured the warmth, calmness, and simple pleasure of enjoying a good cup of coffee. The name brings brew and beauty together, echoed in the slogan Life's a Brewty. Brown represents the richness of coffee, blue introduces a sense of calm, and cream brings the two together. The flowing squiggly patterns were inspired by steam rising from freshly brewed coffee, carrying its aroma toward your nose. The identity captures not just how coffee looks, but how the experience feels.",
+      "layout": {
+        "type": "grid",
+        "columns": 3,
+        "rows": 1,
+        "images": [
+          1,
+          2,
+          3
+        ],
+        "equalSize": true,
+        "evenSpacing": true
+      },
+      "videos": [
+        "Brewty aimation with pattern.mp4",
+        "Brewty vid.mp4"
+      ],
+      "tone": "calm premium opening; character artwork as supporting element"
+    },
+    {
+      "id": "chit-chat",
+      "highlight": "#F7B00B",
+      "intro": "Chit-Chat began as an idea of my own. I envisioned a podcast where everyday conversations could be honest, hilarious, thought-provoking, and occasionally serious, without the weight of political debate. I wanted to create a space where different opinions could be expressed openly, facts could be acknowledged, and humor could always find its way into the conversation. That personality became the inspiration behind the visual identity. I designed the logo around a speech bubble, giving conversation a recognizable visual home. Looking closely at the C reveals a playful detail inspired by the familiar clock it finger gesture. With bold yellow, black, and white, I created an identity that feels expressive, confident, and unapologetically conversational. Because sometimes the best conversations are the ones where everyone gets to speak, laugh, and be heard.",
+      "sequence": [
+        "original speech-bubble logo",
+        "C hand-gesture detail",
+        "yellow black white logo variants",
+        "new microphone composition without microphone brand lettering",
+        "conceptual two-person podcast mood image"
+      ],
+      "doodles": "supporting storytelling and social-media graphics, not logo",
+      "gestureAnimation": "optional; not approved as required"
+    }
+  ]
+}
