@@ -247,7 +247,7 @@
 
 /* Updated Canva artwork layers, over the previous paper-home typography. */
 .is-home .composition-title,.is-home .information-layer{visibility:hidden}
-.is-home .paper-layer{visibility:hidden}
+.is-home .paper-layer{visibility:visible}
 .is-home .canva-home-artwork{position:absolute;inset:0;z-index:2;pointer-events:none}
 .is-home .canva-home-artwork img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
 .is-home .head-layer{z-index:3}
